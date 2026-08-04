@@ -1063,7 +1063,7 @@
             <div class="modal-actions"><button onclick="closeModals()" class="btn btn-outline">إغلاق</button><button onclick="saveRecipeIngredients()" class="btn btn-primary"><i class="fas fa-save"></i> حفظ المكونات</button></div>
     </div></div>
 
-    <!-- ===== الإعدادات (مع خيار تغيير كلمة المرور) ===== -->
+    <!-- ===== الإعدادات (مع زر تغيير كلمة المرور) ===== -->
     <div class="modal-overlay" id="settingsModal"><div class="modal-box"><h3><i class="fas fa-cog"></i> إعدادات التكلفة والتسعير</h3>
             <div class="field-group"><label>نسبة الهدر العامة %</label><input type="number" id="globalWastePercent" step="0.1" /></div>
             <div class="field-group"><label>نسبة تكلفة المواد المستهدفة % (Food Cost %)</label><input type="number" id="foodCostPercent" step="0.1" /></div>
@@ -1077,28 +1077,38 @@
                 </ul>
             </div>
             
-            <!-- ===== حقل تغيير كلمة المرور ===== -->
+            <!-- زر تغيير كلمة المرور -->
             <div style="border-top: 1px solid var(--border); margin-top: 20px; padding-top: 20px;">
-                <h4 style="color: var(--accent-soft); margin-bottom: 10px;"><i class="fas fa-key"></i> تغيير كلمة المرور</h4>
-                <div class="field-group">
-                    <label>كلمة المرور الحالية</label>
-                    <input type="password" id="oldPassword" placeholder="أدخل كلمة المرور الحالية" />
-                </div>
-                <div class="field-group">
-                    <label>كلمة المرور الجديدة</label>
-                    <input type="password" id="newPassword" placeholder="أدخل كلمة المرور الجديدة (6 أحرف على الأقل)" />
-                </div>
-                <div class="field-group">
-                    <label>تأكيد كلمة المرور الجديدة</label>
-                    <input type="password" id="confirmPassword" placeholder="أعد إدخال كلمة المرور الجديدة" />
-                </div>
-                <button class="btn btn-primary" onclick="changePassword()" style="width:100%;">
-                    <i class="fas fa-save"></i> تحديث كلمة المرور
+                <button class="btn btn-primary" onclick="openChangePasswordModal()" style="width:100%;">
+                    <i class="fas fa-key"></i> تغيير كلمة المرور
                 </button>
             </div>
             
             <div class="modal-actions"><button onclick="closeModals()" class="btn btn-outline">إلغاء</button><button onclick="saveSettings()" class="btn btn-primary">حفظ</button></div>
     </div></div>
+
+    <!-- ===== منبثقة تغيير كلمة المرور (مودال منفصل) ===== -->
+    <div class="modal-overlay" id="changePasswordModal">
+        <div class="modal-box">
+            <h3><i class="fas fa-key"></i> تغيير كلمة المرور</h3>
+            <div class="field-group">
+                <label>كلمة المرور الحالية</label>
+                <input type="password" id="oldPassword" placeholder="أدخل كلمة المرور الحالية" />
+            </div>
+            <div class="field-group">
+                <label>كلمة المرور الجديدة</label>
+                <input type="password" id="newPassword" placeholder="أدخل كلمة المرور الجديدة (6 أحرف على الأقل)" />
+            </div>
+            <div class="field-group">
+                <label>تأكيد كلمة المرور الجديدة</label>
+                <input type="password" id="confirmPassword" placeholder="أعد إدخال كلمة المرور الجديدة" />
+            </div>
+            <div class="modal-actions">
+                <button onclick="closeModals()" class="btn btn-outline">إلغاء</button>
+                <button onclick="changePassword()" class="btn btn-primary">تحديث كلمة المرور</button>
+            </div>
+        </div>
+    </div>
 
     <div class="modal-overlay" id="confirmModal"><div class="modal-box"><h3 id="confirmTitle"></h3><p id="confirmMessage"></p><div class="modal-actions"><button onclick="closeModals()" class="btn btn-outline">إلغاء</button><button onclick="confirmDelete()" class="btn btn-danger">حذف</button></div></div></div>
     <div class="modal-overlay" id="restaurantModal"><div class="modal-box"><h3><i class="fas fa-store"></i> تعديل اسم المطعم</h3><input type="text" id="restaurantNameInput" /><div class="modal-actions"><button onclick="closeModals()" class="btn btn-outline">إلغاء</button><button onclick="updateRestaurantName()" class="btn btn-primary">حفظ</button></div></div></div>
@@ -1328,8 +1338,10 @@
             t._t = setTimeout(() => t.classList.remove('show'), 4000);
         }
 
-        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
-            pendingDelete = null; }
+        function closeModals() {
+            document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+            pendingDelete = null;
+        }
 
         async function callServer(fn, params = {}, showLoad = true) {
             if (showLoad) showLoading();
@@ -1747,30 +1759,32 @@
         }
 
         // ============================================================
-        // دوال تغيير كلمة المرور (مضافة)
+        // دوال تغيير كلمة المرور (مودال منفصل)
         // ============================================================
+        function openChangePasswordModal() {
+            // إخفاء مودال الإعدادات (اختياري) وفتح مودال تغيير كلمة المرور
+            // نقوم فقط بفتح المودال الجديد، يمكن إبقاء الإعدادات مفتوحة أو إغلاقها
+            document.getElementById('changePasswordModal').classList.add('active');
+        }
+
         async function changePassword() {
             const oldPass = document.getElementById('oldPassword').value.trim();
             const newPass = document.getElementById('newPassword').value.trim();
             const confirmPass = document.getElementById('confirmPassword').value.trim();
 
-            // التحقق من صحة المدخلات
             if (!oldPass || !newPass || !confirmPass) {
                 showToast('يرجى ملء جميع الحقول', true);
                 return;
             }
-
             if (newPass.length < 6) {
                 showToast('كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل', true);
                 return;
             }
-
             if (newPass !== confirmPass) {
                 showToast('كلمة المرور الجديدة وتأكيدها غير متطابقين', true);
                 return;
             }
 
-            // إعداد البيانات للإرسال إلى السيرفر
             const params = {
                 username: currentUserEmail,
                 oldPassword: oldPass,
@@ -1782,12 +1796,11 @@
                 const result = await callServer('updateUser', params, false);
                 if (result.success) {
                     showToast('✅ تم تحديث كلمة المرور بنجاح');
-                    // تفريغ الحقول
                     document.getElementById('oldPassword').value = '';
                     document.getElementById('newPassword').value = '';
                     document.getElementById('confirmPassword').value = '';
-                    // إغلاق المودال بعد ثانية
-                    setTimeout(() => closeModals(), 1500);
+                    // إغلاق مودال تغيير كلمة المرور
+                    document.getElementById('changePasswordModal').classList.remove('active');
                 } else {
                     showToast('❌ ' + (result.error || 'فشل تحديث كلمة المرور'), true);
                 }
