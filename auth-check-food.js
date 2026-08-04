@@ -7,7 +7,7 @@
 
     /* ─── الإعدادات الخاصة بـ Food Cost ─── */
     const SECRET_KEY = "F00dC0st_S3cur3_K3y_2026!"; // مفتاح الدخول
-    const LOGIN_PAGE = "Food Cost-FG.html"; // صفحة الدخول الخاصة بفود كوست
+    const LOGIN_PAGE = "Food Cost -FG.html"; // صفحة الدخول الخاصة بفود كوست
 
     /* ─── جلب البيانات ─── */
     const token     = localStorage.getItem("foodUserToken"); // استخدام مفتاح مختلف لتجنب التداخل
