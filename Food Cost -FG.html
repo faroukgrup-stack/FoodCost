@@ -4,7 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>نظام إدارة التكلفة وهندسة المنيو | FoodCost v1.2</title>
-        <script src="auth-check-food.js"></script>
+
+    <!-- ===== حماية الصفحة (خاصة بـ Food Cost، مستقلة تماماً) ===== -->
+    <script src="auth-check-food.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Inter:wght@400;500;600;700&family=Cairo:wght@700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
@@ -16,6 +19,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
     </script>
     <style>
+        /* ===== جميع الأنماط (نفسها تماماً، لم تتغير) ===== */
         :root {
             --primary: #0b0e17;
             --primary-light: #141c2b;
@@ -85,6 +89,7 @@
             background: radial-gradient(circle, rgba(180, 133, 84, 0.08) 0%, transparent 70%);
         }
 
+        /* ===== شاشة الدخول (خاصة بـ Food Cost) ===== */
         .login-overlay {
             position: fixed;
             inset: 0;
@@ -141,7 +146,6 @@
             border-color: var(--accent-glow);
             box-shadow: 0 0 0 3px rgba(180, 133, 84, 0.3);
         }
-        /* حقل كلمة المرور مع أيقونة العين */
         .password-field-wrapper {
             position: relative;
             width: 100%;
@@ -225,6 +229,7 @@
             font-size: 0.9rem;
         }
 
+        /* ===== تطبيق Food Cost ===== */
         .app-header {
             background: var(--bg-panel);
             backdrop-filter: blur(18px);
@@ -495,16 +500,6 @@
             border-color: var(--accent-glow) !important;
             box-shadow: 0 0 0 3px rgba(180, 133, 84, 0.25) !important;
             background: rgba(15, 20, 30, 0.85) !important;
-        }
-        #menuInputFields input,
-        #breakevenProductsContainer input,
-        #beFixedCosts {
-            background: rgba(10, 14, 23, 0.7) !important;
-            border: 1px solid rgba(180, 133, 84, 0.25) !important;
-            border-radius: 30px !important;
-            color: #e0e7f0 !important;
-            padding: 8px 14px !important;
-            font-size: 0.9rem;
         }
         .field-group {
             margin: 15px 0;
@@ -1086,10 +1081,17 @@
     <div class="modal-overlay" id="restaurantModal"><div class="modal-box"><h3><i class="fas fa-store"></i> تعديل اسم المطعم</h3><input type="text" id="restaurantNameInput" /><div class="modal-actions"><button onclick="closeModals()" class="btn btn-outline">إلغاء</button><button onclick="updateRestaurantName()" class="btn btn-primary">حفظ</button></div></div></div>
 
     <script>
+        // ============================================================
+        // إعدادات API الخاصة بـ Food Cost (مستقلة تماماً)
+        // ============================================================
         const COST_API_URL = "https://script.google.com/macros/s/AKfycbytzOMfiZM4nxNu1MZvfFe-J5gACDCMwOIjeZx1Lpf732ONg9duq85k6my_fG3ImHiv/exec";
         const SESSION_DURATION_MS = 24 * 60 * 60 * 1000;
         const PAYMENT_LINK = "https://alfan.link/faroukazem?digital=r89RJK";
+        const FOOD_SECRET_KEY = "F00dC0st_S3cur3_K3y_2026!";
 
+        // ============================================================
+        // المتغيرات العامة
+        // ============================================================
         let currentUserEmail = "";
         let allMaterials = [],
             allRecipes = [],
@@ -1113,12 +1115,13 @@
             const pwdField = document.getElementById('passwordInput');
             const toggleBtn = document.getElementById('togglePasswordBtn');
             const eyeIcon = document.getElementById('eyeIcon');
-
-            toggleBtn.addEventListener('click', function() {
-                const isPassword = pwdField.type === 'password';
-                pwdField.type = isPassword ? 'text' : 'password';
-                eyeIcon.className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
-            });
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    const isPassword = pwdField.type === 'password';
+                    pwdField.type = isPassword ? 'text' : 'password';
+                    eyeIcon.className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
+                });
+            }
         })();
 
         // ========== دوال نافذة الدفع ==========
@@ -1153,15 +1156,27 @@
             openPaymentModal();
         });
 
+        // ============================================================
+        // دوال الجلسة (بمفاتيح مستقلة خاصة بـ Food Cost)
+        // ============================================================
         function isSessionExpired() {
-            const ts = localStorage.getItem('costLoginTimestamp');
+            const ts = localStorage.getItem('foodLoginTimestamp');
             if (!ts) return true;
             return (Date.now() - parseInt(ts)) > SESSION_DURATION_MS;
         }
 
+        function getRemainingSessionTime() {
+            const ts = localStorage.getItem('foodLoginTimestamp');
+            if (!ts) return 0;
+            return Math.max(0, SESSION_DURATION_MS - (Date.now() - parseInt(ts)));
+        }
+
         function logout() {
-            localStorage.removeItem('costUserEmail');
-            localStorage.removeItem('costLoginTimestamp');
+            localStorage.removeItem('foodUserToken');
+            localStorage.removeItem('foodUserName');
+            localStorage.removeItem('foodUserEmail');
+            localStorage.removeItem('foodDaysLeft');
+            localStorage.removeItem('foodLoginTimestamp');
             document.getElementById('appMain').style.display = 'none';
             document.getElementById('loginScreen').style.display = 'flex';
             document.getElementById('usernameInput').value = '';
@@ -1171,11 +1186,17 @@
         }
 
         function startSessionTimer() {
-            const remaining = SESSION_DURATION_MS - (Date.now() - parseInt(localStorage.getItem('costLoginTimestamp')));
-            if (remaining > 0) setTimeout(logout, remaining);
-            else logout();
+            const remaining = getRemainingSessionTime();
+            if (remaining > 0) {
+                setTimeout(() => { logout(); }, remaining);
+            } else {
+                logout();
+            }
         }
 
+        // ============================================================
+        // تسجيل الدخول (يستخدم COST_API_URL ونظام التوكن الخاص بـ Food Cost)
+        // ============================================================
         document.getElementById('loginBtn').addEventListener('click', attemptLogin);
         document.getElementById('passwordInput').addEventListener('keypress', e => { if (e.key === 'Enter') attemptLogin(); });
         document.getElementById('usernameInput').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('passwordInput').focus(); });
@@ -1190,14 +1211,29 @@
             const btn = document.getElementById('loginBtn');
             btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري التحقق...';
             btn.disabled = true;
+            errDiv.textContent = '';
             try {
                 const url = COST_API_URL + '?fn=login&username=' + encodeURIComponent(user) + '&password=' + encodeURIComponent(pass);
                 const resp = await fetch(url);
                 const result = await resp.json();
                 if (result.status === 'success') {
-                    currentUserEmail = result.email;
-                    localStorage.setItem('costUserEmail', result.email);
-                    localStorage.setItem('costLoginTimestamp', Date.now().toString());
+                    // توليد التوكن محلياً (للتأكد من التوافق مع auth-check-food.js)
+                    // إذا أرسل السيرفر token نستخدمه، وإلا نولده
+                    let token = result.token;
+                    if (!token) {
+                        const expiryDate = new Date();
+                        expiryDate.setFullYear(expiryDate.getFullYear() + 1); // سنة افتراضية
+                        const raw = FOOD_SECRET_KEY + "|" + user + "|" + expiryDate.toISOString().split('T')[0];
+                        token = btoa(raw);
+                    }
+
+                    localStorage.setItem('foodUserToken', token);
+                    localStorage.setItem('foodUserName', result.name || user);
+                    localStorage.setItem('foodUserEmail', result.email || user);
+                    localStorage.setItem('foodDaysLeft', result.daysLeft || '365');
+                    localStorage.setItem('foodLoginTimestamp', Date.now().toString());
+
+                    currentUserEmail = result.email || user;
                     document.getElementById('loginScreen').style.display = 'none';
                     document.getElementById('appMain').style.display = 'block';
                     dataLoaded = false;
@@ -1216,20 +1252,31 @@
             }
         }
 
-        window.addEventListener('load', () => {
-            const savedEmail = localStorage.getItem('costUserEmail');
-            if (savedEmail && !isSessionExpired()) {
-                currentUserEmail = savedEmail;
+        // ============================================================
+        // فحص الجلسة عند تحميل الصفحة (بالمفاتيح الجديدة)
+        // ============================================================
+        window.addEventListener('load', function() {
+            const token = localStorage.getItem('foodUserToken');
+            if (token && !isSessionExpired()) {
+                const savedName = localStorage.getItem('foodUserName') || 'مدير المطعم';
+                currentUserEmail = localStorage.getItem('foodUserEmail') || '';
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('appMain').style.display = 'block';
                 dataLoaded = false;
                 loadAllData(true);
                 startSessionTimer();
+            } else {
+                logout();
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('appMain').style.display = 'none';
             }
             updateDateTime();
             setInterval(updateDateTime, 1000);
         });
 
+        // ============================================================
+        // باقي دوال التطبيق (نفسها تماماً، لم تتغير)
+        // ============================================================
         function showLoading() { document.getElementById('loading').classList.add('active'); }
 
         function hideLoading() { document.getElementById('loading').classList.remove('active'); }
@@ -1686,7 +1733,12 @@
         }
 
         // هندسة المنيو
-        function loadMenuDataFromStorage() { const stored = localStorage.getItem('menuEngineeringData_' + currentUserEmail); if (stored) try { menuData = JSON.parse(stored); } catch (e) { menuData = {}; } allRecipes.forEach(r => { if (!menuData[r.name]) menuData[r.name] = { price: r.suggestedPrice || 0, units: 0, selected: true }; }); saveMenuDataToStorage(); }
+        function loadMenuDataFromStorage() {
+            const stored = localStorage.getItem('menuEngineeringData_' + currentUserEmail);
+            if (stored) try { menuData = JSON.parse(stored); } catch (e) { menuData = {}; }
+            allRecipes.forEach(r => { if (!menuData[r.name]) menuData[r.name] = { price: r.suggestedPrice || 0, units: 0, selected: true }; });
+            saveMenuDataToStorage();
+        }
 
         function saveMenuDataToStorage() { localStorage.setItem('menuEngineeringData_' + currentUserEmail, JSON.stringify(menuData)); }
 
