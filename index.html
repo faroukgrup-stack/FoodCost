@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>نظام إدارة التكلفة وهندسة المنيو | FoodCost v1.2</title>
 
-    <!-- الخطوط والمكتبات (جميعها من CDN) -->
+    <!-- ===== جميع المكتبات من CDN ===== -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Inter:wght@400;500;600;700&family=Cairo:wght@700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
@@ -18,7 +18,7 @@
     </script>
 
     <style>
-        /* ===== جميع الأنماط (نفسها تماماً) ===== */
+        /* ===== جميع الأنماط ===== */
         :root {
             --primary: #0b0e17;
             --primary-light: #141c2b;
@@ -88,7 +88,7 @@
             background: radial-gradient(circle, rgba(180, 133, 84, 0.08) 0%, transparent 70%);
         }
 
-        /* ===== شاشة الدخول (تظهر افتراضياً) ===== */
+        /* ===== شاشة الدخول ===== */
         .login-overlay {
             position: fixed;
             inset: 0;
@@ -1034,7 +1034,7 @@
         </div>
     </div>
 
-    <!-- ===== المودالات (نفسها) ===== -->
+    <!-- ===== المودالات ===== -->
     <div class="modal-overlay" id="recipeModal"><div class="modal-box"><h3><i class="fas fa-plus-circle"></i> إضافة طبق جديد</h3><input type="text" id="recipeNameInput" placeholder="اسم الطبق" /><div class="modal-actions"><button onclick="closeModals()" class="btn btn-outline">إلغاء</button><button onclick="addRecipe()" class="btn btn-primary">إضافة</button></div></div></div>
     <div class="modal-overlay" id="materialModal"><div class="modal-box"><h3 id="materialModalTitle"><i class="fas fa-box"></i> إضافة مادة أولية</h3>
             <div class="field-group"><label>اسم المادة</label><input type="text" id="matName" /></div>
@@ -1080,11 +1080,11 @@
     <div class="modal-overlay" id="restaurantModal"><div class="modal-box"><h3><i class="fas fa-store"></i> تعديل اسم المطعم</h3><input type="text" id="restaurantNameInput" /><div class="modal-actions"><button onclick="closeModals()" class="btn btn-outline">إلغاء</button><button onclick="updateRestaurantName()" class="btn btn-primary">حفظ</button></div></div></div>
 
     <!-- ============================================================ -->
-    <!-- كل الكود الوظيفي (JavaScript) مدمج هنا                      -->
+    <!-- ===== كل الكود الوظيفي (JavaScript) مدمج هنا ===== -->
     <!-- ============================================================ -->
     <script>
         // ============================================================
-        // إعدادات API الخاصة بـ Food Cost (مستقلة تماماً)
+        // إعدادات API
         // ============================================================
         const COST_API_URL = "https://script.google.com/macros/s/AKfycbzmJwLmTRQkvHtTqAgEIANu2i8HzkqbHMvdmfVxZAqTP8mQF6TQozWAmFMGHRblqBKR/exec";
         const SESSION_DURATION_MS = 24 * 60 * 60 * 1000;
@@ -1159,7 +1159,7 @@
         });
 
         // ============================================================
-        // دوال الجلسة (بمفاتيح مستقلة خاصة بـ Food Cost)
+        // دوال الجلسة
         // ============================================================
         function isSessionExpired() {
             const ts = localStorage.getItem('foodLoginTimestamp');
@@ -1179,7 +1179,6 @@
             localStorage.removeItem('foodUserEmail');
             localStorage.removeItem('foodDaysLeft');
             localStorage.removeItem('foodLoginTimestamp');
-            // إظهار شاشة الدخول وإخفاء لوحة التحكم
             const loginScreen = document.getElementById('loginScreen');
             const appMain = document.getElementById('appMain');
             if (loginScreen) loginScreen.style.display = 'flex';
@@ -1200,7 +1199,7 @@
         }
 
         // ============================================================
-        // تسجيل الدخول (يستخدم COST_API_URL ونظام التوكن الخاص بـ Food Cost)
+        // تسجيل الدخول
         // ============================================================
         document.getElementById('loginBtn').addEventListener('click', attemptLogin);
         document.getElementById('passwordInput').addEventListener('keypress', e => { if (e.key === 'Enter') attemptLogin(); });
@@ -1237,7 +1236,6 @@
                     localStorage.setItem('foodLoginTimestamp', Date.now().toString());
 
                     currentUserEmail = result.email || user;
-                    // إخفاء شاشة الدخول وإظهار لوحة التحكم
                     document.getElementById('loginScreen').style.display = 'none';
                     document.getElementById('appMain').style.display = 'block';
                     dataLoaded = false;
@@ -1257,7 +1255,7 @@
         }
 
         // ============================================================
-        // فحص الجلسة عند تحميل الصفحة (بالمفاتيح الجديدة)
+        // فحص الجلسة عند تحميل الصفحة
         // ============================================================
         window.addEventListener('DOMContentLoaded', function() {
             const token = localStorage.getItem('foodUserToken');
@@ -1265,7 +1263,6 @@
             const appMain = document.getElementById('appMain');
 
             if (token && !isSessionExpired()) {
-                // جلسة صالحة: إظهار لوحة التحكم وإخفاء شاشة الدخول
                 if (loginScreen) loginScreen.style.display = 'none';
                 if (appMain) appMain.style.display = 'block';
                 const savedName = localStorage.getItem('foodUserName') || 'مدير المطعم';
@@ -1274,39 +1271,859 @@
                 loadAllData(true);
                 startSessionTimer();
             } else {
-                // لا جلسة: إظهار شاشة الدخول وإخفاء لوحة التحكم
                 if (loginScreen) loginScreen.style.display = 'flex';
                 if (appMain) appMain.style.display = 'none';
-                logout(); // تنظيف البيانات
+                logout();
             }
             updateDateTime();
             setInterval(updateDateTime, 1000);
         });
 
         // ============================================================
-        // باقي دوال التطبيق (نفسها تماماً، لم تتغير)
+        // دوال التطبيق الأساسية
         // ============================================================
-        // هنا كل الدوال الموجودة سابقاً (showLoading, hideLoading, showToast,
-        // closeModals, callServer, updateDateTime, loadAllData, escapeHtml,
-        // switchTab, renderRecipesTable, renderMaterialsTable, showAddRecipeModal,
-        // addRecipe, showAddMaterialModal, editMaterial, getMaterialFormData,
-        // addMaterial, updateMaterial, refreshCostsAndPrices, confirmDeleteRecipe,
-        // confirmDeleteMaterial, confirmDelete, showEditRestaurantName,
-        // updateRestaurantName, openIngredientsModal, renderIngredientsList,
-        // filterIngredients, addIngredientToRecipe, removeIngredient,
-        // saveRecipeIngredients, showSettingsModal, saveSettings, exportToExcel,
-        // loadMenuDataFromStorage, saveMenuDataToStorage, renderMenuInputForm,
-        // saveMenuInputs, analyzeMenuEngineering, exportMenuAnalysisExcel,
-        // renderBreakevenInputs, calculateBreakeven, exportBreakevenExcel,
-        // exportFullReportExcel, exportFullReportWord, refreshAll)
+        function showLoading() { document.getElementById('loading').classList.add('active'); }
 
-        // للاختصار، هذه الدوال موجودة في الكود السابق ولم تتغير.
-        // سأضعها هنا مختصرة ولكن يجب أن تكون موجودة بالكامل في الملف النهائي.
-        // (في الملف النهائي سأضعها كاملة، لكن هنا سأشير إليها فقط للاختصار)
+        function hideLoading() { document.getElementById('loading').classList.remove('active'); }
 
-        // ... (جميع الدوال السابقة موجودة هنا في الملف الكامل الذي ستنسخه)
+        function showExportLoading(title, msg) {
+            document.getElementById('exportLoadingTitle').textContent = title;
+            document.getElementById('exportLoadingMsg').textContent = msg;
+            document.getElementById('exportLoadingOverlay').classList.add('active');
+        }
 
-        console.log("✅ تم تحميل الصفحة بنجاح");
+        function hideExportLoading() { document.getElementById('exportLoadingOverlay').classList.remove('active'); }
+
+        function showToast(msg, isErr = false) {
+            const t = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            t.style.background = isErr ? 'rgba(239,68,68,0.9)' : 'rgba(15,43,75,0.9)';
+            t.style.borderColor = isErr ? '#ef4444' : 'var(--accent-glow)';
+            t.classList.add('show');
+            clearTimeout(t._t);
+            t._t = setTimeout(() => t.classList.remove('show'), 4000);
+        }
+
+        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+            pendingDelete = null; }
+
+        async function callServer(fn, params = {}, showLoad = true) {
+            if (showLoad) showLoading();
+            try {
+                const url = new URL(COST_API_URL);
+                url.searchParams.set('fn', fn);
+                url.searchParams.set('restaurantEmail', currentUserEmail);
+                if (Object.keys(params).length) url.searchParams.set('params', JSON.stringify(params));
+                const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return await res.json();
+            } catch (e) {
+                return { success: false, error: e.message };
+            } finally {
+                if (showLoad) hideLoading();
+            }
+        }
+
+        function updateDateTime() {
+            const now = new Date();
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        async function loadAllData(forceRefresh = false) {
+            const now = Date.now();
+            if (!forceRefresh && dataLoaded && (now - dataCacheTimestamp) < CACHE_DURATION_MS) {
+                renderMaterialsTable();
+                renderRecipesTable();
+                if (currentTab === 2) renderMenuInputForm();
+                if (currentTab === 3) renderBreakevenInputs();
+                return;
+            }
+            showLoading();
+            const data = await callServer('getAllData', {}, false);
+            hideLoading();
+            if (data.success) {
+                allMaterials = data.materials || [];
+                allRecipes = data.recipes || [];
+                globalWaste = data.wastePercent || 0;
+                foodCostPercent = data.foodCostPercent || 30;
+                document.getElementById('restaurantNameText').textContent = data.restaurantName || 'المطعم';
+                dataLoaded = true;
+                dataCacheTimestamp = now;
+                renderMaterialsTable();
+                renderRecipesTable();
+                loadMenuDataFromStorage();
+                if (currentTab === 2) renderMenuInputForm();
+                if (currentTab === 3) renderBreakevenInputs();
+            } else {
+                showToast(data.error || 'فشل تحميل البيانات', true);
+            }
+        }
+
+        function escapeHtml(s) { const d = document.createElement('div');
+            d.textContent = s || ''; return d.innerHTML; }
+
+        function switchTab(n) {
+            currentTab = n;
+            ['tab0', 'tab1', 'tab2', 'tab3'].forEach((id, i) => document.getElementById(id).style.display = i === n ? 'block' : 'none');
+            document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === n));
+            if (n === 0 || n === 1) {
+                if (dataLoaded && (Date.now() - dataCacheTimestamp) < CACHE_DURATION_MS) {
+                    renderMaterialsTable();
+                    renderRecipesTable();
+                } else {
+                    loadAllData(false);
+                }
+            } else if (n === 2) {
+                loadMenuDataFromStorage();
+                renderMenuInputForm();
+            } else if (n === 3) {
+                if (!dataLoaded) loadAllData(false);
+                else renderBreakevenInputs();
+            }
+        }
+
+        // ============================================================
+        // دوال الأطباق والمواد
+        // ============================================================
+        function renderRecipesTable() {
+            const tbody = document.getElementById('recipesBody');
+            if (!allRecipes.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">لا توجد أطباق.</div></td></tr>'; return; }
+            tbody.innerHTML = allRecipes.map((r, i) => {
+                const cost = r.costPrice || 0,
+                    price = r.suggestedPrice || 0,
+                    marginPercent = price > 0 ? ((price - cost) / price * 100) : 0;
+                return `<tr><td>${i+1}</td><td><strong>${escapeHtml(r.name)}</strong></td><td><span class="badge badge-success">${cost.toFixed(2)}</span></td><td><span class="badge badge-warning">${price.toFixed(2)}</span></td><td><span class="badge badge-info">${marginPercent.toFixed(1)}%</span></td><td><button class="btn btn-sm btn-outline" onclick="openIngredientsModal('${escapeHtml(r.name)}')"><i class="fas fa-list-ul"></i></button><button class="btn btn-sm btn-danger" onclick="confirmDeleteRecipe('${escapeHtml(r.name)}')"><i class="fas fa-trash-alt"></i></button></td></tr>`;
+            }).join('');
+        }
+
+        function renderMaterialsTable() {
+            const tbody = document.getElementById('materialsBody');
+            if (!allMaterials.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">لا توجد مواد.</div></td></tr>'; return; }
+            tbody.innerHTML = allMaterials.map((m, i) => `<tr><td>${i+1}</td><td><strong>${escapeHtml(m.name)}</strong></td><td>${escapeHtml(m.unit)}</td><td><span class="badge badge-success">${(m.price||0).toFixed(2)}</span></td><td>${m.wastePercent||0}%</td><td>${m.portionWeight ? m.portionWeight+' '+m.unit : '—'}</td><td><button class="btn btn-sm btn-outline" onclick="editMaterial('${m.id}')"><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-danger" onclick="confirmDeleteMaterial('${m.id}', '${escapeHtml(m.name)}')"><i class="fas fa-trash-alt"></i></button></td></tr>`).join('');
+        }
+
+        function showAddRecipeModal() { document.getElementById('recipeNameInput').value = ''; document.getElementById('recipeModal').classList.add('active'); }
+
+        async function addRecipe() {
+            const name = document.getElementById('recipeNameInput').value.trim();
+            if (!name) return showToast('أدخل اسماً', true);
+            closeModals();
+            const res = await callServer('addRecipe', { recipeName: name }, true);
+            if (res.success) {
+                allRecipes.push({ name: name, costPrice: 0, laborPercent: 0, suggestedPrice: 0 });
+                renderRecipesTable();
+                showToast('تمت الإضافة');
+            } else showToast(res.error, true);
+        }
+
+        function showAddMaterialModal() {
+            document.getElementById('matName').value = '';
+            document.getElementById('matUnit').value = '';
+            document.getElementById('matPurchasePrice').value = '';
+            document.getElementById('matPurchaseQty').value = '1';
+            document.getElementById('matWastePercent').value = '0';
+            document.getElementById('matPortionWeight').value = '0';
+            document.getElementById('materialModalTitle').innerHTML = '<i class="fas fa-box"></i> إضافة مادة';
+            document.getElementById('materialSaveBtn').textContent = 'إضافة';
+            document.getElementById('materialSaveBtn').onclick = addMaterial;
+            document.getElementById('materialModal').classList.add('active');
+        }
+
+        function editMaterial(id) {
+            const m = allMaterials.find(x => x.id === id);
+            if (!m) return;
+            document.getElementById('matName').value = m.name;
+            document.getElementById('matUnit').value = m.unit;
+            document.getElementById('matPurchasePrice').value = m.purchasePrice || m.price;
+            document.getElementById('matPurchaseQty').value = m.purchaseQty || 1;
+            document.getElementById('matWastePercent').value = m.wastePercent || 0;
+            document.getElementById('matPortionWeight').value = m.portionWeight || 0;
+            document.getElementById('materialModalTitle').innerHTML = '<i class="fas fa-edit"></i> تعديل مادة';
+            document.getElementById('materialSaveBtn').textContent = 'حفظ التعديلات';
+            document.getElementById('materialSaveBtn').onclick = () => updateMaterial(id);
+            document.getElementById('materialModal').classList.add('active');
+        }
+
+        function getMaterialFormData() {
+            const name = document.getElementById('matName').value.trim(),
+                unit = document.getElementById('matUnit').value.trim(),
+                pp = parseFloat(document.getElementById('matPurchasePrice').value),
+                pq = parseFloat(document.getElementById('matPurchaseQty').value),
+                waste = parseFloat(document.getElementById('matWastePercent').value),
+                pw = parseFloat(document.getElementById('matPortionWeight').value);
+            if (!name || !unit || isNaN(pp) || isNaN(pq)) { showToast('تأكد من الحقول', true); return null; }
+            return { name, unit, purchasePrice: pp, purchaseQty: pq, wastePercent: waste, portionWeight: pw || 0 };
+        }
+
+        async function addMaterial() {
+            const data = getMaterialFormData();
+            if (!data) return;
+            closeModals();
+            const res = await callServer('addMaterial', data, true);
+            if (res.success) {
+                allMaterials.push({ id: res.id, name: data.name, unit: data.unit, price: 0, purchasePrice: data.purchasePrice, purchaseQty: data.purchaseQty, wastePercent: data.wastePercent, portionWeight: data.portionWeight });
+                renderMaterialsTable();
+                refreshCostsAndPrices(true);
+                showToast('تمت الإضافة');
+            } else showToast(res.error, true);
+        }
+
+        async function updateMaterial(id) {
+            const data = getMaterialFormData();
+            if (!data) return;
+            data.id = id;
+            closeModals();
+            const res = await callServer('updateMaterial', data, true);
+            if (res.success) {
+                const idx = allMaterials.findIndex(m => m.id === id);
+                if (idx !== -1) {
+                    allMaterials[idx].name = data.name;
+                    allMaterials[idx].unit = data.unit;
+                    allMaterials[idx].purchasePrice = data.purchasePrice;
+                    allMaterials[idx].purchaseQty = data.purchaseQty;
+                    allMaterials[idx].wastePercent = data.wastePercent;
+                    allMaterials[idx].portionWeight = data.portionWeight;
+                }
+                renderMaterialsTable();
+                refreshCostsAndPrices(true);
+                showToast('تم التحديث');
+                document.getElementById('materialSaveBtn').textContent = 'إضافة';
+                document.getElementById('materialSaveBtn').onclick = addMaterial;
+                document.getElementById('materialModalTitle').innerHTML = '<i class="fas fa-box"></i> إضافة مادة';
+            } else showToast(res.error, true);
+        }
+
+        async function refreshCostsAndPrices(forceServer = false) {
+            if (forceServer || !dataLoaded || (Date.now() - dataCacheTimestamp) > CACHE_DURATION_MS) {
+                const recRes = await callServer('getAllRecipes', {}, false);
+                if (recRes.success) { allRecipes = recRes.recipes;
+                    dataLoaded = true;
+                    dataCacheTimestamp = Date.now(); }
+                const matRes = await callServer('getAllMaterials', {}, false);
+                if (matRes.success) allMaterials = matRes.materials;
+            }
+            renderRecipesTable();
+            renderMaterialsTable();
+        }
+
+        function confirmDeleteRecipe(name) {
+            pendingDelete = { type: 'recipe', name };
+            document.getElementById('confirmTitle').innerHTML = '<i class="fas fa-exclamation-triangle"></i> حذف طبق';
+            document.getElementById('confirmMessage').textContent = `هل أنت متأكد من حذف "${name}"؟`;
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        function confirmDeleteMaterial(id, name) {
+            pendingDelete = { type: 'material', id, name };
+            document.getElementById('confirmTitle').innerHTML = '<i class="fas fa-exclamation-triangle"></i> حذف مادة';
+            document.getElementById('confirmMessage').textContent = `هل أنت متأكد من حذف "${name}"؟`;
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        async function confirmDelete() {
+            if (!pendingDelete) return;
+            const d = pendingDelete;
+            closeModals();
+            let res;
+            if (d.type === 'recipe') {
+                res = await callServer('deleteRecipe', { recipeName: d.name }, true);
+                if (res.success) { allRecipes = allRecipes.filter(r => r.name !== d.name);
+                    renderRecipesTable();
+                    showToast('تم الحذف'); }
+            } else {
+                res = await callServer('deleteMaterial', { materialId: d.id }, true);
+                if (res.success) { allMaterials = allMaterials.filter(m => m.id !== d.id);
+                    renderMaterialsTable();
+                    refreshCostsAndPrices(true);
+                    showToast('تم الحذف'); }
+            }
+            pendingDelete = null;
+        }
+
+        function showEditRestaurantName() {
+            document.getElementById('restaurantNameInput').value = document.getElementById('restaurantNameText').textContent;
+            document.getElementById('restaurantModal').classList.add('active');
+        }
+
+        async function updateRestaurantName() {
+            const name = document.getElementById('restaurantNameInput').value.trim();
+            if (!name) return;
+            closeModals();
+            await callServer('updateRestaurantName', { name });
+            document.getElementById('restaurantNameText').textContent = name;
+            showToast('تم تحديث الاسم');
+        }
+
+        // ============================================================
+        // دوال المكونات
+        // ============================================================
+        async function openIngredientsModal(recipeName) {
+            currentEditingRecipe = recipeName;
+            document.getElementById('currentRecipeName').textContent = recipeName;
+            document.getElementById('editRecipeNameBtn').style.display = 'inline-block';
+            const res = await callServer('getRecipeIngredients', { recipeName });
+            currentRecipeIngredients = res.success ? (res.ingredients || []) : [];
+            renderIngredientsList();
+            document.getElementById('ingredientQty').value = '';
+            document.getElementById('ingredientSearch').value = '';
+            document.getElementById('ingredientUnitLabel').textContent = '';
+            selectedMaterialId = null;
+            selectedMaterialUnit = '';
+            filterIngredients();
+            document.getElementById('ingredientsModal').classList.add('active');
+        }
+
+        function renderIngredientsList() {
+            const c = document.getElementById('ingredientsList');
+            if (!currentRecipeIngredients.length) { c.innerHTML = '<p style="color:var(--text-muted);">لا توجد مكونات بعد.</p>'; return; }
+            c.innerHTML = currentRecipeIngredients.map((ing, idx) => {
+                const mat = allMaterials.find(m => m.id === ing.materialId),
+                    name = mat ? mat.name : ing.materialName,
+                    unit = mat ? mat.unit : (ing.unit || '');
+                return `<div class="ingredient-row"><span>${escapeHtml(name)}</span><span>${ing.quantity} <span class="unit-badge">${escapeHtml(unit)}</span></span><button class="btn btn-sm btn-outline" onclick="removeIngredient(${idx})"><i class="fas fa-times" style="color:var(--danger);"></i></button></div>`;
+            }).join('');
+        }
+
+        function filterIngredients() {
+            const searchTerm = document.getElementById('ingredientSearch').value.toLowerCase();
+            const optionsContainer = document.getElementById('ingredientOptions');
+            optionsContainer.innerHTML = '';
+            const filtered = allMaterials.filter(m => m.name.toLowerCase().includes(searchTerm) || m.unit.toLowerCase().includes(searchTerm));
+            filtered.forEach(m => {
+                const div = document.createElement('div');
+                div.textContent = `${m.name} (${m.unit})`;
+                div.onmousedown = function(e) { e.preventDefault(); };
+                div.onclick = function() {
+                    document.getElementById('ingredientSearch').value = m.name;
+                    selectedMaterialId = m.id;
+                    selectedMaterialUnit = m.unit;
+                    document.getElementById('ingredientUnitLabel').textContent = m.unit;
+                    document.getElementById('ingredientQty').placeholder = `الكمية بـ ${m.unit}`;
+                    optionsContainer.style.display = 'none';
+                    document.getElementById('ingredientQty').focus();
+                };
+                optionsContainer.appendChild(div);
+            });
+            optionsContainer.style.display = filtered.length ? 'block' : 'none';
+        }
+
+        document.addEventListener('click', function(e) {
+            const container = document.querySelector('.searchable-select');
+            if (container && !container.contains(e.target)) {
+                const opts = document.getElementById('ingredientOptions');
+                if (opts) opts.style.display = 'none';
+            }
+        });
+
+        function addIngredientToRecipe() {
+            const qty = parseFloat(document.getElementById('ingredientQty').value);
+            if (!selectedMaterialId || isNaN(qty) || qty <= 0) return showToast('اختر مادة وأدخل كمية صحيحة', true);
+            const mat = allMaterials.find(m => m.id === selectedMaterialId);
+            if (!mat) return showToast('المادة غير موجودة', true);
+            const existing = currentRecipeIngredients.find(i => i.materialId === mat.id);
+            if (existing) existing.quantity += qty;
+            else currentRecipeIngredients.push({ materialId: mat.id, materialName: mat.name, quantity: qty, unit: mat.unit });
+            renderIngredientsList();
+            document.getElementById('ingredientSearch').value = '';
+            document.getElementById('ingredientQty').value = '';
+            document.getElementById('ingredientUnitLabel').textContent = '';
+            document.getElementById('ingredientQty').placeholder = 'الكمية';
+            selectedMaterialId = null;
+            selectedMaterialUnit = '';
+            filterIngredients();
+            showToast(`تمت إضافة ${qty} ${mat.unit} من ${mat.name}`);
+        }
+
+        function removeIngredient(i) { currentRecipeIngredients.splice(i, 1);
+            renderIngredientsList(); }
+
+        async function saveRecipeIngredients() {
+            if (!currentEditingRecipe) return;
+            const res = await callServer('saveRecipeIngredients', { recipeName: currentEditingRecipe, ingredients: currentRecipeIngredients }, true);
+            if (res.success) {
+                showToast('تم حفظ المكونات وتحديث التكاليف');
+                closeModals();
+                refreshCostsAndPrices(true);
+            } else showToast(res.error, true);
+        }
+
+        document.getElementById('editRecipeNameBtn').addEventListener('click', function() {
+            const span = document.getElementById('currentRecipeName');
+            const currentName = span.textContent;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentName;
+            input.className = 'recipe-name-edit-input';
+            input.id = 'recipeNameEditInput';
+            const saveBtn = document.createElement('button');
+            saveBtn.innerHTML = '<i class="fas fa-check"></i>';
+            saveBtn.className = 'btn btn-sm btn-primary';
+            saveBtn.style.marginRight = '5px';
+            saveBtn.onclick = async function() {
+                const newName = input.value.trim();
+                if (!newName || newName === currentName) {
+                    span.textContent = currentName;
+                    span.style.display = '';
+                    input.remove();
+                    saveBtn.remove();
+                    document.getElementById('editRecipeNameBtn').style.display = '';
+                    return;
+                }
+                const res = await callServer('renameRecipe', { oldName: currentName, newName: newName }, true);
+                if (res.success) {
+                    showToast('تم تغيير اسم الطبق بنجاح');
+                    currentEditingRecipe = newName;
+                    span.textContent = newName;
+                    refreshCostsAndPrices(true);
+                } else {
+                    showToast(res.error || 'فشل تغيير الاسم', true);
+                    span.textContent = currentName;
+                }
+                input.remove();
+                saveBtn.remove();
+                span.style.display = '';
+                document.getElementById('editRecipeNameBtn').style.display = '';
+            };
+            span.style.display = 'none';
+            document.getElementById('editRecipeNameBtn').style.display = 'none';
+            span.parentNode.insertBefore(input, span.nextSibling);
+            span.parentNode.insertBefore(saveBtn, input.nextSibling);
+            input.focus();
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    span.textContent = currentName;
+                    span.style.display = '';
+                    input.remove();
+                    saveBtn.remove();
+                    document.getElementById('editRecipeNameBtn').style.display = '';
+                }
+            });
+        });
+
+        // ============================================================
+        // دوال الإعدادات
+        // ============================================================
+        function showSettingsModal() {
+            document.getElementById('globalWastePercent').value = globalWaste;
+            document.getElementById('foodCostPercent').value = foodCostPercent;
+            document.getElementById('settingsModal').classList.add('active');
+        }
+
+        async function saveSettings() {
+            const waste = parseFloat(document.getElementById('globalWastePercent').value),
+                fcp = parseFloat(document.getElementById('foodCostPercent').value);
+            if (isNaN(waste) || isNaN(fcp) || fcp <= 0 || fcp >= 100) return showToast('قيم غير صحيحة', true);
+            closeModals();
+            const res = await callServer('updateSettings', { wastePercent: waste, foodCostPercent: fcp }, true);
+            if (res.success) { globalWaste = waste;
+                foodCostPercent = fcp;
+                showToast('تم حفظ الإعدادات');
+                refreshCostsAndPrices(true); } else showToast(res.error, true);
+        }
+
+        // ============================================================
+        // دوال التصدير
+        // ============================================================
+        async function exportToExcel() {
+            if (!allRecipes.length && !allMaterials.length) { showToast('لا توجد بيانات', true); return; }
+            showLoading();
+            try {
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = 'FoodCost - FAROUK GRUP';
+                const ws1 = workbook.addWorksheet('الأطباق', { views: [{ rightToLeft: true }] });
+                ws1.columns = [{ header: '#', width: 5 }, { header: 'اسم الطبق', width: 30 }, { header: 'التكلفة الفعلية', width: 18 }, { header: 'سعر البيع المقترح', width: 20 }, { header: 'هامش المساهمة %', width: 18 }];
+                ws1.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                ws1.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB48554' } };
+                allRecipes.forEach((r, i) => ws1.addRow([i + 1, r.name, r.costPrice, r.suggestedPrice, ((r.suggestedPrice - r.costPrice) / r.suggestedPrice * 100).toFixed(1) + '%']));
+                const ws2 = workbook.addWorksheet('المواد', { views: [{ rightToLeft: true }] });
+                ws2.columns = [{ header: '#', width: 5 }, { header: 'اسم المادة', width: 25 }, { header: 'الوحدة', width: 12 }, { header: 'السعر الفعلي', width: 15 }, { header: 'الهدر %', width: 12 }, { header: 'وزن الحصة', width: 15 }];
+                ws2.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                ws2.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB48554' } };
+                allMaterials.forEach((m, i) => ws2.addRow([i + 1, m.name, m.unit, m.price, m.wastePercent || 0, m.portionWeight ? `${m.portionWeight} ${m.unit}` : '—']));
+                const buffer = await workbook.xlsx.writeBuffer();
+                saveAs(new Blob([buffer]), `تقرير_FoodCost_${new Date().toISOString().slice(0,10)}.xlsx`);
+                showToast('✅ تم التصدير بنجاح');
+            } catch (e) { showToast('فشل التصدير', true); } finally { hideLoading(); }
+        }
+
+        // ============================================================
+        // دوال هندسة المنيو
+        // ============================================================
+        function loadMenuDataFromStorage() {
+            const stored = localStorage.getItem('menuEngineeringData_' + currentUserEmail);
+            if (stored) try { menuData = JSON.parse(stored); } catch (e) { menuData = {}; }
+            allRecipes.forEach(r => { if (!menuData[r.name]) menuData[r.name] = { price: r.suggestedPrice || 0, units: 0, selected: true }; });
+            saveMenuDataToStorage();
+        }
+
+        function saveMenuDataToStorage() { localStorage.setItem('menuEngineeringData_' + currentUserEmail, JSON.stringify(menuData)); }
+
+        function renderMenuInputForm() {
+            const container = document.getElementById('menuInputFields');
+            if (!allRecipes.length) { container.innerHTML = '<p style="color:var(--text-muted);">لا توجد أطباق.</p>'; return; }
+            let html = '<div style="display:grid; grid-template-columns: 30px 1fr 100px 100px auto; gap:10px; align-items:center; font-weight:bold; color:var(--accent-soft); margin-bottom:10px;"><span></span><span>الطبق</span><span>سعر البيع</span><span>المبيعات</span><span>التكلفة</span></div>';
+            allRecipes.forEach((r, i) => {
+                const d = menuData[r.name] || { price: r.suggestedPrice || 0, units: 0, selected: true };
+                html += `<div style="display:grid; grid-template-columns: 30px 1fr 100px 100px auto; gap:10px; align-items:center; margin-bottom:8px;"><input type="checkbox" id="menu_select_${i}" ${d.selected!==false ? 'checked' : ''} onchange="menuData['${escapeHtml(r.name)}'].selected = this.checked; saveMenuDataToStorage();" style="accent-color:var(--accent);"><span style="color:var(--text);">${escapeHtml(r.name)}</span><input type="number" id="menu_price_${i}" value="${d.price}" step="0.01" style="width:100%;"><input type="number" id="menu_units_${i}" value="${d.units}" step="1" style="width:100%;"><span style="color:var(--text-muted);">${(r.costPrice||0).toFixed(2)}</span></div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function saveMenuInputs() { allRecipes.forEach((r, i) => { const p = document.getElementById(`menu_price_${i}`),
+                u = document.getElementById(`menu_units_${i}`); if (p && u) { menuData[r.name] = { price: parseFloat(p.value) || 0, units: parseInt(u.value) || 0, selected: menuData[r.name]?.selected !== false }; } });
+            saveMenuDataToStorage();
+            showToast('تم حفظ البيانات'); }
+
+        function analyzeMenuEngineering() {
+            saveMenuInputs();
+            const selected = allRecipes.filter(r => menuData[r.name]?.selected !== false).map(r => ({ name: r.name, cost: r.costPrice || 0, price: menuData[r.name]?.price || 0, units: menuData[r.name]?.units || 0 })).filter(d => d.price > 0 && d.units >= 0);
+            if (selected.length < 2) { showToast('اختر طبقين على الأقل مع سعر ومبيعات', true); return; }
+            const totalUnits = selected.reduce((s, d) => s + d.units, 0);
+            const avgMargin = selected.reduce((s, d) => s + (d.price - d.cost), 0) / selected.length;
+            const avgPop = totalUnits > 0 ? 100 / selected.length : 0;
+            const results = selected.map(d => {
+                const margin = d.price - d.cost,
+                    popularity = totalUnits > 0 ? (d.units / totalUnits) * 100 : 0;
+                let category, badge, rec;
+                if (margin < 0) { category = 'كلب (Dog)';
+                    badge = 'badge-dog';
+                    rec = '🔴 خسارة!'; } else {
+                    if (popularity >= avgPop && margin >= avgMargin) { category = 'نجم (Star)';
+                        badge = 'badge-star';
+                        rec = '✅ ممتاز!'; } else if (popularity >= avgPop && margin < avgMargin) { category = 'بقرة نقدية (Cash Cow)';
+                        badge = 'badge-cash';
+                        rec = '🐄 مبيعات عالية.'; } else if (popularity < avgPop && margin >= avgMargin) { category = 'علامة استفهام (؟)';
+                        badge = 'badge-question';
+                        rec = '❓ يحتاج تسويق.'; } else { category = 'كلب (Dog)';
+                        badge = 'badge-dog';
+                        rec = '🐕 ضعيف.'; }
+                }
+                return { ...d, margin, popularity, category, badge, rec };
+            });
+            document.getElementById('menuEngineeringTableContainer').style.display = 'block';
+            document.getElementById('menuChartContainer').style.display = 'block';
+            document.getElementById('menuSummary').style.display = 'block';
+            document.getElementById('menuEngineeringBody').innerHTML = results.map((r, i) => `<tr><td>${i+1}</td><td>${r.name}</td><td>${r.cost.toFixed(2)}</td><td>${r.price.toFixed(2)}</td><td>${r.units}</td><td>${r.margin.toFixed(2)}</td><td>${r.popularity.toFixed(1)}%</td><td><span class="badge ${r.badge}">${r.category}</span></td><td>${r.rec}</td></tr>`).join('');
+            if (menuChartInstance) menuChartInstance.destroy();
+            const ctx = document.getElementById('menuChart').getContext('2d');
+            menuChartInstance = new Chart(ctx, { type: 'scatter', data: { datasets: [{ label: 'الأطباق', data: results.map(r => ({ x: r.popularity, y: r.margin })), backgroundColor: results.map(r => r.badge.includes('star') ? '#28a745' : r.badge.includes('question') ? '#ffc107' : r.badge.includes('cash') ? '#17a2b8' : '#dc3545'), pointRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { title: { display: true, text: 'الشعبية (%)' } }, y: { title: { display: true, text: 'هامش الربح' } } } } });
+            const cats = { 'نجم': 0, 'علامة استفهام': 0, 'بقرة نقدية': 0, 'كلب': 0 };
+            results.forEach(r => { if (r.category.includes('نجم')) cats['نجم']++; else if (r.category.includes('علامة')) cats['علامة استفهام']++; else if (r.category.includes('بقرة')) cats['بقرة نقدية']++; else cats['كلب']++; });
+            document.getElementById('menuSummary').innerHTML = `<div style="display:flex; gap:10px; flex-wrap:wrap;">${Object.entries(cats).map(([k,v])=>`<span class="badge ${k==='نجم'?'badge-star':k==='علامة استفهام'?'badge-question':k==='بقرة نقدية'?'badge-cash':'badge-dog'}" style="padding:10px;">${k}: ${v}</span>`).join('')}</div>`;
+            window.lastMenuAnalysis = results;
+        }
+
+        async function exportMenuAnalysisExcel() {
+            if (!window.lastMenuAnalysis || !window.lastMenuAnalysis.length) { analyzeMenuEngineering(); }
+            if (!window.lastMenuAnalysis || !window.lastMenuAnalysis.length) { showToast('لا توجد نتائج للتحليل', true); return; }
+            showLoading();
+            try {
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = 'FoodCost - FAROUK GRUP';
+                const ws = workbook.addWorksheet('هندسة المنيو', { views: [{ rightToLeft: true }] });
+                ws.columns = [{ header: 'الطبق', width: 25 }, { header: 'التكلفة', width: 12 }, { header: 'سعر البيع', width: 12 }, { header: 'المبيعات', width: 10 }, { header: 'هامش الربح', width: 12 }, { header: 'نسبة المبيعات', width: 12 }, { header: 'التصنيف', width: 18 }, { header: 'التوصية', width: 40 }];
+                ws.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                ws.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB48554' } };
+                window.lastMenuAnalysis.forEach(r => ws.addRow([r.name, r.cost, r.price, r.units, r.margin, r.popularity.toFixed(1) + '%', r.category, r.rec]));
+                const buffer = await workbook.xlsx.writeBuffer();
+                saveAs(new Blob([buffer]), `هندسة_المنيو_${new Date().toISOString().slice(0,10)}.xlsx`);
+                showToast('✅ تم تصدير تقرير هندسة المنيو');
+            } catch (e) { showToast('فشل التصدير', true); } finally { hideLoading(); }
+        }
+
+        // ============================================================
+        // دوال نقطة التعادل
+        // ============================================================
+        function renderBreakevenInputs() {
+            const container = document.getElementById('breakevenProductsContainer');
+            if (!allRecipes.length) { container.innerHTML = '<p style="color:var(--text-muted);">لا توجد أطباق.</p>'; return; }
+            let html = '<h4 style="color:var(--accent-soft); margin-top:15px;">المبيعات الشهرية لكل طبق</h4>';
+            allRecipes.forEach((r, i) => {
+                const price = (menuData[r.name]?.price || r.suggestedPrice || 0).toFixed(2);
+                html += `<div style="display:flex; gap:10px; align-items:center; margin:8px 0;"><span style="min-width:150px; color:var(--text);">${escapeHtml(r.name)}</span><input type="number" id="be_units_${i}" placeholder="الوحدات" value="0" step="1" style="width:120px;"><span style="color:var(--text-muted);">التكلفة: ${(r.costPrice||0).toFixed(2)} | السعر: ${price}</span></div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function calculateBreakeven() {
+            const fixedCosts = parseFloat(document.getElementById('beFixedCosts').value) || 0;
+            if (fixedCosts <= 0) { showToast('أدخل التكاليف الثابتة', true); return; }
+            const allProducts = [];
+            allRecipes.forEach((r, i) => { const units = parseInt(document.getElementById(`be_units_${i}`)?.value) || 0; if (units > 0) { const price = menuData[r.name]?.price || r.suggestedPrice || 0;
+                    allProducts.push({ name: r.name, price: price, varCost: r.costPrice || 0, units }); } });
+            if (!allProducts.length) { showToast('أدخل مبيعات لطبق واحد على الأقل', true); return; }
+            const products = [],
+                excluded = [];
+            allProducts.forEach(p => { if (p.price > p.varCost) products.push(p);
+                else excluded.push(p); });
+            const alertDiv = document.getElementById('breakevenAlert');
+            alertDiv.style.display = 'block';
+            let alertHtml = '';
+            if (excluded.length > 0) alertHtml += `<div class="badge badge-dog" style="margin-bottom:10px;"><i class="fas fa-exclamation-triangle"></i> تنبيه: ${excluded.length} طبق خاسر.</div>`;
+            if (products.length === 0) { alertHtml += '<div class="badge badge-dog"><i class="fas fa-ban"></i> جميع الأطباق خاسرة.</div>';
+                alertDiv.innerHTML = alertHtml;
+                document.getElementById('breakevenResults').style.display = 'none'; return; }
+            alertDiv.innerHTML = alertHtml;
+            const totalUnits = products.reduce((s, p) => s + p.units, 0);
+            products.forEach(p => { p.mix = p.units / totalUnits;
+                p.cm = p.price - p.varCost;
+                p.cmRatio = p.cm / p.price; });
+            const weightedCMRatio = products.reduce((s, p) => s + p.mix * p.cmRatio, 0);
+            const beRevenue = fixedCosts / weightedCMRatio;
+            const weightedPrice = products.reduce((s, p) => s + p.mix * p.price, 0);
+            const beTotalUnits = beRevenue / weightedPrice;
+            products.forEach(p => { p.beUnits = beTotalUnits * p.mix;
+                p.beRevenue = p.beUnits * p.price; });
+            document.getElementById('breakevenResults').style.display = 'block';
+            let tableHtml = '<table><thead><tr><th>الطبق</th><th>المزيج %</th><th>وحدات التعادل</th><th>إيرادات التعادل</th></tr></thead><tbody>';
+            products.forEach(p => tableHtml += `<tr><td>${p.name}</td><td>${(p.mix*100).toFixed(1)}%</td><td>${Math.ceil(p.beUnits)}</td><td>${p.beRevenue.toFixed(0)}</td></tr>`);
+            tableHtml += '</tbody></table>';
+            document.getElementById('breakevenTableContainer').innerHTML = tableHtml;
+            document.getElementById('breakevenSummary').innerHTML = `<div class="badge badge-warning" style="padding:10px;">إيرادات التعادل: ${beRevenue.toFixed(0)} | وحدات التعادل: ${Math.ceil(beTotalUnits)}</div>`;
+            const ctx = document.getElementById('breakevenChart').getContext('2d');
+            if (breakevenChartInstance) breakevenChartInstance.destroy();
+            breakevenChartInstance = new Chart(ctx, { type: 'bar', data: { labels: products.map(p => p.name), datasets: [{ label: 'وحدات التعادل', data: products.map(p => Math.ceil(p.beUnits)), backgroundColor: '#b48554' }] } });
+            window.lastBreakeven = { products, excluded, beRevenue, beTotalUnits, fixedCosts };
+        }
+
+        async function exportBreakevenExcel() {
+            if (!window.lastBreakeven) { calculateBreakeven(); }
+            if (!window.lastBreakeven) { showToast('لا توجد نتائج للتصدير', true); return; }
+            showLoading();
+            try {
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = 'FoodCost - FAROUK GRUP';
+                const ws = workbook.addWorksheet('نقطة التعادل', { views: [{ rightToLeft: true }] });
+                ws.columns = [{ header: 'الطبق', width: 25 }, { header: 'المزيج %', width: 12 }, { header: 'وحدات التعادل', width: 15 }, { header: 'إيرادات التعادل', width: 18 }];
+                ws.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                ws.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB48554' } };
+                window.lastBreakeven.products.forEach(p => ws.addRow([p.name, (p.mix * 100).toFixed(1) + '%', Math.ceil(p.beUnits), p.beRevenue.toFixed(0)]));
+                const buffer = await workbook.xlsx.writeBuffer();
+                saveAs(new Blob([buffer]), `نقطة_التعادل_${new Date().toISOString().slice(0,10)}.xlsx`);
+                showToast('✅ تم تصدير تقرير نقطة التعادل');
+            } catch (e) { showToast('فشل التصدير', true); } finally { hideLoading(); }
+        }
+
+        // ============================================================
+        // دوال التقارير الشاملة
+        // ============================================================
+        async function exportFullReportExcel() {
+            showExportLoading('جاري إنشاء تقرير Excel الشامل...', 'تجميع كل البيانات والرسوم البيانية');
+            try {
+                const restaurantName = document.getElementById('restaurantNameText').textContent || 'المطعم';
+                const dateStr = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = 'FoodCost - FAROUK GRUP';
+                workbook.created = new Date();
+                const G = 'FFB48554',
+                    GL = 'FFCFA776',
+                    DB = 'FF0B0E17',
+                    HB = 'FF1A2035',
+                    SB = 'FF243050';
+                const AR = 'FFF5F0E8',
+                    W = 'FFFFFFFF',
+                    DT = 'FF1A1A1A';
+
+                function hs(bg = HB, tc = GL) { return { font: { name: 'Arial', bold: true, size: 11, color: { argb: tc } }, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } }, alignment: { horizontal: 'center', vertical: 'middle', wrapText: true, readingOrder: 'rtl' }, border: { top: { style: 'thin', color: { argb: G } }, bottom: { style: 'thin', color: { argb: G } }, left: { style: 'thin', color: { argb: G } }, right: { style: 'thin', color: { argb: G } } } }; }
+
+                function cs(bg = W, tc = DT, b = false, h = 'center') { return { font: { name: 'Arial', bold: b, size: 10, color: { argb: tc } }, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } }, alignment: { horizontal: h, vertical: 'middle', wrapText: true, readingOrder: 'rtl' }, border: { top: { style: 'hair', color: { argb: 'FFCCCCCC' } }, bottom: { style: 'hair', color: { argb: 'FFCCCCCC' } }, left: { style: 'hair', color: { argb: 'FFCCCCCC' } }, right: { style: 'hair', color: { argb: 'FFCCCCCC' } } } }; }
+
+                function mh(ws, fc, tc, r, text, bg = HB, tc2 = GL, fs = 12) { ws.mergeCells(r, fc, r, tc); const c = ws.getCell(r, fc);
+                    c.value = text;
+                    c.font = { name: 'Arial', bold: true, size: fs, color: { argb: tc2 } };
+                    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
+                    c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true, readingOrder: 'rtl' };
+                    c.border = { top: { style: 'medium', color: { argb: G } }, bottom: { style: 'medium', color: { argb: G } }, left: { style: 'medium', color: { argb: G } }, right: { style: 'medium', color: { argb: G } } }; }
+
+                const cv = workbook.addWorksheet('غلاف التقرير', { views: [{ rightToLeft: true, showGridLines: false }] });
+                [8, 45, 35, 8].forEach((w, i) => cv.getColumn(i + 1).width = w);
+                for (let r = 1; r <= 35; r++) cv.getRow(r).height = 22;
+                cv.getRow(2).height = 70;
+                cv.mergeCells(2, 1, 2, 4);
+                const bc = cv.getCell(2, 1);
+                bc.value = 'مجموعة فاروق للاستشارات والأعمال\nFAROUK GRUP';
+                bc.font = { name: 'Arial', bold: true, size: 26, color: { argb: GL } };
+                bc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: DB } };
+                bc.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true, readingOrder: 'rtl' };
+                bc.border = { bottom: { style: 'thick', color: { argb: G } } };
+                mh(cv, 1, 4, 4, `التقرير الشامل لإدارة التكلفة وهندسة المنيو\n${restaurantName}`, DB, GL, 16);
+                const inf = [
+                    ['📋 المطعم', restaurantName],
+                    ['📅 التاريخ', dateStr],
+                    ['📊 عدد الأطباق', allRecipes.length.toString()],
+                    ['📦 عدد المواد', allMaterials.length.toString()],
+                    ['⚙️ نسبة الهدر', globalWaste + '%'],
+                    ['🎯 نسبة تكلفة الطعام', foodCostPercent + '%']
+                ];
+                let ir = 6;
+                inf.forEach(([l, v], idx) => {
+                    cv.mergeCells(ir, 1, ir, 2);
+                    cv.mergeCells(ir, 3, ir, 4);
+                    const lc = cv.getCell(ir, 1),
+                        vc = cv.getCell(ir, 3);
+                    lc.value = l;
+                    vc.value = v;
+                    const bg = idx % 2 === 0 ? AR : 'FFFEFCF6';
+                    lc.font = { name: 'Arial', bold: true, size: 11, color: { argb: '00695C' } };
+                    lc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
+                    lc.alignment = { horizontal: 'right', vertical: 'middle', readingOrder: 'rtl' };
+                    vc.font = { name: 'Arial', size: 11, color: { argb: DT } };
+                    vc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
+                    vc.alignment = { horizontal: 'center', vertical: 'middle', readingOrder: 'rtl' };
+                    cv.getRow(ir).height = 28;
+                    ir++;
+                });
+
+                const wsRecipes = workbook.addWorksheet('الأطباق والتكاليف', { views: [{ rightToLeft: true }] });
+                wsRecipes.columns = [{ header: '#', width: 5 }, { header: 'اسم الطبق', width: 30 }, { header: 'التكلفة الفعلية', width: 18 }, { header: 'سعر البيع المقترح', width: 20 }, { header: 'هامش المساهمة %', width: 18 }];
+                wsRecipes.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                wsRecipes.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: G } };
+                allRecipes.forEach((r, i) => wsRecipes.addRow([i + 1, r.name, r.costPrice || 0, r.suggestedPrice || 0, r.suggestedPrice > 0 ? (((r.suggestedPrice - (r.costPrice || 0)) / r.suggestedPrice) * 100).toFixed(1) + '%' : '0%']));
+
+                const wsMat = workbook.addWorksheet('المواد الأولية', { views: [{ rightToLeft: true }] });
+                wsMat.columns = [{ header: '#', width: 5 }, { header: 'اسم المادة', width: 25 }, { header: 'الوحدة', width: 12 }, { header: 'السعر الفعلي', width: 15 }, { header: 'الهدر %', width: 12 }, { header: 'وزن الحصة', width: 15 }];
+                wsMat.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                wsMat.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: G } };
+                allMaterials.forEach((m, i) => wsMat.addRow([i + 1, m.name, m.unit, m.price || 0, m.wastePercent || 0, m.portionWeight ? `${m.portionWeight} ${m.unit}` : '—']));
+
+                if (window.lastMenuAnalysis && window.lastMenuAnalysis.length) {
+                    const wsMenu = workbook.addWorksheet('هندسة المنيو', { views: [{ rightToLeft: true }] });
+                    wsMenu.columns = [{ header: 'الطبق', width: 25 }, { header: 'التكلفة', width: 12 }, { header: 'سعر البيع', width: 12 }, { header: 'المبيعات', width: 10 }, { header: 'هامش الربح', width: 12 }, { header: 'نسبة المبيعات', width: 12 }, { header: 'التصنيف', width: 18 }, { header: 'التوصية', width: 40 }];
+                    wsMenu.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                    wsMenu.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: G } };
+                    window.lastMenuAnalysis.forEach(r => wsMenu.addRow([r.name, r.cost, r.price, r.units, r.margin, r.popularity.toFixed(1) + '%', r.category, r.rec]));
+                }
+
+                if (window.lastBreakeven && window.lastBreakeven.products && window.lastBreakeven.products.length) {
+                    const wsBE = workbook.addWorksheet('نقطة التعادل', { views: [{ rightToLeft: true }] });
+                    wsBE.columns = [{ header: 'الطبق', width: 25 }, { header: 'المزيج %', width: 12 }, { header: 'وحدات التعادل', width: 15 }, { header: 'إيرادات التعادل', width: 18 }];
+                    wsBE.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                    wsBE.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: G } };
+                    window.lastBreakeven.products.forEach(p => wsBE.addRow([p.name, (p.mix * 100).toFixed(1) + '%', Math.ceil(p.beUnits), p.beRevenue.toFixed(0)]));
+                }
+
+                const wsEval = workbook.addWorksheet('التوصيات والملخص', { views: [{ rightToLeft: true, showGridLines: false }] });
+                wsEval.getColumn(1).width = 5;
+                wsEval.getColumn(2).width = 50;
+                wsEval.getColumn(3).width = 5;
+                mh(wsEval, 1, 3, 1, '📝 ملخص التقرير والتوصيات', DB, GL, 14);
+                wsEval.getRow(1).height = 40;
+                let evalContent = `المطعم: ${restaurantName}\nالتاريخ: ${dateStr}\n\n📊 إحصائيات عامة:\n• عدد الأطباق: ${allRecipes.length}\n• عدد المواد الأولية: ${allMaterials.length}\n• نسبة الهدر العامة: ${globalWaste}%\n• نسبة تكلفة الطعام المستهدفة: ${foodCostPercent}%\n\n💡 توصيات:\n• راقب تكاليف المواد الأولية باستمرار.\n• حسّن الأطباق ذات التصنيف المنخفض في هندسة المنيو.\n• استهدف الوصول إلى نقطة التعادل بأسرع وقت.`;
+                wsEval.getRow(2).height = Math.max(80, evalContent.split('\n').length * 18);
+                wsEval.mergeCells(2, 2, 2, 2);
+                const ec = wsEval.getCell(2, 2);
+                ec.value = evalContent;
+                ec.font = { name: 'Arial', size: 10, color: { argb: DT } };
+                ec.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEFCF6' } };
+                ec.alignment = { horizontal: 'right', vertical: 'top', wrapText: true, readingOrder: 'rtl' };
+                ec.border = { top: { style: 'medium', color: { argb: G } }, bottom: { style: 'medium', color: { argb: G } }, left: { style: 'medium', color: { argb: G } }, right: { style: 'medium', color: { argb: G } } };
+
+                const buffer = await workbook.xlsx.writeBuffer();
+                saveAs(new Blob([buffer]), `التقرير_الشامل_${restaurantName}_${new Date().toISOString().slice(0,10)}.xlsx`);
+                showToast('✅ تم تصدير التقرير الشامل بنجاح');
+            } catch (e) {
+                console.error(e);
+                showToast('فشل تصدير التقرير الشامل', true);
+            } finally {
+                hideExportLoading();
+            }
+        }
+
+        async function exportFullReportWord() {
+            showExportLoading('جاري إنشاء تقرير Word الشامل...', 'تنسيق البيانات والتصدير');
+            try {
+                const restaurantName = document.getElementById('restaurantNameText').textContent || 'المطعم';
+                const dateStr = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                const now = new Date();
+
+                let recipesRows = '';
+                allRecipes.forEach((r, i) => {
+                    const cost = r.costPrice || 0,
+                        price = r.suggestedPrice || 0,
+                        margin = price > 0 ? ((price - cost) / price * 100).toFixed(1) : '0';
+                    recipesRows += `<tr><td>${i+1}</td><td>${r.name}</td><td>${cost.toFixed(2)}</td><td>${price.toFixed(2)}</td><td>${margin}%</td></tr>`;
+                });
+
+                let materialsRows = '';
+                allMaterials.forEach((m, i) => {
+                    materialsRows += `<tr><td>${i+1}</td><td>${m.name}</td><td>${m.unit}</td><td>${(m.price||0).toFixed(2)}</td><td>${m.wastePercent||0}%</td><td>${m.portionWeight ? m.portionWeight+' '+m.unit : '—'}</td></tr>`;
+                });
+
+                let menuRows = '';
+                if (window.lastMenuAnalysis && window.lastMenuAnalysis.length) {
+                    window.lastMenuAnalysis.forEach((r, i) => {
+                        menuRows += `<tr><td>${i+1}</td><td>${r.name}</td><td>${r.cost.toFixed(2)}</td><td>${r.price.toFixed(2)}</td><td>${r.units}</td><td>${r.margin.toFixed(2)}</td><td>${r.popularity.toFixed(1)}%</td><td>${r.category}</td><td>${r.rec}</td></tr>`;
+                    });
+                }
+
+                let breakevenRows = '';
+                let beSummary = '';
+                if (window.lastBreakeven && window.lastBreakeven.products && window.lastBreakeven.products.length) {
+                    window.lastBreakeven.products.forEach(p => {
+                        breakevenRows += `<tr><td>${p.name}</td><td>${(p.mix*100).toFixed(1)}%</td><td>${Math.ceil(p.beUnits)}</td><td>${p.beRevenue.toFixed(0)}</td></tr>`;
+                    });
+                    beSummary = `<p><strong>إجمالي إيرادات التعادل:</strong> ${window.lastBreakeven.beRevenue.toFixed(0)} | <strong>إجمالي وحدات التعادل:</strong> ${Math.ceil(window.lastBreakeven.beTotalUnits)}</p>`;
+                }
+
+                const fullHtml = `<!DOCTYPE html>
+                <html dir="rtl">
+                <head><meta charset="utf-8"><title>التقرير الشامل - FAROUK GRUP</title>
+                <style>
+                    body{font-family:'Tajawal',sans-serif;margin:2rem;background:#fff;color:#333;direction:rtl;}
+                    .cover{text-align:center;border-bottom:4px solid #b8860b;margin-bottom:30px;padding-bottom:20px;}
+                    .cover h1{font-size:30px;color:#b8860b;margin:0;}
+                    .cover h2{font-size:22px;color:#b48554;margin:5px 0;}
+                    .section-title{color:#b8860b;font-size:18px;border-right:4px solid #b8860b;padding-right:10px;margin-top:25px;}
+                    table{width:100%;border-collapse:collapse;margin:15px 0;font-size:0.9rem;}
+                    th,td{border:1px solid #ddd;padding:8px;text-align:center;}
+                    th{background:#fefcf6;color:#b8860b;font-weight:700;}
+                    tr:nth-child(even){background:#fafafa;}
+                    .footer{text-align:center;margin-top:40px;color:#888;border-top:1px dashed #b8860b;padding-top:10px;}
+                    .summary-box{background:#fefcf6;border:1px solid #b8860b;border-radius:10px;padding:15px;margin:15px 0;}
+                </style></head>
+                <body>
+                    <div class="cover">
+                        <h1>مجموعة فاروق للاستشارات والأعمال</h1>
+                        <h2>التقرير الشامل لإدارة التكلفة وهندسة المنيو</h2>
+                        <p>المطعم: ${restaurantName} | التاريخ: ${dateStr}</p>
+                        <p>نسبة الهدر: ${globalWaste}% | تكلفة الطعام المستهدفة: ${foodCostPercent}%</p>
+                    </div>
+                    <h3 class="section-title">📋 الأطباق والتكاليف</h3>
+                    <table><thead><tr><th>#</th><th>اسم الطبق</th><th>التكلفة الفعلية</th><th>سعر البيع المقترح</th><th>هامش المساهمة %</th></tr></thead><tbody>${recipesRows}</tbody></table>
+                    <h3 class="section-title">📦 المواد الأولية</h3>
+                    <table><thead><tr><th>#</th><th>اسم المادة</th><th>الوحدة</th><th>السعر الفعلي</th><th>الهدر %</th><th>وزن الحصة</th></tr></thead><tbody>${materialsRows}</tbody></table>
+                    ${menuRows ? `<h3 class="section-title">🎯 هندسة المنيو (BCG)</h3><table><thead><tr><th>#</th><th>الطبق</th><th>التكلفة</th><th>سعر البيع</th><th>المبيعات</th><th>هامش الربح</th><th>نسبة المبيعات</th><th>التصنيف</th><th>التوصية</th></tr></thead><tbody>${menuRows}</tbody></table>` : ''}
+                    ${breakevenRows ? `<h3 class="section-title">⚖️ نقطة التعادل</h3>${beSummary}<table><thead><tr><th>الطبق</th><th>المزيج %</th><th>وحدات التعادل</th><th>إيرادات التعادل</th></tr></thead><tbody>${breakevenRows}</tbody></table>` : ''}
+                    <h3 class="section-title">💡 التوصيات</h3>
+                    <div class="summary-box">
+                        <p>• راقب تكاليف المواد الأولية باستمرار وحافظ على نسبة الهدر ضمن الحدود المقبولة.</p>
+                        <p>• حسّن الأطباق ذات التصنيف المنخفض في مصفوفة هندسة المنيو.</p>
+                        <p>• استهدف الوصول إلى نقطة التعادل بأسرع وقت ممكن.</p>
+                    </div>
+                    <div class="footer">تم الإنشاء بواسطة مجموعة فاروق للاستشارات والأعمال © ${now.getFullYear()}</div>
+                </body></html>`;
+
+                const blob = new Blob(['\uFEFF' + fullHtml], { type: 'application/msword' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `التقرير_الشامل_${restaurantName}_${now.toISOString().slice(0,10)}.doc`;
+                link.click();
+                URL.revokeObjectURL(link.href);
+                showToast('✅ تم تصدير تقرير Word الشامل بنجاح');
+            } catch (e) {
+                console.error(e);
+                showToast('فشل تصدير تقرير Word', true);
+            } finally {
+                hideExportLoading();
+            }
+        }
+
+        function refreshAll() { dataLoaded = false;
+            loadAllData(true); }
+
+        document.addEventListener('click', e => { if (e.target.classList.contains('modal-overlay')) closeModals(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModals(); });
     </script>
 </body>
 </html>
