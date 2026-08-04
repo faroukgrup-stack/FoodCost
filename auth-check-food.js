@@ -1,16 +1,16 @@
 /**
  * auth-check-food.js — منظومة التحقق الخاصة بمنصة Food Cost (مستقلة تماماً)
- * الإصدار 1.2 — مطابق لمنطق المنصة الشاملة ولكن بمفتاح خاص
+ * الإصدار 1.2
  */
 (function () {
     "use strict";
 
     /* ─── الإعدادات الخاصة بـ Food Cost ─── */
-    const SECRET_KEY = "F00dC0st_S3cur3_K3y_2026!"; // مفتاح الدخول
-    const LOGIN_PAGE = "index.html"; // صفحة الدخول الخاصة بفود كوست
+    const SECRET_KEY = "F00dC0st_S3cur3_K3y_2026!";
+    const LOGIN_PAGE = "index.html";
 
     /* ─── جلب البيانات ─── */
-    const token     = localStorage.getItem("foodUserToken"); // استخدام مفتاح مختلف لتجنب التداخل
+    const token     = localStorage.getItem("foodUserToken");
     const userName  = localStorage.getItem("foodUserName");
     const userEmail = localStorage.getItem("foodUserEmail");
     const daysLeft  = localStorage.getItem("foodDaysLeft");
@@ -34,7 +34,6 @@
 
     /* ─── 2. التحقق الصارم من التوكن ─── */
     let isValid = false;
-    let tokenEmail = "";
     try {
         const decoded = atob(token);
         const parts   = decoded.split("|");
@@ -42,11 +41,7 @@
         if (parts.length === 3) {
             const keyMatch    = parts[0] === SECRET_KEY;
             const validExpiry = parts[2].trim().length > 0;
-            tokenEmail        = parts[1];
-
-            const emailMatch = userEmail
-                ? parts[1] === userEmail
-                : parts[1].includes("@");
+            const emailMatch  = userEmail ? parts[1] === userEmail : parts[1].includes("@");
 
             isValid = keyMatch && emailMatch && validExpiry;
         }
@@ -90,7 +85,6 @@
             return;
         }
     } else {
-        // إذا لم يكن هناك طابع زمني، نعتبر الجلسة منتهية (أمان إضافي)
         reject("missing session timestamp");
         return;
     }
@@ -111,5 +105,4 @@
     });
 
     console.log("✅ FoodCost Access granted |", userName, "| أيام متبقية:", daysLeft ?? "غير محدد");
-
 })();
