@@ -1,101 +1,110 @@
 /**
  * auth-check-food.js — منظومة التحقق الخاصة بمنصة Food Cost (مستقلة تماماً)
- * الإصدار 1.2
+ * الإصدار 1.3 — لا يستخدم إعادة توجيه، بل يتحكم في ظهور العناصر مباشرة
  */
 (function () {
     "use strict";
 
-    /* ─── الإعدادات الخاصة بـ Food Cost ─── */
     const SECRET_KEY = "F00dC0st_S3cur3_K3y_2026!";
-    const LOGIN_PAGE = "index.html";
+    const SESSION_DURATION_MS = 24 * 60 * 60 * 1000;
 
-    /* ─── جلب البيانات ─── */
+    // جلب البيانات
     const token     = localStorage.getItem("foodUserToken");
     const userName  = localStorage.getItem("foodUserName");
     const userEmail = localStorage.getItem("foodUserEmail");
     const daysLeft  = localStorage.getItem("foodDaysLeft");
+    const loginTimestamp = localStorage.getItem("foodLoginTimestamp");
 
-    /* ─── دالة الطرد الكاملة ─── */
-    function reject(reason) {
+    // عناصر الصفحة
+    const loginScreen = document.getElementById("loginScreen");
+    const appMain     = document.getElementById("appMain");
+
+    // دالة لعرض شاشة الدخول وإخفاء لوحة التحكم
+    function showLogin(reason) {
+        if (loginScreen) loginScreen.style.display = "flex";
+        if (appMain) appMain.style.display = "none";
+        // تنظيف البيانات غير الصالحة
         localStorage.removeItem("foodUserToken");
         localStorage.removeItem("foodUserName");
         localStorage.removeItem("foodUserEmail");
         localStorage.removeItem("foodDaysLeft");
         localStorage.removeItem("foodLoginTimestamp");
-        console.warn("🚫 FoodCost Access denied:", reason);
-        window.location.replace(LOGIN_PAGE);
+        console.warn("🚫 FoodCost: " + reason);
     }
 
-    /* ─── 1. وجود البيانات الأساسية ─── */
+    // دالة لعرض لوحة التحكم وإخفاء شاشة الدخول
+    function showApp() {
+        if (loginScreen) loginScreen.style.display = "none";
+        if (appMain) appMain.style.display = "block";
+    }
+
+    // ===== 1. التحقق من وجود التوكن =====
     if (!token || !userName) {
-        reject("missing credentials");
+        showLogin("missing credentials");
         return;
     }
 
-    /* ─── 2. التحقق الصارم من التوكن ─── */
+    // ===== 2. التحقق من صحة التوكن =====
     let isValid = false;
     try {
         const decoded = atob(token);
-        const parts   = decoded.split("|");
-
-        if (parts.length === 3) {
-            const keyMatch    = parts[0] === SECRET_KEY;
-            const validExpiry = parts[2].trim().length > 0;
-            const emailMatch  = userEmail ? parts[1] === userEmail : parts[1].includes("@");
-
-            isValid = keyMatch && emailMatch && validExpiry;
+        const parts = decoded.split("|");
+        if (parts.length === 3 && parts[0] === SECRET_KEY) {
+            const emailMatch = userEmail ? parts[1] === userEmail : parts[1].includes("@");
+            isValid = emailMatch && parts[2].trim().length > 0;
         }
     } catch (e) {
         isValid = false;
     }
 
     if (!isValid) {
-        reject("invalid token");
+        showLogin("invalid token");
         return;
     }
 
-    /* ─── 3. التحقق من تاريخ انتهاء الاشتراك ─── */
+    // ===== 3. التحقق من تاريخ الانتهاء =====
     try {
         const expiryDate = atob(token).split("|")[2];
-        const expiry     = new Date(expiryDate);
-        const today      = new Date();
+        const expiry = new Date(expiryDate);
+        const today = new Date();
         today.setHours(0, 0, 0, 0);
         if (expiry < today) {
-            reject("subscription expired on " + expiryDate);
+            showLogin("subscription expired on " + expiryDate);
             return;
         }
-    } catch (e) {}
-
-    /* ─── 4. التحقق من daysLeft ─── */
-    if (daysLeft !== null) {
-        const days = parseInt(daysLeft, 10);
-        if (!isNaN(days) && days <= 0) {
-            reject("subscription expired (daysLeft=0)");
-            return;
-        }
+    } catch (e) {
+        showLogin("expiry check failed");
+        return;
     }
 
-    /* ─── 5. التحقق من مهلة 24 ساعة ─── */
-    const loginTimestamp = localStorage.getItem("foodLoginTimestamp");
+    // ===== 4. التحقق من daysLeft =====
+    if (daysLeft !== null && parseInt(daysLeft, 10) <= 0) {
+        showLogin("subscription expired (daysLeft=0)");
+        return;
+    }
+
+    // ===== 5. التحقق من مهلة 24 ساعة =====
     if (loginTimestamp) {
         const elapsed = Date.now() - parseInt(loginTimestamp, 10);
-        const SESSION_DURATION_MS = 24 * 60 * 60 * 1000;
         if (elapsed > SESSION_DURATION_MS) {
-            reject("session expired (24h)");
+            showLogin("session expired (24h)");
             return;
         }
     } else {
-        reject("missing session timestamp");
+        showLogin("missing session timestamp");
         return;
     }
 
-    /* ─── 6. منع الرجوع للخلف بزر المتصفح ─── */
+    // ===== 6. كل شيء صحيح، نعرض لوحة التحكم =====
+    showApp();
+
+    // ===== 7. منع الرجوع للخلف بزر المتصفح (اختياري) =====
     history.pushState(null, "", window.location.href);
     window.addEventListener("popstate", function () {
         history.pushState(null, "", window.location.href);
     });
 
-    /* ─── 7. عرض بيانات المستخدم في الصفحة ─── */
+    // ===== 8. عرض اسم المستخدم والأيام المتبقية =====
     window.addEventListener("DOMContentLoaded", function () {
         const nameEl = document.getElementById("displayUserName");
         if (nameEl) nameEl.innerText = userName;
