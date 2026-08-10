@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة التكلفة وهندسة المنيو – FoodCost</title>
+    <meta name="description" content="منصة متكاملة لإدارة تكاليف المطاعم وتحليل قوائم الطعام وحساب نقطة التعادل مع تقارير احترافية.">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --gold: #b8860b;
+            --gold-light: #d4b15a;
+            --finance-green: #0d5c3b;
+            --finance-dark: #1a3a2a;
+            --finance-bg: #f5f7f5;
+            --dark: #1e1e1e;
+            --light: #ffffff;
+            --text-dark: #2c3e2f;
+            --text-muted: #546e5d;
+            --shadow-sm: 0 10px 30px rgba(0,0,0,0.06);
+            --shadow-lg: 0 20px 50px rgba(13,92,59,0.12);
+            --border-light: rgba(13,92,59,0.1);
+        }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--finance-bg);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .section-title {
+            font-size: 2rem; font-weight: 900; text-align: center; margin-bottom: 50px;
+            color: var(--finance-dark); position: relative;
+        }
+        .section-title:after {
+            content: ''; display: block; width: 60px; height: 3px;
+            background: var(--gold); margin: 15px auto 0; border-radius: 3px;
+        }
+        /* هيدر */
+        .landing-header {
+            text-align: center; padding: 20px 20px 15px; background: var(--light);
+            border-bottom: 1px solid var(--border-light);
+        }
+        .landing-header .logo-container {
+            display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+            background: var(--finance-dark); padding: 8px 30px; border-radius: 50px;
+        }
+        .landing-header h1 {
+            font-family: 'Cairo', sans-serif; font-size: 1.4rem; font-weight: 900;
+            color: var(--gold); letter-spacing: 1px;
+        }
+        .landing-header h1 i { color: var(--gold-light); margin-left: 8px; }
+        /* Hero */
+        .hero {
+            padding: 60px 0; background: linear-gradient(135deg, var(--finance-bg) 0%, #e8f0ea 100%);
+        }
+        .hero-grid {
+            display: flex; align-items: center; gap: 50px; flex-wrap: wrap;
+        }
+        .hero-content { flex: 1; min-width: 300px; }
+        .hero-badge {
+            display: inline-block; background: var(--gold); color: var(--light);
+            padding: 6px 25px; border-radius: 30px; font-weight: 700; font-size: 0.9rem;
+            margin-bottom: 20px; letter-spacing: 1px;
+        }
+        .hero-content h2 {
+            font-size: 2.8rem; font-weight: 900; line-height: 1.3; color: var(--finance-dark);
+            margin-bottom: 20px;
+        }
+        .hero-content h2 span { color: var(--finance-green); }
+        .hero-content p {
+            font-size: 1.2rem; color: var(--text-muted); margin-bottom: 30px;
+        }
+        .hero-image { flex: 0.8; min-width: 280px; text-align: center; }
+        .hero-image img {
+            max-width: 100%; height: auto; border-radius: 16px;
+            box-shadow: 20px 20px 40px rgba(0,0,0,0.15); border: 4px solid var(--light);
+            transform: rotate(1deg); transition: transform 0.3s;
+        }
+        .hero-image img:hover { transform: rotate(0deg); }
+        .btn-gold {
+            background: var(--gold); border: none; border-radius: 50px;
+            padding: 16px 40px; font-size: 1.2rem; font-weight: 700;
+            color: var(--finance-dark); cursor: pointer; transition: 0.3s;
+            display: inline-flex; align-items: center; gap: 10px;
+            box-shadow: 0 8px 20px rgba(184,134,11,0.3);
+        }
+        .btn-gold:hover {
+            background: var(--gold-light); color: var(--finance-dark);
+            transform: translateY(-3px); box-shadow: 0 12px 30px rgba(184,134,11,0.4);
+        }
+        .btn-outline {
+            background: transparent; border: 2px solid var(--gold); border-radius: 50px;
+            padding: 14px 30px; font-size: 1rem; font-weight: 700;
+            color: var(--finance-dark); cursor: pointer; transition: 0.3s;
+            display: inline-flex; align-items: center; gap: 10px;
+        }
+        .btn-outline:hover { background: var(--gold); color: var(--light); }
+        .trust-badges {
+            display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap;
+        }
+        .trust-badges span {
+            display: flex; align-items: center; gap: 8px; font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .trust-badges i { color: var(--finance-green); }
+        .price-tag {
+            display: inline-block; background: var(--finance-dark); padding: 10px 25px;
+            border-radius: 50px; color: var(--gold); font-weight: 900; font-size: 1.6rem;
+            margin: 15px 0 20px;
+        }
+        .price-tag small { font-size: 0.9rem; color: var(--text-muted); font-weight: 400; }
+        /* المشكلة */
+        .problem-section { padding: 80px 0; background: var(--light); }
+        .problem-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
+            gap: 25px; margin-top: 30px;
+        }
+        .problem-card {
+            background: #fafbfa; padding: 30px; border-radius: 20px;
+            border: 1px solid var(--border-light); transition: 0.3s;
+        }
+        .problem-card:hover { border-color: var(--gold); box-shadow: var(--shadow-sm); }
+        .problem-card i { font-size: 2rem; color: #c0392b; margin-bottom: 15px; }
+        .problem-card h4 { font-size: 1.3rem; margin-bottom: 12px; color: var(--finance-dark); }
+        /* الميزات */
+        .features-section { padding: 80px 0; background: var(--finance-bg); }
+        .features-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
+            gap: 30px; margin-top: 30px;
+        }
+        .feature-card {
+            background: var(--light); padding: 35px 25px; border-radius: 30px;
+            box-shadow: var(--shadow-sm); border-bottom: 4px solid var(--finance-green);
+            transition: 0.3s; text-align: center;
+        }
+        .feature-card:hover { transform: translateY(-10px); box-shadow: var(--shadow-lg); }
+        .feature-icon {
+            width: 70px; height: 70px; background: rgba(13,92,59,0.1);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px; font-size: 2rem; color: var(--finance-green);
+        }
+        .feature-card h4 { font-size: 1.4rem; margin-bottom: 15px; }
+        .feature-card p { color: var(--text-muted); }
+        /* معاينة سريعة */
+        .preview-section { padding: 80px 0; background: var(--light); }
+        .preview-grid {
+            display: flex; gap: 30px; flex-wrap: wrap; justify-content: center;
+            margin-top: 30px;
+        }
+        .preview-item {
+            background: #fafbfa; border-radius: 20px; padding: 20px;
+            border: 1px solid var(--border-light); width: 280px; text-align: center;
+        }
+        .preview-item img { width: 100%; border-radius: 12px; margin-bottom: 10px; }
+        .preview-item h5 { font-size: 1.1rem; color: var(--finance-dark); }
+        /* الأقسام */
+        .toc-section { padding: 60px 0; background: var(--finance-bg); }
+        .toc-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+            gap: 15px; margin-top: 30px;
+        }
+        .toc-item {
+            background: var(--light); padding: 15px 20px; border-radius: 50px;
+            display: flex; align-items: center; gap: 12px; border: 1px solid var(--border-light);
+        }
+        .toc-item i { color: var(--gold); }
+        /* الأسئلة الشائعة */
+        .faq-section { padding: 60px 0; background: var(--finance-bg); }
+        .faq-grid { max-width: 800px; margin: 30px auto 0; }
+        .faq-item {
+            background: var(--light); padding: 20px 25px; border-radius: 16px;
+            margin-bottom: 15px; border: 1px solid var(--border-light);
+        }
+        .faq-question {
+            font-weight: 700; font-size: 1.1rem; display: flex; justify-content: space-between;
+            cursor: pointer; color: var(--finance-dark);
+        }
+        .faq-answer {
+            margin-top: 15px; color: var(--text-muted); display: none; padding-top: 10px;
+            border-top: 1px solid var(--border-light);
+        }
+        .faq-item.active .faq-answer { display: block; }
+        .faq-item.active .faq-question i { transform: rotate(180deg); }
+        /* CTA */
+        .cta-section {
+            padding: 80px 0; background: linear-gradient(135deg, var(--finance-dark) 0%, #0d3b28 100%);
+            color: var(--light); text-align: center;
+        }
+        .cta-section h3 { font-size: 2.2rem; margin-bottom: 20px; }
+        .cta-section p { max-width: 600px; margin: 0 auto 30px; opacity: 0.9; }
+        .cta-section .btn-gold { background: var(--gold); color: var(--finance-dark); }
+        /* الفوتر */
+        footer {
+            background: var(--dark); color: #aaa; padding: 40px 20px;
+            text-align: center; font-size: 0.9rem;
+        }
+        footer span { color: var(--gold); }
+
+        /* ===== نافذة الدفع (بنفس أسلوب المنصة الشاملة) ===== */
+        .payment-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 5000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .payment-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .payment-popup {
+            background: #1a1f2e;
+            border-radius: 24px;
+            width: 95%;
+            max-width: 500px;
+            height: 85vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 1px solid rgba(180,133,84,0.3);
+        }
+        .payment-header {
+            background: #0f1420;
+            color: #fff;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            border-bottom: 1px solid rgba(180,133,84,0.2);
+        }
+        .payment-header h3 {
+            font-family: 'Cairo', sans-serif;
+            font-size: 1.2rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #d4b15a;
+        }
+        .payment-header .close-payment {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.8rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0 5px;
+            transition: 0.2s;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .payment-header .close-payment:hover { color: #d4b15a; }
+        .payment-body {
+            flex: 1;
+            position: relative;
+            background: #fafafa;
+        }
+        .payment-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        @media (max-width: 768px) {
+            .hero-content h2 { font-size: 2.2rem; }
+            .hero-image img { transform: none; }
+            .section-title { font-size: 1.8rem; }
+            .payment-popup { width: 95%; height: 85vh; max-width: 500px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- هيدر -->
+<div class="landing-header">
+    <div class="logo-container">
+        <h1><i class="fas fa-utensils"></i> Food<span style="color:var(--gold-light);">Cost</span></h1>
+    </div>
+</div>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="container hero-grid">
+        <div class="hero-content">
+            <span class="hero-badge">نظام إدارة التكلفة</span>
+            <h2>تحكم في <span>تكاليف مطعمك</span> وارفع أرباحك</h2>
+            <p>منصة متكاملة لحساب التكاليف، هندسة قائمة الطعام، تحليل نقطة التعادل، وتصدير تقارير احترافية – كل ذلك في مكان واحد.</p>
+            <div class="price-tag">99$ <small>/ سنوياً</small></div>
+            <button class="btn-gold" id="openModalBtn"><i class="fas fa-rocket"></i> اشترك الآن</button>
+            <div class="trust-badges">
+                <span><i class="fas fa-check-circle"></i> لا يتجدد تلقائياً</span>
+                <span><i class="fas fa-check-circle"></i> دفع آمن</span>
+                <span><i class="fas fa-check-circle"></i> وصول فوري</span>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="https://lh3.googleusercontent.com/d/10_m7-rwAF9hQmI-c2af5K6_UDzw5iRmz" alt="منصة FoodCost">
+        </div>
+    </div>
+</section>
+
+<!-- المشكلة -->
+<section class="problem-section">
+    <div class="container">
+        <h3 class="section-title">هل تواجه هذه التحديات؟</h3>
+        <div class="problem-grid">
+            <div class="problem-card">
+                <i class="fas fa-calculator"></i>
+                <h4>حساب التكلفة يدوياً</h4>
+                <p>تضيع ساعات في جداول Excel وتظل غير متأكد من دقة التكاليف الفعلية لأطباقك.</p>
+            </div>
+            <div class="problem-card">
+                <i class="fas fa-chart-pie"></i>
+                <h4>قائمة طعام غير محسّنة</h4>
+                <p>لا تعرف أي الأطباق تحقق أرباحاً وأيها تخسرك المال، مما يضعف أداء قائمتك.</p>
+            </div>
+            <div class="problem-card">
+                <i class="fas fa-file-invoice"></i>
+                <h4>تقارير مبعثرة</h4>
+                <p>البيانات مشتتة بين برامج مختلفة، ولا تملك تقريراً شاملاً يعكس أداء مطعمك المالي.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- الميزات الأساسية -->
+<section class="features-section">
+    <div class="container">
+        <h3 class="section-title">ماذا تقدم لك المنصة؟</h3>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-list-ul"></i></div>
+                <h4>إدارة الأطباق والمواد</h4>
+                <p>أضف أطباقك وموادك الأولية، واحسب التكلفة الفعلية لكل طبق مع مراعاة الهدر.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-chart-pie"></i></div>
+                <h4>هندسة المنيو (BCG)</h4>
+                <p>صنف أطباقك إلى نجوم، أبقار نقدية، علامات استفهام، وكلاب، واحصل على توصيات لتحسين القائمة.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-balance-scale"></i></div>
+                <h4>نقطة التعادل</h4>
+                <p>احسب عدد الوحدات والإيرادات اللازمة لتغطية تكاليفك الثابتة، وخطط لأهدافك بدقة.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-file-excel"></i></div>
+                <h4>تقارير احترافية</h4>
+                <p>صدّر تقارير شاملة بصيغ Excel و Word تحتوي على جميع البيانات والرسوم البيانية والتوصيات.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- معاينة سريعة -->
+<section class="preview-section">
+    <div class="container">
+        <h3 class="section-title">معاينة سريعة</h3>
+        <div class="preview-grid">
+            <div class="preview-item">
+                <img src="https://lh3.googleusercontent.com/d/1MaA7KrKKLPblA2mfh1oxDrEAlOGD7i9P" alt="الرسوم البيانية">
+                <h5>📊 رسوم بيانية تفاعلية</h5>
+            </div>
+            <div class="preview-item">
+                <img src="https://lh3.googleusercontent.com/d/1MbVDvnt8PzhOaWMjsZITNj9O0UDzM0Tb" alt="تحليل التكاليف">
+                <h5>📋 تحليل التكاليف والأرباح</h5>
+            </div>
+            <div class="preview-item">
+                <img src="https://lh3.googleusercontent.com/d/1LxDwgMgE7ba9Srv0Pzz-KHuYBZjtwaHD" alt="نقطة التعادل">
+                <h5>⚖️ نقطة التعادل</h5>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- الأقسام الرئيسية -->
+<section class="toc-section">
+    <div class="container">
+        <h3 class="section-title">ما الذي ستفعله في المنصة؟</h3>
+        <div class="toc-grid">
+            <div class="toc-item"><i class="fas fa-plus-circle"></i> إضافة أطباق جديدة</div>
+            <div class="toc-item"><i class="fas fa-boxes"></i> إدارة المواد الأولية</div>
+            <div class="toc-item"><i class="fas fa-chart-simple"></i> تحليل BCG</div>
+            <div class="toc-item"><i class="fas fa-calculator"></i> حساب نقطة التعادل</div>
+            <div class="toc-item"><i class="fas fa-file-word"></i> تصدير تقارير Word</div>
+            <div class="toc-item"><i class="fas fa-file-excel"></i> تصدير تقارير Excel</div>
+        </div>
+    </div>
+</section>
+
+<!-- الأسئلة الشائعة -->
+<section class="faq-section">
+    <div class="container">
+        <h3 class="section-title">أسئلة شائعة</h3>
+        <div class="faq-grid">
+            <div class="faq-item">
+                <div class="faq-question"><span>هل المنصة مناسبة للمطاعم الصغيرة؟</span> <i class="fas fa-chevron-down"></i></div>
+                <div class="faq-answer">نعم، المنصة مصممة لتكون بسيطة وسهلة الاستخدام وتناسب جميع أحجام المطاعم، من المطاعم الصغيرة إلى السلاسل الكبيرة.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question"><span>هل أحتاج إلى خبرة محاسبية لاستخدامها؟</span> <i class="fas fa-chevron-down"></i></div>
+                <div class="faq-answer">لا، المنصة موجهة لأصحاب ومدراء المطاعم غير الماليين، وتشرح كل خطوة بلغة بسيطة وواضحة.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question"><span>كيف يمكنني تصدير التقارير؟</span> <i class="fas fa-chevron-down"></i></div>
+                <div class="faq-answer">بضغطة زر واحدة يمكنك تصدير تقرير شامل بصيغة Excel أو Word يحتوي على جميع البيانات والرسوم البيانية والتوصيات.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question"><span>هل الاشتراك يتجدد تلقائياً؟</span> <i class="fas fa-chevron-down"></i></div>
+                <div class="faq-answer">لا، الاشتراك سنوي ولا يتجدد تلقائياً. ستتلقى تذكيراً قبل انتهائه، ويمكنك التجديد يدوياً إذا رغبت.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+    <div class="container">
+        <h3>ابدأ الآن في تحسين تكاليف مطعمك</h3>
+        <p>انضم إلى مئات من أصحاب ومدراء المطاعم الذين يستخدمون المنصة لزيادة أرباحهم وتقليل الهدر.</p>
+        <div class="price-tag" style="background:rgba(255,255,255,0.1); color:var(--gold); display:inline-block; padding:10px 30px; border-radius:50px; font-size:1.8rem; margin-bottom:20px;">
+            99$ <small style="color:rgba(255,255,255,0.6);">/ سنوياً</small>
+        </div>
+        <button class="btn-gold" id="openModalBtn2"><i class="fas fa-rocket"></i> اشترك الآن</button>
+        <p style="margin-top:20px; font-size:0.9rem; opacity:0.7;"><i class="fas fa-lock"></i> دفع آمن – وصول فوري</p>
+    </div>
+</section>
+
+<!-- الفوتر -->
+<footer>
+    <div class="container">
+        <p>© 2026 مجموعة فاروق للاستشارات والأعمال. جميع الحقوق محفوظة.</p>
+        <p style="margin-top:10px;"><span>FoodCost</span> – نظام إدارة التكلفة وهندسة المنيو للمطاعم.</p>
+    </div>
+</footer>
+
+<!-- ===== نافذة الدفع (بنفس أسلوب المنصة الشاملة) ===== -->
+<div class="payment-overlay" id="paymentModal">
+    <div class="payment-popup">
+        <div class="payment-header">
+            <h3><i class="fas fa-lock"></i> إتمام الاشتراك السنوي</h3>
+            <button class="close-payment" id="closePaymentBtn">&times;</button>
+        </div>
+        <div class="payment-body">
+            <iframe id="paymentIframe" src="" allow="payment" allowfullscreen title="نافذة الدفع"></iframe>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const PAYMENT_LINK = "https://alfan.link/faroukazem?digital=dBG8CN";
+        const modal = document.getElementById('paymentModal');
+        const iframe = document.getElementById('paymentIframe');
+        const openBtns = document.querySelectorAll('#openModalBtn, #openModalBtn2');
+        const closeBtn = document.getElementById('closePaymentBtn');
+
+        function openModal() {
+            iframe.src = PAYMENT_LINK;
+            modal.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        openBtns.forEach(btn => btn.addEventListener('click', openModal));
+
+        function closeModal() {
+            modal.classList.remove('open');
+            iframe.src = '';
+            document.body.style.overflow = '';
+        }
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+        });
+
+        // FAQ accordion
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const item = question.closest('.faq-item');
+                document.querySelectorAll('.faq-item').forEach(faq => {
+                    if (faq !== item) faq.classList.remove('active');
+                });
+                item.classList.toggle('active');
+            });
+        });
+    })();
+</script>
+
+</body>
+</html>
