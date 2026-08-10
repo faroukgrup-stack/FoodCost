@@ -20,7 +20,7 @@
     </script>
 
     <style>
-        /* ===== جميع الأنماط (نفسها) ===== */
+        /* ===== جميع الأنماط الأساسية (كما هي) ===== */
         :root {
             --primary: #0b0e17;
             --primary-light: #141c2b;
@@ -246,7 +246,8 @@
             flex-wrap: wrap;
             gap: 15px;
             position: relative;
-            z-index: 10;
+            z-index: 1000;
+            overflow: visible;
         }
         .logo {
             font-size: 1.3rem;
@@ -876,18 +877,337 @@
             border: none;
         }
 
-        @media (max-width:768px) {
+        /* ===== أنماط الهامبرغر والقائمة ===== */
+        .hamburger-btn {
+            display: none;
+            background: rgba(180, 133, 84, 0.15);
+            border: 1px solid var(--border);
+            color: var(--accent-soft);
+            font-size: 1.8rem;
+            padding: 8px 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            line-height: 1;
+            position: relative;
+            z-index: 100; /* رفع المستوى */
+            pointer-events: auto;
+        }
+        .hamburger-btn:hover {
+            background: rgba(180, 133, 84, 0.3);
+            border-color: var(--accent-glow);
+        }
+        .hamburger-btn:active {
+            transform: scale(0.95);
+        }
+
+        .mobile-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 10px;
+    right: 10px;
+
+    /* الحل */
+    background: #121824;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 8px;
+    flex-direction: column;
+    gap: 6px;
+
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    z-index: 9999;
+
+    max-height: 80vh;
+    overflow-y: auto;
+}
+        .mobile-dropdown.open {
+            display: flex;
+        }
+        .mobile-dropdown .menu-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+            border-radius: 40px;
+            padding: 12px 20px;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: right;
+            width: 100%;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .mobile-dropdown .menu-item i {
+            width: 24px;
+            text-align: center;
+            color: var(--accent-soft);
+        }
+        .mobile-dropdown .menu-item:hover {
+            background: rgba(180, 133, 84, 0.15);
+            border-color: var(--accent-glow);
+            color: #fff;
+        }
+        .mobile-dropdown .menu-item.active-tab {
+            background: rgba(180, 133, 84, 0.25);
+            border-color: var(--accent-glow);
+            color: var(--accent-soft);
+        }
+        .mobile-dropdown .menu-divider {
+            border-top: 1px solid var(--border);
+            margin: 6px 0;
+        }
+        .mobile-dropdown .menu-item.danger {
+            color: #fca5a5;
+        }
+        .mobile-dropdown .menu-item.danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--danger);
+            color: #fff;
+        }
+
+        /* ===== تحسينات الجوال ===== */
+        @media (max-width: 768px) {
             .app-header {
-                flex-direction: column;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                border-radius: 30px;
+                padding: 0.5rem 1rem;
+                margin: 1rem auto 0;
+                width: 95%;
+                overflow: visible;
+            }
+            .logo {
+                font-size: 1.1rem;
+                flex: 1;
+            }
+            .datetime-header {
+                display: none;
+            }
+            .header-actions {
+                display: none;
+            }
+            .hamburger-btn {
+                display: block;
+                font-size: 1.6rem;
+                padding: 6px 14px;
+                margin-right: 5px;
             }
             .tabs {
+                display: none;
+            }
+            /* تصغير أحجام الجداول والأزرار */
+            .table-container {
+                padding: 4px 6px 12px;
+                border-radius: 14px;
+                overflow-x: auto;
+            }
+            table {
+                font-size: 0.7rem;
+            }
+            th, td {
+                padding: 6px 4px !important;
+                white-space: nowrap;
+            }
+            .badge {
+                font-size: 0.6rem;
+                padding: 2px 8px;
+            }
+            .btn-sm {
+                padding: 4px 8px !important;
+                font-size: 0.6rem !important;
+                border-radius: 14px !important;
+                min-height: 28px;
+                min-width: 28px;
+            }
+            .modal-box {
+                padding: 16px;
+                width: 95%;
+                max-width: 95%;
+                border-radius: 16px;
+            }
+            .modal-box h3 {
+                font-size: 1rem;
+                margin-bottom: 12px;
+                padding-bottom: 10px;
+            }
+            .field-group label {
+                font-size: 0.8rem;
+            }
+            input[type="text"],
+            input[type="number"],
+            input[type="email"],
+            input[type="password"],
+            select {
+                padding: 8px 12px !important;
+                font-size: 0.8rem !important;
+                border-radius: 30px !important;
+            }
+            .add-ingredient-form {
+                flex-direction: column;
+                gap: 6px;
+            }
+            .add-ingredient-form .searchable-select,
+            .add-ingredient-form > div {
+                width: 100% !important;
+                min-width: unset !important;
+            }
+            .add-ingredient-form .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            #pwaInstallBtn {
+                bottom: 70px !important;
+                right: 10px !important;
+                padding: 10px 16px !important;
+                font-size: 0.8rem !important;
+                border-radius: 40px !important;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important;
+            }
+            .login-card {
+                padding: 1.5rem;
+                border-radius: 16px;
+                max-width: 340px;
+            }
+            .login-card h2 {
+                font-size: 1.2rem;
+            }
+            .login-input {
+                padding: 0.7rem;
+                font-size: 0.9rem;
+            }
+            .login-btn {
+                padding: 0.7rem;
+                font-size: 1rem;
+            }
+            .quick-links-panel {
+                padding: 0.6rem 0.8rem;
+                border-radius: 14px;
+            }
+            .links-row {
+                gap: 4px;
+            }
+            .link-btn {
+                padding: 4px 10px;
+                font-size: 0.65rem;
+                border-radius: 30px;
+            }
+            .version-badge {
+                font-size: 0.6rem;
+                padding: 2px 8px;
+            }
+            .chart-container {
+                height: 200px !important;
+                padding: 0.5rem;
+                border-radius: 14px;
+            }
+            .toast {
+                padding: 10px 18px;
+                font-size: 0.8rem;
+                border-radius: 30px;
+            }
+            #pwaInstallBtn {
+                bottom: 60px !important;
+                right: 10px !important;
+                left: 10px !important;
+                width: calc(100% - 20px);
+                text-align: center;
+                justify-content: center;
+                border-radius: 50px !important;
+                padding: 12px !important;
+                font-size: 0.9rem !important;
+                background: #b48554;
+                color: #fff;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+            }
+            #tab0 .table-container table,
+            #tab1 .table-container table {
+                min-width: 500px;
+            }
+            #tab2 .table-container table,
+            #tab3 .table-container table {
+                min-width: 600px;
+            }
+            #menuInputFields > div {
+                grid-template-columns: 24px 1fr 70px 70px auto !important;
+                gap: 4px !important;
+                font-size: 0.7rem;
+            }
+            #menuInputFields input[type="number"] {
+                padding: 4px 6px !important;
+                font-size: 0.7rem !important;
+                min-width: 50px;
+            }
+            #beFixedCosts {
+                width: 100%;
+            }
+            #breakevenProductsContainer > div {
                 flex-wrap: wrap;
+                gap: 4px;
+            }
+            #breakevenProductsContainer span {
+                min-width: 80px !important;
+                font-size: 0.7rem;
+            }
+            #breakevenProductsContainer input {
+                width: 80px !important;
+                padding: 4px 6px !important;
+                font-size: 0.7rem !important;
             }
             .payment-popup {
-                width: 95%;
-                height: 85vh;
-                max-width: 500px;
-                border-radius: 20px;
+                width: 98%;
+                height: 90vh;
+                border-radius: 16px;
+            }
+            .payment-header h3 {
+                font-size: 1rem;
+            }
+            .payment-header .close-payment {
+                font-size: 1.5rem;
+            }
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .export-full-report-btn {
+                padding: 8px 12px !important;
+                font-size: 0.7rem !important;
+                border-radius: 30px !important;
+                margin: 4px 2px !important;
+                width: calc(50% - 6px) !important;
+                justify-content: center;
+            }
+            #tab3 > div:first-child {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            #tab3 > div:first-child .btn,
+            #tab3 > div:first-child .export-excel-btn,
+            #tab3 > div:first-child .export-full-report-btn {
+                flex: 0 0 calc(50% - 6px);
+                margin: 3px !important;
+                text-align: center;
+                justify-content: center;
+            }
+        }
+        @media (max-width: 400px) {
+            .logo {
+                font-size: 0.9rem;
+            }
+            .hamburger-btn {
+                font-size: 1.3rem;
+                padding: 4px 10px;
+            }
+            .mobile-dropdown .menu-item {
+                padding: 8px 12px;
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -933,7 +1253,7 @@
             <button class="login-btn" id="loginBtn"><i class="fas fa-sign-in-alt"></i> دخول</button>
             <div class="login-links">
                 <a href="https://wa.me/905550196682" target="_blank"><i class="fab fa-whatsapp"></i> نسيت كلمة المرور؟</a>
-                <button class="renew-btn" id="openRenewBtn"><i class="fas fa-sync-alt"></i> تجديد الإشتراك</button>
+                <a href="Food-Cost.html" target="_blank"><i class="fas fa-sync-alt"></i> للإشتراك أو التجديد</a>
             </div>
             <div class="error-msg" id="errorMsg"></div>
         </div>
@@ -953,9 +1273,27 @@
                 <button class="btn btn-primary" onclick="refreshAll()"><i class="fas fa-sync-alt"></i> تحديث</button>
                 <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> خروج</button>
             </div>
+            <!-- زر الهامبرغر -->
+            <button class="hamburger-btn" id="hamburgerBtn" aria-label="فتح القائمة">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <!-- القائمة المنسدلة للجوال -->
+            <div class="mobile-dropdown" id="mobileMenu">
+                <button class="menu-item active-tab" data-tab="0"><i class="fas fa-clipboard-list"></i> الأطباق</button>
+                <button class="menu-item" data-tab="1"><i class="fas fa-boxes"></i> المواد الأولية</button>
+                <button class="menu-item" data-tab="2"><i class="fas fa-chart-pie"></i> هندسة المنيو</button>
+                <button class="menu-item" data-tab="3"><i class="fas fa-balance-scale"></i> نقطة التعادل</button>
+                <div class="menu-divider"></div>
+                <div class="menu-item" onclick="showEditRestaurantName(); closeMobileMenu();"><i class="fas fa-store"></i> <span id="restaurantNameTextMobile">المطعم</span></div>
+                <div class="menu-item" onclick="showSettingsModal(); closeMobileMenu();"><i class="fas fa-cog"></i> الإعدادات</div>
+                <div class="menu-item" onclick="refreshAll(); closeMobileMenu();"><i class="fas fa-sync-alt"></i> تحديث</div>
+                <div class="menu-item danger" onclick="logout(); closeMobileMenu();"><i class="fas fa-sign-out-alt"></i> خروج</div>
+            </div>
         </header>
 
         <div class="container">
+            <!-- شريط التبويبات (يظهر على الكمبيوتر) -->
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchTab(0)"><i class="fas fa-clipboard-list"></i> الأطباق</button>
                 <button class="tab-btn" onclick="switchTab(1)"><i class="fas fa-boxes"></i> المواد الأولية</button>
@@ -1125,7 +1463,6 @@
         const COST_API_URL = "https://script.google.com/macros/s/AKfycbxMz1mrmiTQFiXVnOD4nqlf-xDPfIB84hftyVm3jXLRibPygAqurs8-dbv5iXxoTF1-/exec";
         const SESSION_DURATION_MS = 24 * 60 * 60 * 1000;
         const PAYMENT_LINK = "https://alfan.link/faroukazem?payment-link=qDwcrM";
-        const FOOD_SECRET_KEY = "F00dC0st_S3cur3_K3y_2026!";
 
         // ============================================================
         // المتغيرات العامة
@@ -1187,11 +1524,6 @@
             if (e.key === 'Escape' && document.getElementById('paymentModal').classList.contains('open')) {
                 closePaymentModal();
             }
-        });
-
-        document.getElementById('openRenewBtn').addEventListener('click', function(e) {
-            e.preventDefault();
-            openPaymentModal();
         });
 
         // ============================================================
@@ -1257,13 +1589,12 @@
                 const resp = await fetch(url);
                 const result = await resp.json();
                 if (result.status === 'success') {
-                    let token = result.token;
-                    if (!token) {
-                        const expiryDate = new Date();
-                        expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-                        const raw = FOOD_SECRET_KEY + "|" + user + "|" + expiryDate.toISOString().split('T')[0];
-                        token = btoa(raw);
-                    }
+    let token = result.token; // فقط ما يرسله السيرفر
+    if (!token) {
+        // إذا لم يرسل السيرفر توكن، نعرض رسالة خطأ ولا ننشئ توكنًا محليًا
+        errDiv.textContent = '❌ لم يتم استلام توكن من السيرفر';
+        return;
+    }
 
                     localStorage.setItem('foodUserToken', token);
                     localStorage.setItem('foodUserName', result.name || user);
@@ -1278,7 +1609,7 @@
                     loadAllData(true);
                     startSessionTimer();
                 } else if (result.status === 'expired') {
-                    errDiv.innerHTML = '❌ انتهى اشتراكك. <button class="renew-btn" onclick="openPaymentModal()" style="color:#cfa776; cursor:pointer; background:none; border:none; text-decoration:underline; font-family:Tajawal;">جدد من هنا</button>';
+                    errDiv.innerHTML = '❌ انتهى اشتراكك. <a href="Food-Cost.html" target="_blank" style="color:#cfa776; text-decoration:underline;">جدد من هنا</a>';
                 } else {
                     errDiv.textContent = '❌ ' + (result.message || 'بيانات خاطئة');
                 }
@@ -1386,6 +1717,7 @@
                 globalWaste = data.wastePercent || 0;
                 foodCostPercent = data.foodCostPercent || 30;
                 document.getElementById('restaurantNameText').textContent = data.restaurantName || 'المطعم';
+                document.getElementById('restaurantNameTextMobile').textContent = data.restaurantName || 'المطعم';
                 dataLoaded = true;
                 dataCacheTimestamp = now;
                 renderMaterialsTable();
@@ -1405,6 +1737,9 @@
             currentTab = n;
             ['tab0', 'tab1', 'tab2', 'tab3'].forEach((id, i) => document.getElementById(id).style.display = i === n ? 'block' : 'none');
             document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === n));
+            document.querySelectorAll('.mobile-dropdown .menu-item[data-tab]').forEach((btn, i) => {
+                btn.classList.toggle('active-tab', i === n);
+            });
             if (n === 0 || n === 1) {
                 if (dataLoaded && (Date.now() - dataCacheTimestamp) < CACHE_DURATION_MS) {
                     renderMaterialsTable();
@@ -1419,10 +1754,37 @@
                 if (!dataLoaded) loadAllData(false);
                 else renderBreakevenInputs();
             }
+            closeMobileMenu();
         }
 
+        // ===== دوال القائمة المنسدلة =====
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('open');
+        }
+        function closeMobileMenu() {
+            document.getElementById('mobileMenu').classList.remove('open');
+        }
+        document.getElementById('hamburgerBtn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleMobileMenu();
+        });
+        document.addEventListener('click', function(e) {
+            const header = document.querySelector('.app-header');
+            const menu = document.getElementById('mobileMenu');
+            if (menu && header && !header.contains(e.target) && menu.classList.contains('open')) {
+                menu.classList.remove('open');
+            }
+        });
+        document.querySelectorAll('.mobile-dropdown .menu-item[data-tab]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tab = parseInt(this.getAttribute('data-tab'));
+                switchTab(tab);
+            });
+        });
+
         // ============================================================
-        // دوال الأطباق والمواد
+        // دوال الأطباق والمواد (اختصاراً، لأنها طويلة ولكنها موجودة)
         // ============================================================
         function renderRecipesTable() {
             const tbody = document.getElementById('recipesBody');
@@ -1442,7 +1804,6 @@
         }
 
         function showAddRecipeModal() { document.getElementById('recipeNameInput').value = ''; document.getElementById('recipeModal').classList.add('active'); }
-
         async function addRecipe() {
             const name = document.getElementById('recipeNameInput').value.trim();
             if (!name) return showToast('أدخل اسماً', true);
@@ -1454,7 +1815,6 @@
                 showToast('تمت الإضافة');
             } else showToast(res.error, true);
         }
-
         function showAddMaterialModal() {
             document.getElementById('matName').value = '';
             document.getElementById('matUnit').value = '';
@@ -1467,7 +1827,6 @@
             document.getElementById('materialSaveBtn').onclick = addMaterial;
             document.getElementById('materialModal').classList.add('active');
         }
-
         function editMaterial(id) {
             const m = allMaterials.find(x => x.id === id);
             if (!m) return;
@@ -1482,7 +1841,6 @@
             document.getElementById('materialSaveBtn').onclick = () => updateMaterial(id);
             document.getElementById('materialModal').classList.add('active');
         }
-
         function getMaterialFormData() {
             const name = document.getElementById('matName').value.trim(),
                 unit = document.getElementById('matUnit').value.trim(),
@@ -1493,7 +1851,6 @@
             if (!name || !unit || isNaN(pp) || isNaN(pq)) { showToast('تأكد من الحقول', true); return null; }
             return { name, unit, purchasePrice: pp, purchaseQty: pq, wastePercent: waste, portionWeight: pw || 0 };
         }
-
         async function addMaterial() {
             const data = getMaterialFormData();
             if (!data) return;
@@ -1506,7 +1863,6 @@
                 showToast('تمت الإضافة');
             } else showToast(res.error, true);
         }
-
         async function updateMaterial(id) {
             const data = getMaterialFormData();
             if (!data) return;
@@ -1531,7 +1887,6 @@
                 document.getElementById('materialModalTitle').innerHTML = '<i class="fas fa-box"></i> إضافة مادة';
             } else showToast(res.error, true);
         }
-
         async function refreshCostsAndPrices(forceServer = false) {
             if (forceServer || !dataLoaded || (Date.now() - dataCacheTimestamp) > CACHE_DURATION_MS) {
                 const recRes = await callServer('getAllRecipes', {}, false);
@@ -1544,21 +1899,18 @@
             renderRecipesTable();
             renderMaterialsTable();
         }
-
         function confirmDeleteRecipe(name) {
             pendingDelete = { type: 'recipe', name };
             document.getElementById('confirmTitle').innerHTML = '<i class="fas fa-exclamation-triangle"></i> حذف طبق';
             document.getElementById('confirmMessage').textContent = `هل أنت متأكد من حذف "${name}"؟`;
             document.getElementById('confirmModal').classList.add('active');
         }
-
         function confirmDeleteMaterial(id, name) {
             pendingDelete = { type: 'material', id, name };
             document.getElementById('confirmTitle').innerHTML = '<i class="fas fa-exclamation-triangle"></i> حذف مادة';
             document.getElementById('confirmMessage').textContent = `هل أنت متأكد من حذف "${name}"؟`;
             document.getElementById('confirmModal').classList.add('active');
         }
-
         async function confirmDelete() {
             if (!pendingDelete) return;
             const d = pendingDelete;
@@ -1578,24 +1930,21 @@
             }
             pendingDelete = null;
         }
-
         function showEditRestaurantName() {
             document.getElementById('restaurantNameInput').value = document.getElementById('restaurantNameText').textContent;
             document.getElementById('restaurantModal').classList.add('active');
         }
-
         async function updateRestaurantName() {
             const name = document.getElementById('restaurantNameInput').value.trim();
             if (!name) return;
             closeModals();
             await callServer('updateRestaurantName', { name });
             document.getElementById('restaurantNameText').textContent = name;
+            document.getElementById('restaurantNameTextMobile').textContent = name;
             showToast('تم تحديث الاسم');
         }
 
-        // ============================================================
         // دوال المكونات
-        // ============================================================
         async function openIngredientsModal(recipeName) {
             currentEditingRecipe = recipeName;
             document.getElementById('currentRecipeName').textContent = recipeName;
@@ -1611,7 +1960,6 @@
             filterIngredients();
             document.getElementById('ingredientsModal').classList.add('active');
         }
-
         function renderIngredientsList() {
             const c = document.getElementById('ingredientsList');
             if (!currentRecipeIngredients.length) { c.innerHTML = '<p style="color:var(--text-muted);">لا توجد مكونات بعد.</p>'; return; }
@@ -1622,7 +1970,6 @@
                 return `<div class="ingredient-row"><span>${escapeHtml(name)}</span><span>${ing.quantity} <span class="unit-badge">${escapeHtml(unit)}</span></span><button class="btn btn-sm btn-outline" onclick="removeIngredient(${idx})"><i class="fas fa-times" style="color:var(--danger);"></i></button></div>`;
             }).join('');
         }
-
         function filterIngredients() {
             const searchTerm = document.getElementById('ingredientSearch').value.toLowerCase();
             const optionsContainer = document.getElementById('ingredientOptions');
@@ -1645,7 +1992,6 @@
             });
             optionsContainer.style.display = filtered.length ? 'block' : 'none';
         }
-
         document.addEventListener('click', function(e) {
             const container = document.querySelector('.searchable-select');
             if (container && !container.contains(e.target)) {
@@ -1653,7 +1999,6 @@
                 if (opts) opts.style.display = 'none';
             }
         });
-
         function addIngredientToRecipe() {
             const qty = parseFloat(document.getElementById('ingredientQty').value);
             if (!selectedMaterialId || isNaN(qty) || qty <= 0) return showToast('اختر مادة وأدخل كمية صحيحة', true);
@@ -1672,10 +2017,8 @@
             filterIngredients();
             showToast(`تمت إضافة ${qty} ${mat.unit} من ${mat.name}`);
         }
-
         function removeIngredient(i) { currentRecipeIngredients.splice(i, 1);
             renderIngredientsList(); }
-
         async function saveRecipeIngredients() {
             if (!currentEditingRecipe) return;
             const res = await callServer('saveRecipeIngredients', { recipeName: currentEditingRecipe, ingredients: currentRecipeIngredients }, true);
@@ -1685,7 +2028,6 @@
                 refreshCostsAndPrices(true);
             } else showToast(res.error, true);
         }
-
         document.getElementById('editRecipeNameBtn').addEventListener('click', function() {
             const span = document.getElementById('currentRecipeName');
             const currentName = span.textContent;
@@ -1739,15 +2081,12 @@
             });
         });
 
-        // ============================================================
         // دوال الإعدادات
-        // ============================================================
         function showSettingsModal() {
             document.getElementById('globalWastePercent').value = globalWaste;
             document.getElementById('foodCostPercent').value = foodCostPercent;
             document.getElementById('settingsModal').classList.add('active');
         }
-
         async function saveSettings() {
             const waste = parseFloat(document.getElementById('globalWastePercent').value),
                 fcp = parseFloat(document.getElementById('foodCostPercent').value);
@@ -1759,40 +2098,17 @@
                 showToast('تم حفظ الإعدادات');
                 refreshCostsAndPrices(true); } else showToast(res.error, true);
         }
-
-        // ============================================================
-        // دوال تغيير كلمة المرور (مودال منفصل)
-        // ============================================================
         function openChangePasswordModal() {
-            // إخفاء مودال الإعدادات (اختياري) وفتح مودال تغيير كلمة المرور
-            // نقوم فقط بفتح المودال الجديد، يمكن إبقاء الإعدادات مفتوحة أو إغلاقها
             document.getElementById('changePasswordModal').classList.add('active');
         }
-
         async function changePassword() {
             const oldPass = document.getElementById('oldPassword').value.trim();
             const newPass = document.getElementById('newPassword').value.trim();
             const confirmPass = document.getElementById('confirmPassword').value.trim();
-
-            if (!oldPass || !newPass || !confirmPass) {
-                showToast('يرجى ملء جميع الحقول', true);
-                return;
-            }
-            if (newPass.length < 6) {
-                showToast('كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل', true);
-                return;
-            }
-            if (newPass !== confirmPass) {
-                showToast('كلمة المرور الجديدة وتأكيدها غير متطابقين', true);
-                return;
-            }
-
-            const params = {
-                username: currentUserEmail,
-                oldPassword: oldPass,
-                password: newPass
-            };
-
+            if (!oldPass || !newPass || !confirmPass) { showToast('يرجى ملء جميع الحقول', true); return; }
+            if (newPass.length < 6) { showToast('كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل', true); return; }
+            if (newPass !== confirmPass) { showToast('كلمة المرور الجديدة وتأكيدها غير متطابقين', true); return; }
+            const params = { username: currentUserEmail, oldPassword: oldPass, password: newPass };
             showLoading();
             try {
                 const result = await callServer('updateUser', params, false);
@@ -1801,7 +2117,6 @@
                     document.getElementById('oldPassword').value = '';
                     document.getElementById('newPassword').value = '';
                     document.getElementById('confirmPassword').value = '';
-                    // إغلاق مودال تغيير كلمة المرور
                     document.getElementById('changePasswordModal').classList.remove('active');
                 } else {
                     showToast('❌ ' + (result.error || 'فشل تحديث كلمة المرور'), true);
@@ -1813,9 +2128,7 @@
             }
         }
 
-        // ============================================================
         // دوال التصدير
-        // ============================================================
         async function exportToExcel() {
             if (!allRecipes.length && !allMaterials.length) { showToast('لا توجد بيانات', true); return; }
             showLoading();
@@ -1838,18 +2151,14 @@
             } catch (e) { showToast('فشل التصدير', true); } finally { hideLoading(); }
         }
 
-        // ============================================================
         // دوال هندسة المنيو
-        // ============================================================
         function loadMenuDataFromStorage() {
             const stored = localStorage.getItem('menuEngineeringData_' + currentUserEmail);
             if (stored) try { menuData = JSON.parse(stored); } catch (e) { menuData = {}; }
             allRecipes.forEach(r => { if (!menuData[r.name]) menuData[r.name] = { price: r.suggestedPrice || 0, units: 0, selected: true }; });
             saveMenuDataToStorage();
         }
-
         function saveMenuDataToStorage() { localStorage.setItem('menuEngineeringData_' + currentUserEmail, JSON.stringify(menuData)); }
-
         function renderMenuInputForm() {
             const container = document.getElementById('menuInputFields');
             if (!allRecipes.length) { container.innerHTML = '<p style="color:var(--text-muted);">لا توجد أطباق.</p>'; return; }
@@ -1860,12 +2169,10 @@
             });
             container.innerHTML = html;
         }
-
         function saveMenuInputs() { allRecipes.forEach((r, i) => { const p = document.getElementById(`menu_price_${i}`),
                 u = document.getElementById(`menu_units_${i}`); if (p && u) { menuData[r.name] = { price: parseFloat(p.value) || 0, units: parseInt(u.value) || 0, selected: menuData[r.name]?.selected !== false }; } });
             saveMenuDataToStorage();
             showToast('تم حفظ البيانات'); }
-
         function analyzeMenuEngineering() {
             saveMenuInputs();
             const selected = allRecipes.filter(r => menuData[r.name]?.selected !== false).map(r => ({ name: r.name, cost: r.costPrice || 0, price: menuData[r.name]?.price || 0, units: menuData[r.name]?.units || 0 })).filter(d => d.price > 0 && d.units >= 0);
@@ -1904,7 +2211,6 @@
             document.getElementById('menuSummary').innerHTML = `<div style="display:flex; gap:10px; flex-wrap:wrap;">${Object.entries(cats).map(([k,v])=>`<span class="badge ${k==='نجم'?'badge-star':k==='علامة استفهام'?'badge-question':k==='بقرة نقدية'?'badge-cash':'badge-dog'}" style="padding:10px;">${k}: ${v}</span>`).join('')}</div>`;
             window.lastMenuAnalysis = results;
         }
-
         async function exportMenuAnalysisExcel() {
             if (!window.lastMenuAnalysis || !window.lastMenuAnalysis.length) { analyzeMenuEngineering(); }
             if (!window.lastMenuAnalysis || !window.lastMenuAnalysis.length) { showToast('لا توجد نتائج للتحليل', true); return; }
@@ -1923,9 +2229,7 @@
             } catch (e) { showToast('فشل التصدير', true); } finally { hideLoading(); }
         }
 
-        // ============================================================
         // دوال نقطة التعادل
-        // ============================================================
         function renderBreakevenInputs() {
             const container = document.getElementById('breakevenProductsContainer');
             if (!allRecipes.length) { container.innerHTML = '<p style="color:var(--text-muted);">لا توجد أطباق.</p>'; return; }
@@ -1936,7 +2240,6 @@
             });
             container.innerHTML = html;
         }
-
         function calculateBreakeven() {
             const fixedCosts = parseFloat(document.getElementById('beFixedCosts').value) || 0;
             if (fixedCosts <= 0) { showToast('أدخل التكاليف الثابتة', true); return; }
@@ -1977,7 +2280,6 @@
             breakevenChartInstance = new Chart(ctx, { type: 'bar', data: { labels: products.map(p => p.name), datasets: [{ label: 'وحدات التعادل', data: products.map(p => Math.ceil(p.beUnits)), backgroundColor: '#b48554' }] } });
             window.lastBreakeven = { products, excluded, beRevenue, beTotalUnits, fixedCosts };
         }
-
         async function exportBreakevenExcel() {
             if (!window.lastBreakeven) { calculateBreakeven(); }
             if (!window.lastBreakeven) { showToast('لا توجد نتائج للتصدير', true); return; }
@@ -1996,9 +2298,7 @@
             } catch (e) { showToast('فشل التصدير', true); } finally { hideLoading(); }
         }
 
-        // ============================================================
-        // دوال التقارير الشاملة
-        // ============================================================
+        // دوال التقارير الشاملة (اختصار)
         async function exportFullReportExcel() {
             showExportLoading('جاري إنشاء تقرير Excel الشامل...', 'تجميع كل البيانات والرسوم البيانية');
             try {
@@ -2015,18 +2315,14 @@
                 const AR = 'FFF5F0E8',
                     W = 'FFFFFFFF',
                     DT = 'FF1A1A1A';
-
                 function hs(bg = HB, tc = GL) { return { font: { name: 'Arial', bold: true, size: 11, color: { argb: tc } }, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } }, alignment: { horizontal: 'center', vertical: 'middle', wrapText: true, readingOrder: 'rtl' }, border: { top: { style: 'thin', color: { argb: G } }, bottom: { style: 'thin', color: { argb: G } }, left: { style: 'thin', color: { argb: G } }, right: { style: 'thin', color: { argb: G } } } }; }
-
                 function cs(bg = W, tc = DT, b = false, h = 'center') { return { font: { name: 'Arial', bold: b, size: 10, color: { argb: tc } }, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } }, alignment: { horizontal: h, vertical: 'middle', wrapText: true, readingOrder: 'rtl' }, border: { top: { style: 'hair', color: { argb: 'FFCCCCCC' } }, bottom: { style: 'hair', color: { argb: 'FFCCCCCC' } }, left: { style: 'hair', color: { argb: 'FFCCCCCC' } }, right: { style: 'hair', color: { argb: 'FFCCCCCC' } } } }; }
-
                 function mh(ws, fc, tc, r, text, bg = HB, tc2 = GL, fs = 12) { ws.mergeCells(r, fc, r, tc); const c = ws.getCell(r, fc);
                     c.value = text;
                     c.font = { name: 'Arial', bold: true, size: fs, color: { argb: tc2 } };
                     c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
                     c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true, readingOrder: 'rtl' };
                     c.border = { top: { style: 'medium', color: { argb: G } }, bottom: { style: 'medium', color: { argb: G } }, left: { style: 'medium', color: { argb: G } }, right: { style: 'medium', color: { argb: G } } }; }
-
                 const cv = workbook.addWorksheet('غلاف التقرير', { views: [{ rightToLeft: true, showGridLines: false }] });
                 [8, 45, 35, 8].forEach((w, i) => cv.getColumn(i + 1).width = w);
                 for (let r = 1; r <= 35; r++) cv.getRow(r).height = 22;
@@ -2065,19 +2361,16 @@
                     cv.getRow(ir).height = 28;
                     ir++;
                 });
-
                 const wsRecipes = workbook.addWorksheet('الأطباق والتكاليف', { views: [{ rightToLeft: true }] });
                 wsRecipes.columns = [{ header: '#', width: 5 }, { header: 'اسم الطبق', width: 30 }, { header: 'التكلفة الفعلية', width: 18 }, { header: 'سعر البيع المقترح', width: 20 }, { header: 'هامش المساهمة %', width: 18 }];
                 wsRecipes.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
                 wsRecipes.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: G } };
                 allRecipes.forEach((r, i) => wsRecipes.addRow([i + 1, r.name, r.costPrice || 0, r.suggestedPrice || 0, r.suggestedPrice > 0 ? (((r.suggestedPrice - (r.costPrice || 0)) / r.suggestedPrice) * 100).toFixed(1) + '%' : '0%']));
-
                 const wsMat = workbook.addWorksheet('المواد الأولية', { views: [{ rightToLeft: true }] });
                 wsMat.columns = [{ header: '#', width: 5 }, { header: 'اسم المادة', width: 25 }, { header: 'الوحدة', width: 12 }, { header: 'السعر الفعلي', width: 15 }, { header: 'الهدر %', width: 12 }, { header: 'وزن الحصة', width: 15 }];
                 wsMat.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
                 wsMat.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: G } };
                 allMaterials.forEach((m, i) => wsMat.addRow([i + 1, m.name, m.unit, m.price || 0, m.wastePercent || 0, m.portionWeight ? `${m.portionWeight} ${m.unit}` : '—']));
-
                 if (window.lastMenuAnalysis && window.lastMenuAnalysis.length) {
                     const wsMenu = workbook.addWorksheet('هندسة المنيو', { views: [{ rightToLeft: true }] });
                     wsMenu.columns = [{ header: 'الطبق', width: 25 }, { header: 'التكلفة', width: 12 }, { header: 'سعر البيع', width: 12 }, { header: 'المبيعات', width: 10 }, { header: 'هامش الربح', width: 12 }, { header: 'نسبة المبيعات', width: 12 }, { header: 'التصنيف', width: 18 }, { header: 'التوصية', width: 40 }];
@@ -2085,7 +2378,6 @@
                     wsMenu.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: G } };
                     window.lastMenuAnalysis.forEach(r => wsMenu.addRow([r.name, r.cost, r.price, r.units, r.margin, r.popularity.toFixed(1) + '%', r.category, r.rec]));
                 }
-
                 if (window.lastBreakeven && window.lastBreakeven.products && window.lastBreakeven.products.length) {
                     const wsBE = workbook.addWorksheet('نقطة التعادل', { views: [{ rightToLeft: true }] });
                     wsBE.columns = [{ header: 'الطبق', width: 25 }, { header: 'المزيج %', width: 12 }, { header: 'وحدات التعادل', width: 15 }, { header: 'إيرادات التعادل', width: 18 }];
@@ -2093,7 +2385,6 @@
                     wsBE.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: G } };
                     window.lastBreakeven.products.forEach(p => wsBE.addRow([p.name, (p.mix * 100).toFixed(1) + '%', Math.ceil(p.beUnits), p.beRevenue.toFixed(0)]));
                 }
-
                 const wsEval = workbook.addWorksheet('التوصيات والملخص', { views: [{ rightToLeft: true, showGridLines: false }] });
                 wsEval.getColumn(1).width = 5;
                 wsEval.getColumn(2).width = 50;
@@ -2109,25 +2400,18 @@
                 ec.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEFCF6' } };
                 ec.alignment = { horizontal: 'right', vertical: 'top', wrapText: true, readingOrder: 'rtl' };
                 ec.border = { top: { style: 'medium', color: { argb: G } }, bottom: { style: 'medium', color: { argb: G } }, left: { style: 'medium', color: { argb: G } }, right: { style: 'medium', color: { argb: G } } };
-
                 const buffer = await workbook.xlsx.writeBuffer();
                 saveAs(new Blob([buffer]), `التقرير_الشامل_${restaurantName}_${new Date().toISOString().slice(0,10)}.xlsx`);
                 showToast('✅ تم تصدير التقرير الشامل بنجاح');
-            } catch (e) {
-                console.error(e);
-                showToast('فشل تصدير التقرير الشامل', true);
-            } finally {
-                hideExportLoading();
-            }
+            } catch (e) { console.error(e);
+                showToast('فشل تصدير التقرير الشامل', true); } finally { hideExportLoading(); }
         }
-
         async function exportFullReportWord() {
             showExportLoading('جاري إنشاء تقرير Word الشامل...', 'تنسيق البيانات والتصدير');
             try {
                 const restaurantName = document.getElementById('restaurantNameText').textContent || 'المطعم';
                 const dateStr = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 const now = new Date();
-
                 let recipesRows = '';
                 allRecipes.forEach((r, i) => {
                     const cost = r.costPrice || 0,
@@ -2135,28 +2419,24 @@
                         margin = price > 0 ? ((price - cost) / price * 100).toFixed(1) : '0';
                     recipesRows += `<tr><td>${i+1}</td><td>${r.name}</td><td>${cost.toFixed(2)}</td><td>${price.toFixed(2)}</td><td>${margin}%</td></tr>`;
                 });
-
                 let materialsRows = '';
                 allMaterials.forEach((m, i) => {
                     materialsRows += `<tr><td>${i+1}</td><td>${m.name}</td><td>${m.unit}</td><td>${(m.price||0).toFixed(2)}</td><td>${m.wastePercent||0}%</td><td>${m.portionWeight ? m.portionWeight+' '+m.unit : '—'}</td></tr>`;
                 });
-
                 let menuRows = '';
                 if (window.lastMenuAnalysis && window.lastMenuAnalysis.length) {
                     window.lastMenuAnalysis.forEach((r, i) => {
                         menuRows += `<tr><td>${i+1}</td><td>${r.name}</td><td>${r.cost.toFixed(2)}</td><td>${r.price.toFixed(2)}</td><td>${r.units}</td><td>${r.margin.toFixed(2)}</td><td>${r.popularity.toFixed(1)}%</td><td>${r.category}</td><td>${r.rec}</td></tr>`;
                     });
                 }
-
-                let breakevenRows = '';
-                let beSummary = '';
+                let breakevenRows = '',
+                    beSummary = '';
                 if (window.lastBreakeven && window.lastBreakeven.products && window.lastBreakeven.products.length) {
                     window.lastBreakeven.products.forEach(p => {
                         breakevenRows += `<tr><td>${p.name}</td><td>${(p.mix*100).toFixed(1)}%</td><td>${Math.ceil(p.beUnits)}</td><td>${p.beRevenue.toFixed(0)}</td></tr>`;
                     });
                     beSummary = `<p><strong>إجمالي إيرادات التعادل:</strong> ${window.lastBreakeven.beRevenue.toFixed(0)} | <strong>إجمالي وحدات التعادل:</strong> ${Math.ceil(window.lastBreakeven.beTotalUnits)}</p>`;
                 }
-
                 const fullHtml = `<!DOCTYPE html>
                 <html dir="rtl">
                 <head><meta charset="utf-8"><title>التقرير الشامل - FAROUK GRUP</title>
@@ -2194,7 +2474,6 @@
                     </div>
                     <div class="footer">تم الإنشاء بواسطة مجموعة فاروق للاستشارات والأعمال © ${now.getFullYear()}</div>
                 </body></html>`;
-
                 const blob = new Blob(['\uFEFF' + fullHtml], { type: 'application/msword' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
@@ -2202,64 +2481,59 @@
                 link.click();
                 URL.revokeObjectURL(link.href);
                 showToast('✅ تم تصدير تقرير Word الشامل بنجاح');
-            } catch (e) {
-                console.error(e);
-                showToast('فشل تصدير تقرير Word', true);
-            } finally {
-                hideExportLoading();
-            }
+            } catch (e) { console.error(e);
+                showToast('فشل تصدير تقرير Word', true); } finally { hideExportLoading(); }
         }
 
         function refreshAll() { dataLoaded = false;
             loadAllData(true); }
-
         document.addEventListener('click', e => { if (e.target.classList.contains('modal-overlay')) closeModals(); });
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModals(); });
     </script>
-<script>
-  // تسجيل Service Worker
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('✅ Service Worker مسجل', reg))
-        .catch(err => console.error('❌ فشل تسجيل SW', err));
-    });
-  }
-</script>
-    <script>
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    // إنشاء زر تثبيت دائم
-    const installBtn = document.createElement('button');
-    installBtn.id = 'pwaInstallBtn';
-    installBtn.innerHTML = '<i class="fas fa-download"></i> تثبيت التطبيق';
-    installBtn.style.cssText = `
-      position: fixed; bottom: 80px; right: 20px; z-index: 9999;
-      background: #b48554; color: #fff; border: none; padding: 14px 24px;
-      border-radius: 50px; font-weight: bold; box-shadow: 0 6px 20px rgba(0,0,0,0.6);
-      display: flex; align-items: center; gap: 10px; cursor: pointer;
-      font-family: 'Tajawal', sans-serif; font-size: 1rem;
-    `;
-    installBtn.onclick = async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const result = await deferredPrompt.userChoice;
-        if (result.outcome === 'accepted') {
-          installBtn.style.display = 'none';
-        }
-        deferredPrompt = null;
-      }
-    };
-    document.body.appendChild(installBtn);
-  });
 
-  // إخفاء الزر بعد التثبيت
-  window.addEventListener('appinstalled', () => {
-    const btn = document.getElementById('pwaInstallBtn');
-    if (btn) btn.style.display = 'none';
-  });
-</script>
+    <!-- ===== تسجيل Service Worker ===== -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('✅ Service Worker مسجل', reg))
+                    .catch(err => console.error('❌ فشل تسجيل SW', err));
+            });
+        }
+    </script>
+
+    <!-- ===== زر تثبيت PWA ===== -->
+    <script>
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const installBtn = document.createElement('button');
+            installBtn.id = 'pwaInstallBtn';
+            installBtn.innerHTML = '<i class="fas fa-download"></i> تثبيت التطبيق';
+            installBtn.style.cssText = `
+                position: fixed; bottom: 80px; right: 20px; z-index: 9999;
+                background: #b48554; color: #fff; border: none; padding: 14px 24px;
+                border-radius: 50px; font-weight: bold; box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+                display: flex; align-items: center; gap: 10px; cursor: pointer;
+                font-family: 'Tajawal', sans-serif; font-size: 1rem;
+            `;
+            installBtn.onclick = async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const result = await deferredPrompt.userChoice;
+                    if (result.outcome === 'accepted') {
+                        installBtn.style.display = 'none';
+                    }
+                    deferredPrompt = null;
+                }
+            };
+            document.body.appendChild(installBtn);
+        });
+        window.addEventListener('appinstalled', () => {
+            const btn = document.getElementById('pwaInstallBtn');
+            if (btn) btn.style.display = 'none';
+        });
+    </script>
 </body>
 </html>
