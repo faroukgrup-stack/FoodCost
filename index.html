@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>نظام إدارة التكلفة وهندسة المنيو | FoodCost </title>
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <meta name="theme-color" content="#b48554">
     <!-- ===== جميع المكتبات من CDN ===== -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Inter:wght@400;500;600;700&family=Cairo:wght@700;800;900&display=swap" rel="stylesheet">
@@ -2225,6 +2225,41 @@
         .catch(err => console.error('❌ فشل تسجيل SW', err));
     });
   }
+</script>
+    <script>
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    // إنشاء زر تثبيت دائم
+    const installBtn = document.createElement('button');
+    installBtn.id = 'pwaInstallBtn';
+    installBtn.innerHTML = '<i class="fas fa-download"></i> تثبيت التطبيق';
+    installBtn.style.cssText = `
+      position: fixed; bottom: 80px; right: 20px; z-index: 9999;
+      background: #b48554; color: #fff; border: none; padding: 14px 24px;
+      border-radius: 50px; font-weight: bold; box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+      display: flex; align-items: center; gap: 10px; cursor: pointer;
+      font-family: 'Tajawal', sans-serif; font-size: 1rem;
+    `;
+    installBtn.onclick = async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const result = await deferredPrompt.userChoice;
+        if (result.outcome === 'accepted') {
+          installBtn.style.display = 'none';
+        }
+        deferredPrompt = null;
+      }
+    };
+    document.body.appendChild(installBtn);
+  });
+
+  // إخفاء الزر بعد التثبيت
+  window.addEventListener('appinstalled', () => {
+    const btn = document.getElementById('pwaInstallBtn');
+    if (btn) btn.style.display = 'none';
+  });
 </script>
 </body>
 </html>
