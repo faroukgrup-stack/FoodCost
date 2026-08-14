@@ -201,11 +201,6 @@
             height: 18px;
             margin-left: 8px;
         }
-        .checkbox-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
         .submit-btn {
             background: linear-gradient(145deg, #C4A747, #9F8635);
             border: none;
@@ -310,8 +305,13 @@
             <div class="input-field"><label><i class="fas fa-users"></i> عدد الأشخاص</label>
                 <select name="عدد_الأشخاص"><option value="">اختر</option><option value="1">شخص واحد</option><option value="2">شخصان</option><option value="3-4">٣-٤ أشخاص</option><option value="5+">٥ أشخاص فأكثر</option></select>
             </div>
-            <div class="input-field"><label><i class="fas fa-sun"></i> نوع الزيارة</label>
-                <div class="options-wrapper"><label class="option-pill"><input type="radio" name="نوع_الزيارة" value="غداء"> <i class="fas fa-sun"></i> غداء</label><label class="option-pill"><input type="radio" name="نوع_الزيارة" value="عشاء"> <i class="fas fa-moon"></i> عشاء</label><label class="option-pill"><input type="radio" name="نوع_الزيارة" value="طلبات_خارجية"> <i class="fas fa-shopping-bag"></i> طلبات خارجية</label></div>
+            <div class="input-field"><label><i class="fas fa-utensils"></i> نوع الزيارة</label>
+                <div class="options-wrapper">
+                    <label class="option-pill"><input type="radio" name="نوع_الزيارة" value="فطور"> <i class="fas fa-sun"></i> فطور</label>
+                    <label class="option-pill"><input type="radio" name="نوع_الزيارة" value="غداء"> <i class="fas fa-sun"></i> غداء</label>
+                    <label class="option-pill"><input type="radio" name="نوع_الزيارة" value="عشاء"> <i class="fas fa-moon"></i> عشاء</label>
+                    <label class="option-pill"><input type="radio" name="نوع_الزيارة" value="طلبات_خارجية"> <i class="fas fa-shopping-bag"></i> طلبات خارجية</label>
+                </div>
             </div>
         </div>
 
@@ -362,10 +362,6 @@
         <div class="section">
             <div class="section-title"><i class="fas fa-thumbs-up"></i> أخبرنا المزيد</div>
 
-            <div class="input-field"><label><i class="fas fa-ice-cream"></i> ما الأطباق التي أعجبتك؟ (اختياري)</label>
-                <div class="checkbox-grid"><label class="option-pill"><input type="checkbox" name="الأطباق_المفضلة" value="مقبلات"> مقبلات</label><label class="option-pill"><input type="checkbox" name="الأطباق_المفضلة" value="سلطات"> سلطات</label><label class="option-pill"><input type="checkbox" name="الأطباق_المفضلة" value="أطباق رئيسية"> أطباق رئيسية</label><label class="option-pill"><input type="checkbox" name="الأطباق_المفضلة" value="حلويات"> حلويات</label><label class="option-pill"><input type="checkbox" name="الأطباق_المفضلة" value="مشروبات"> مشروبات</label></div>
-            </div>
-
             <div class="input-field"><label><i class="fas fa-share-alt"></i> هل تنصح أصدقائك بزيارة مطعمنا؟</label>
                 <div class="options-wrapper"><label class="option-pill"><input type="radio" name="توصية" value="أكيد"> <i class="fas fa-smile"></i> أكيد</label><label class="option-pill"><input type="radio" name="توصية" value="ربما"> <i class="fas fa-meh"></i> ربما</label><label class="option-pill"><input type="radio" name="توصية" value="لا"> <i class="fas fa-frown"></i> لا</label></div>
             </div>
@@ -412,22 +408,17 @@
             const data = {};
 
             for (let [key, value] of formData.entries()) {
-                if (key === 'الأطباق_المفضلة') {
-                    if (!data[key]) data[key] = [];
-                    data[key].push(value);
-                } else {
-                    data[key] = value;
-                }
-            }
-
-            // تحويل قائمة الأطباق المفضلة إلى نص
-            if (data['الأطباق_المفضلة'] && Array.isArray(data['الأطباق_المفضلة'])) {
-                data['الأطباق_المفضلة'] = data['الأطباق_المفضلة'].join('، ');
+                data[key] = value;
             }
 
             // إضافة البريد الإلكتروني واسم المطعم
             if (restaurantEmail) data['restaurantEmail'] = restaurantEmail;
             if (restaurantName) data['restaurantName'] = restaurantName;
+
+            // التأكد من رقم الهاتف
+            if (!data['رقم_الهاتف'] || data['رقم_الهاتف'].trim() === '') {
+                data['رقم_الهاتف'] = 'غير مدخل';
+            }
 
             // حساب التقييم العام
             const food = parseFloat(data['تقييم_الطعام']);
