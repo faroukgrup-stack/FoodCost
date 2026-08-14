@@ -298,8 +298,6 @@
     </div>
 
     <form id="feedbackForm">
-        <!-- سيتم تعيين action ديناميكياً عبر JavaScript -->
-        
         <div class="section">
             <div class="section-title"><i class="fas fa-user-circle"></i> معلومات التواصل (اختياري)</div>
             <div class="input-field"><label><i class="fas fa-user"></i> الاسم الكريم</label><input type="text" name="الاسم" placeholder="الاسم الكريم"></div>
@@ -395,13 +393,11 @@
             nameDisplay.textContent = '🏠 ' + restaurantName;
         }
 
-        // ===== 2. تعيين عنوان السيرفر =====
-        // استخدم نفس الرابط الخاص بـ Web App (COST_API_URL) مع إضافة fn=submitReview
+        // ===== 2. عنوان السيرفر =====
         const API_URL = 'https://script.google.com/macros/s/AKfycbxA8ZkqZXFhWAHEqc7Ao1-uK8OqQ1q9Grb8x1alrULM22rjPgd8XfIC0TLpYkQGDJ-m/exec';
         const form = document.getElementById('feedbackForm');
-        form.action = API_URL; // سيتم إرسال البيانات كـ GET أو POST
 
-        // ===== 3. معالجة الإرسال =====
+        // ===== 3. معالجة الإرسال (باستخدام URLSearchParams) =====
         const thankYouDiv = document.getElementById('thankYouMessage');
         const errorDiv = document.getElementById('errorMessage');
         const submitBtn = document.getElementById('submitBtn');
@@ -411,57 +407,70 @@
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري الإرسال...';
 
-            // بناء FormData مع إضافة الحقول الإضافية
+            // --- جمع البيانات من النموذج ---
             const formData = new FormData(form);
-            
-            // إضافة البريد الإلكتروني للمطعم (ضروري لتوجيه التقييم)
-            if (restaurantEmail) {
-                formData.append('restaurantEmail', restaurantEmail);
-            }
-            // إضافة اسم المطعم (اختياري للتوثيق)
-            if (restaurantName) {
-                formData.append('restaurantName', restaurantName);
+            const data = {};
+
+            for (let [key, value] of formData.entries()) {
+                if (key === 'الأطباق_المفضلة') {
+                    if (!data[key]) data[key] = [];
+                    data[key].push(value);
+                } else {
+                    data[key] = value;
+                }
             }
 
-            // حساب التقييم العام وتصنيف العميل
-            const food = formData.get('تقييم_الطعام');
-            const service = formData.get('تقييم_الخدمة');
-            const clean = formData.get('تقييم_النظافة');
-            const price = formData.get('تقييم_الاسعار');
+            // تحويل قائمة الأطباق المفضلة إلى نص
+            if (data['الأطباق_المفضلة'] && Array.isArray(data['الأطباق_المفضلة'])) {
+                data['الأطباق_المفضلة'] = data['الأطباق_المفضلة'].join('، ');
+            }
 
-            const ratings = [food, service, clean, price]
-                .map(val => parseFloat(val))
-                .filter(val => !isNaN(val));
+            // إضافة البريد الإلكتروني واسم المطعم
+            if (restaurantEmail) data['restaurantEmail'] = restaurantEmail;
+            if (restaurantName) data['restaurantName'] = restaurantName;
+
+            // حساب التقييم العام
+            const food = parseFloat(data['تقييم_الطعام']);
+            const service = parseFloat(data['تقييم_الخدمة']);
+            const clean = parseFloat(data['تقييم_النظافة']);
+            const price = parseFloat(data['تقييم_الاسعار']);
+
+            const ratings = [food, service, clean, price].filter(v => !isNaN(v));
 
             if (ratings.length > 0) {
                 const sum = ratings.reduce((a, b) => a + b, 0);
                 const avg = (sum / ratings.length).toFixed(1);
-                formData.append('التقييم_العام', avg);
+                data['التقييم_العام'] = avg;
                 let customerStatus = '';
                 if (avg <= 2.5) customerStatus = 'غير راضي ❌';
                 else if (avg <= 3.5) customerStatus = 'محايد ⚠️';
                 else customerStatus = 'راضي ✅';
-                formData.append('تصنيف_العميل', customerStatus);
+                data['تصنيف_العميل'] = customerStatus;
             }
 
+            // ===== إضافة fn=submitReview =====
+            data['fn'] = 'submitReview';
+
+            // ===== تحويل البيانات إلى URLSearchParams =====
+            const searchParams = new URLSearchParams(data);
+
             try {
-                // إرسال البيانات إلى السيرفر (باستخدام POST)
-                const response = await fetch(form.action, {
+                const response = await fetch(API_URL, {
                     method: 'POST',
-                    body: formData,
-                    // لا نستخدم mode: 'no-cors' لكي نتمكن من قراءة الاستجابة
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: searchParams.toString()
                 });
 
                 const result = await response.json();
 
                 if (result.status === 'success') {
-                    // نجاح
                     form.style.display = 'none';
                     thankYouDiv.style.display = 'block';
                     errorDiv.style.display = 'none';
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 } else {
-                    // فشل من السيرفر
                     showError(result.message || 'حدث خطأ في السيرفر');
                 }
             } catch (error) {
@@ -474,13 +483,12 @@
                 errorDiv.style.display = 'block';
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال التقييم';
-                setTimeout(() => { errorDiv.style.display = 'none'; }, 6000);
+                setTimeout(() => { errorDiv.style.display = 'none'; }, 8000);
             }
         }
 
         form.addEventListener('submit', handleSubmit);
 
-        // ===== 4. في حالة عدم وجود restaurantEmail، نعرض تحذيراً (اختياري) =====
         if (!restaurantEmail) {
             console.warn('⚠️ لم يتم توفير بريد إلكتروني للمطعم. سيتم تخزين التقييم في جدول افتراضي.');
         }
