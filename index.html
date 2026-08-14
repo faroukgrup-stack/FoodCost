@@ -1033,13 +1033,53 @@
             background: #fff;
             padding: 8px;
             border-radius: 12px;
-            width: 150px;
-            height: 150px;
+            width: 180px;
+            height: 180px;
             object-fit: contain;
         }
         .qr-section .qr-box .qr-label {
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             color: var(--text-muted);
+        }
+        .qr-section .qr-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .qr-section .btn-copy {
+            background: rgba(180, 133, 84, 0.15);
+            border: 1px solid var(--border);
+            color: var(--accent-soft);
+            padding: 8px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .qr-section .btn-copy:hover {
+            background: rgba(180, 133, 84, 0.3);
+            color: #fff;
+        }
+        .qr-section .btn-print {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid #3b82f6;
+            color: #93c5fd;
+            padding: 8px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .qr-section .btn-print:hover {
+            background: rgba(59, 130, 246, 0.3);
+            color: #fff;
         }
         .qr-section .qr-info {
             flex: 1;
@@ -1049,29 +1089,37 @@
         .qr-section .qr-info strong {
             color: var(--accent-soft);
         }
-        .qr-section .btn-copy {
-            background: rgba(180, 133, 84, 0.15);
-            border: 1px solid var(--border);
-            color: var(--accent-soft);
-            padding: 6px 14px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: var(--transition);
-        }
-        .qr-section .btn-copy:hover {
-            background: rgba(180, 133, 84, 0.3);
-            color: #fff;
-        }
 
-        /* نجمة التقييم */
-        .star-rating-display {
-            color: #fcd34d;
-            font-size: 1.1rem;
-            letter-spacing: 2px;
+        /* ===== نافذة عرض الملاحظات ===== */
+        #notesModal .modal-box {
+            max-width: 550px;
         }
-        .star-rating-display .empty-star {
-            color: #4a5568;
+        #notesModal .notes-content {
+            background: rgba(10, 14, 23, 0.8);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 1.1rem;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        #notesModal .notes-meta {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        #notesModal .notes-meta span {
+            background: rgba(180, 133, 84, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
         }
 
         /* ===== تحسينات الجوال ===== */
@@ -1320,8 +1368,18 @@
                 text-align: center;
             }
             .qr-section .qr-box img {
-                width: 120px;
-                height: 120px;
+                width: 150px;
+                height: 150px;
+            }
+            .qr-section .qr-actions {
+                justify-content: center;
+            }
+            #notesModal .modal-box {
+                max-width: 95%;
+            }
+            #notesModal .notes-content {
+                font-size: 0.95rem;
+                max-height: 300px;
             }
         }
         @media (max-width: 400px) {
@@ -1520,7 +1578,7 @@
                 </div>
             </div>
 
-            <!-- ===== التبويب 4: التقييمات (جديد) ===== -->
+            <!-- ===== التبويب 4: التقييمات (معدل) ===== -->
             <div id="tab4" style="display:none;">
                 <div style="margin-bottom:20px; display:flex; gap:15px; flex-wrap:wrap; align-items:center;">
                     <button class="btn btn-primary" onclick="loadReviews()"><i class="fas fa-sync-alt"></i> تحديث التقييمات</button>
@@ -1533,16 +1591,20 @@
                     <div class="qr-box">
                         <img id="qrCodeImg" src="" alt="QR Code" />
                         <span class="qr-label"><i class="fas fa-qrcode"></i> كيو آر كود التقييم</span>
-                        <button class="btn-copy" onclick="copyReviewLink()"><i class="fas fa-copy"></i> نسخ الرابط</button>
+                        <div class="qr-actions">
+                            <button class="btn-copy" onclick="copyReviewLink()"><i class="fas fa-copy"></i> نسخ الرابط</button>
+                            <button class="btn-print" onclick="printQR()"><i class="fas fa-print"></i> طباعة الكود</button>
+                        </div>
                     </div>
                     <div class="qr-info">
                         <p><strong><i class="fas fa-mobile-alt"></i> امسح الكود ليظهر لعملائك صفحة التقييم</strong></p>
-                        <p style="font-size:0.85rem; margin-top:6px;">رابط التقييم: <span id="reviewLinkDisplay" style="color:var(--accent-soft); word-break:break-all;"></span></p>
-                        <p style="font-size:0.8rem; margin-top:6px; color:#8a9aad;"><i class="fas fa-info-circle"></i> يمكنك طباعة الكود ووضعه على الطاولات أو عند المدخل</p>
+                        <p style="font-size:0.85rem; margin-top:6px; color:#8a9aad;">
+                            <i class="fas fa-info-circle"></i> يمكنك طباعة الكود ووضعه على الطاولات أو عند المدخل
+                        </p>
                     </div>
                 </div>
 
-                <!-- فلتر -->
+                <!-- فلتر (معدل: إضافة فلتر نوع الزيارة) -->
                 <div class="filter-bar">
                     <label><i class="fas fa-calendar-alt"></i> من تاريخ</label>
                     <input type="date" id="reviewFilterFrom" />
@@ -1564,11 +1626,19 @@
                         <option value="محايد ⚠️">محايد ⚠️</option>
                         <option value="غير راضي ❌">غير راضي ❌</option>
                     </select>
+                    <label><i class="fas fa-utensils"></i> نوع الزيارة</label>
+                    <select id="reviewFilterVisitType">
+                        <option value="">الكل</option>
+                        <option value="فطور">🍳 فطور</option>
+                        <option value="غداء">☀️ غداء</option>
+                        <option value="عشاء">🌙 عشاء</option>
+                        <option value="طلبات_خارجية">🛍️ طلبات خارجية</option>
+                    </select>
                     <button class="btn btn-primary btn-sm" onclick="applyReviewFilters()"><i class="fas fa-filter"></i> فلترة</button>
                     <button class="btn btn-outline btn-sm" onclick="clearReviewFilters()"><i class="fas fa-undo"></i> إلغاء</button>
                 </div>
 
-                <!-- جدول التقييمات -->
+                <!-- جدول التقييمات (معدل: إضافة أعمدة الهاتف ونوع الزيارة) -->
                 <div class="table-container">
                     <div style="overflow-x:auto;">
                         <table>
@@ -1577,6 +1647,8 @@
                                     <th>#</th>
                                     <th>التاريخ</th>
                                     <th>الاسم</th>
+                                    <th>الهاتف</th>
+                                    <th>نوع الزيارة</th>
                                     <th>الطعام</th>
                                     <th>الخدمة</th>
                                     <th>النظافة</th>
@@ -1584,17 +1656,17 @@
                                     <th>المتوسط</th>
                                     <th>التصنيف</th>
                                     <th>التوصية</th>
-                                    <th>ملاحظات</th>
+                                    <th>الملاحظات</th>
                                 </tr>
                             </thead>
                             <tbody id="reviewsBody">
-                                <tr><td colspan="11"><div class="empty-state">لا توجد تقييمات بعد. شارك رابط التقييم مع عملائك.</div></td></tr>
+                                <tr><td colspan="13"><div class="empty-state">لا توجد تقييمات بعد. شارك رابط التقييم مع عملائك.</div></td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- ملخص التقييمات -->
+                <!-- ملخص التقييمات (معدل: إضافة إحصاءات أنواع الزيارات) -->
                 <div id="reviewsSummary" style="margin-top:20px; display:none;"></div>
 
                 <!-- رسم بياني للتقييمات -->
@@ -1686,6 +1758,18 @@
             <div class="modal-actions">
                 <button onclick="closeModals()" class="btn btn-outline">إلغاء</button>
                 <button onclick="changePassword()" class="btn btn-primary">تحديث كلمة المرور</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== مودال عرض الملاحظات الكاملة ===== -->
+    <div class="modal-overlay" id="notesModal">
+        <div class="modal-box">
+            <h3><i class="fas fa-comment"></i> الملاحظات الكاملة</h3>
+            <div id="notesMeta" class="notes-meta"></div>
+            <div id="notesFullContent" class="notes-content"></div>
+            <div class="modal-actions">
+                <button onclick="closeModals()" class="btn btn-outline">إغلاق</button>
             </div>
         </div>
     </div>
@@ -1852,7 +1936,6 @@
                     dataLoaded = false;
                     loadAllData(true);
                     startSessionTimer();
-                    // بعد تحميل البيانات، نقوم بتحديث QR
                     setTimeout(() => generateQRCode(), 1500);
                 } else if (result.status === 'expired') {
                     errDiv.innerHTML = '❌ انتهى اشتراكك. <a href="Food-Cost.html" target="_blank" style="color:#cfa776; text-decoration:underline;">جدد من هنا</a>';
@@ -2642,7 +2725,7 @@
         }
 
         // ============================================================
-        // دوال التقارير الشاملة (كما هي)
+        // دوال التقارير الشاملة
         // ============================================================
         async function exportFullReportExcel() {
             showExportLoading('جاري إنشاء تقرير Excel الشامل...', 'تجميع كل البيانات والرسوم البيانية');
@@ -2774,19 +2857,20 @@
                 if (allReviews && allReviews.length) {
                     const wsReviews = workbook.addWorksheet('التقييمات', { views: [{ rightToLeft: true }] });
                     wsReviews.columns = [{ header: '#', width: 5 }, { header: 'التاريخ', width: 18 },
-                        { header: 'الاسم', width: 18 }, { header: 'الطعام', width: 10 },
-                        { header: 'الخدمة', width: 10 }, { header: 'النظافة', width: 10 },
-                        { header: 'الأسعار', width: 10 }, { header: 'المتوسط', width: 10 },
-                        { header: 'التصنيف', width: 15 }, { header: 'التوصية', width: 15 },
-                        { header: 'الملاحظات', width: 30 }
+                        { header: 'الاسم', width: 18 }, { header: 'الهاتف', width: 18 },
+                        { header: 'نوع الزيارة', width: 16 },
+                        { header: 'الطعام', width: 10 }, { header: 'الخدمة', width: 10 },
+                        { header: 'النظافة', width: 10 }, { header: 'الأسعار', width: 10 },
+                        { header: 'المتوسط', width: 10 }, { header: 'التصنيف', width: 15 },
+                        { header: 'التوصية', width: 15 }, { header: 'الملاحظات', width: 30 }
                     ];
                     wsReviews.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
                     wsReviews.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: G } };
                     allReviews.forEach((r, i) => {
                         const avg = ((r.food + r.service + r.cleanliness + r.price) / 4);
-                        wsReviews.addRow([i + 1, r.date || '', r.name || '', r.food || 0, r.service || 0, r
-                            .cleanliness || 0, r.price || 0, avg.toFixed(1), r.status || '', r
-                            .recommendation || '', r.notes || ''
+                        wsReviews.addRow([i + 1, r.date || '', r.name || '', r.phone || '', r.visitType || '',
+                            r.food || 0, r.service || 0, r.cleanliness || 0, r.price || 0, avg.toFixed(1),
+                            r.status || '', r.recommendation || '', r.notes || ''
                         ]);
                     });
                 }
@@ -2861,7 +2945,7 @@
                     allReviews.forEach((r, i) => {
                         const avg = ((r.food + r.service + r.cleanliness + r.price) / 4);
                         reviewsRows +=
-                            `<tr><td>${i+1}</td><td>${r.date||''}</td><td>${r.name||''}</td><td>${r.food||0}</td><td>${r.service||0}</td><td>${r.cleanliness||0}</td><td>${r.price||0}</td><td>${avg.toFixed(1)}</td><td>${r.status||''}</td><td>${r.recommendation||''}</td></tr>`;
+                            `<tr><td>${i+1}</td><td>${r.date||''}</td><td>${r.name||''}</td><td>${r.phone||''}</td><td>${r.visitType||''}</td><td>${r.food||0}</td><td>${r.service||0}</td><td>${r.cleanliness||0}</td><td>${r.price||0}</td><td>${avg.toFixed(1)}</td><td>${r.status||''}</td><td>${r.recommendation||''}</td></tr>`;
                     });
                     const total = allReviews.reduce((s, r) => s + (r.food + r.service + r.cleanliness + r.price) / 4, 0);
                     avgRating = total / allReviews.length;
@@ -2898,7 +2982,7 @@
                     <table><thead><tr><th>#</th><th>اسم المادة</th><th>الوحدة</th><th>السعر الفعلي</th><th>الهدر %</th><th>وزن الحصة</th></tr></thead><tbody>${materialsRows}</tbody></table>
                     ${menuRows ? `<h3 class="section-title">🎯 هندسة المنيو (BCG)</h3><table><thead><tr><th>#</th><th>الطبق</th><th>التكلفة</th><th>سعر البيع</th><th>المبيعات</th><th>هامش الربح</th><th>نسبة المبيعات</th><th>التصنيف</th><th>التوصية</th></tr></thead><tbody>${menuRows}</tbody></table>` : ''}
                     ${breakevenRows ? `<h3 class="section-title">⚖️ نقطة التعادل</h3>${beSummary}<table><thead><tr><th>الطبق</th><th>المزيج %</th><th>وحدات التعادل</th><th>إيرادات التعادل</th></tr></thead><tbody>${breakevenRows}</tbody></table>` : ''}
-                    ${reviewsRows ? `<h3 class="section-title">⭐ التقييمات</h3><p>عدد التقييمات: ${allReviews.length} | متوسط التقييم: ${avgRating.toFixed(1)} / 5</p><table><thead><tr><th>#</th><th>التاريخ</th><th>الاسم</th><th>الطعام</th><th>الخدمة</th><th>النظافة</th><th>الأسعار</th><th>المتوسط</th><th>التصنيف</th><th>التوصية</th></tr></thead><tbody>${reviewsRows}</tbody></table>` : ''}
+                    ${reviewsRows ? `<h3 class="section-title">⭐ التقييمات</h3><p>عدد التقييمات: ${allReviews.length} | متوسط التقييم: ${avgRating.toFixed(1)} / 5</p><table><thead><tr><th>#</th><th>التاريخ</th><th>الاسم</th><th>الهاتف</th><th>نوع الزيارة</th><th>الطعام</th><th>الخدمة</th><th>النظافة</th><th>الأسعار</th><th>المتوسط</th><th>التصنيف</th><th>التوصية</th></tr></thead><tbody>${reviewsRows}</tbody></table>` : ''}
                     <h3 class="section-title">💡 التوصيات</h3>
                     <div class="summary-box">
                         <p>• راقب تكاليف المواد الأولية باستمرار وحافظ على نسبة الهدر ضمن الحدود المقبولة.</p>
@@ -2920,7 +3004,7 @@
         }
 
         // ============================================================
-        // ===== دوال التقييمات (الجديدة) =====
+        // ===== دوال التقييمات =====
         // ============================================================
 
         // تحميل التقييمات من السيرفر
@@ -2947,12 +3031,12 @@
             }
         }
 
-        // عرض التقييمات في الجدول
+        // عرض التقييمات في الجدول مع إمكانية النقر على الملاحظات (مع أعمدة الهاتف ونوع الزيارة)
         function renderReviewsTable() {
             const tbody = document.getElementById('reviewsBody');
             if (!filteredReviews.length) {
                 tbody.innerHTML =
-                    '<tr><td colspan="11"><div class="empty-state">لا توجد تقييمات تطابق الفلترة.</div></td></tr>';
+                    '<tr><td colspan="13"><div class="empty-state">لا توجد تقييمات تطابق الفلترة.</div></td></tr>';
                 return;
             }
             tbody.innerHTML = filteredReviews.map((r, i) => {
@@ -2963,10 +3047,18 @@
                 if (r.status && r.status.includes('راضي')) statusBadge = 'badge-review-excellent';
                 else if (r.status && r.status.includes('غير راضي')) statusBadge = 'badge-review-poor';
 
+                const phone = r.phone || '-';
+                const visitType = r.visitType || '-';
+                const notes = r.notes || '';
+                const shortNotes = notes.length > 30 ? notes.substring(0, 30) + '...' : notes;
+                const hasNotes = notes.length > 0;
+
                 return `<tr>
                     <td>${i+1}</td>
                     <td>${r.date || ''}</td>
                     <td>${escapeHtml(r.name || 'غير مسجل')}</td>
+                    <td>${escapeHtml(phone)}</td>
+                    <td>${escapeHtml(visitType)}</td>
                     <td><span class="badge badge-info">${r.food || 0}</span></td>
                     <td><span class="badge badge-info">${r.service || 0}</span></td>
                     <td><span class="badge badge-info">${r.cleanliness || 0}</span></td>
@@ -2974,12 +3066,24 @@
                     <td><span class="star-rating-display">${stars}</span> ${avg.toFixed(1)}</td>
                     <td><span class="badge ${statusBadge}">${statusText}</span></td>
                     <td>${r.recommendation || '-'}</td>
-                    <td style="max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(r.notes || '-')}</td>
+                    <td>
+                        ${hasNotes ? `<span style="cursor:pointer; color:var(--accent-soft);" onclick="showFullNotes('${escapeHtml(r.name || 'غير مسجل')}', '${escapeHtml(r.date || '')}', '${escapeHtml(notes)}')">${shortNotes}</span>` : '-'}
+                    </td>
                 </tr>`;
             }).join('');
         }
 
-        // تحديث ملخص التقييمات
+        // ===== عرض الملاحظات الكاملة في مودال =====
+        function showFullNotes(name, date, notes) {
+            document.getElementById('notesMeta').innerHTML = `
+                <span><i class="fas fa-user"></i> ${escapeHtml(name)}</span>
+                <span><i class="fas fa-calendar-alt"></i> ${date || 'غير محدد'}</span>
+            `;
+            document.getElementById('notesFullContent').textContent = notes || 'لا توجد ملاحظات.';
+            document.getElementById('notesModal').classList.add('active');
+        }
+
+        // تحديث ملخص التقييمات (معدل: إضافة إحصاءات أنواع الزيارات)
         function updateReviewsSummary() {
             const container = document.getElementById('reviewsSummary');
             if (!allReviews.length) {
@@ -2999,13 +3103,31 @@
                 const s = r.status || 'محايد';
                 statusCounts[s] = (statusCounts[s] || 0) + 1;
             });
-
             let statusHtml = '';
             for (const [k, v] of Object.entries(statusCounts)) {
                 let cls = 'badge-review-average';
                 if (k.includes('راضي')) cls = 'badge-review-excellent';
                 else if (k.includes('غير راضي')) cls = 'badge-review-poor';
                 statusHtml += `<span class="badge ${cls}" style="margin:3px;">${k}: ${v}</span>`;
+            }
+
+            // إحصاءات أنواع الزيارات
+            const visitTypeCounts = {};
+            allReviews.forEach(r => {
+                const vt = r.visitType || 'غير محدد';
+                visitTypeCounts[vt] = (visitTypeCounts[vt] || 0) + 1;
+            });
+            let visitTypeHtml = '';
+            const visitTypeLabels = {
+                'فطور': '🍳 فطور',
+                'غداء': '☀️ غداء',
+                'عشاء': '🌙 عشاء',
+                'طلبات_خارجية': '🛍️ طلبات خارجية',
+                'غير محدد': '❓ غير محدد'
+            };
+            for (const [k, v] of Object.entries(visitTypeCounts)) {
+                const label = visitTypeLabels[k] || k;
+                visitTypeHtml += `<span class="badge badge-info" style="margin:3px;">${label}: ${v}</span>`;
             }
 
             container.innerHTML = `
@@ -3017,6 +3139,7 @@
                     <div><strong style="color:var(--accent-soft);">🧹 النظافة</strong><br><span style="font-size:1.2rem;">${avgClean.toFixed(1)}</span></div>
                     <div><strong style="color:var(--accent-soft);">💰 الأسعار</strong><br><span style="font-size:1.2rem;">${avgPrice.toFixed(1)}</span></div>
                     <div style="grid-column: 1 / -1;"><strong style="color:var(--accent-soft);">🏷️ التصنيفات</strong><br>${statusHtml}</div>
+                    <div style="grid-column: 1 / -1;"><strong style="color:var(--accent-soft);">🕒 أنواع الزيارات</strong><br>${visitTypeHtml}</div>
                 </div>
             `;
             container.style.display = 'block';
@@ -3032,7 +3155,6 @@
             const ctx = document.getElementById('reviewsChart').getContext('2d');
             if (reviewsChartInstance) reviewsChartInstance.destroy();
 
-            // توزيع التقييمات حسب الفئات
             const ratings = [1, 2, 3, 4, 5];
             const counts = ratings.map(r => {
                 return allReviews.filter(rev => {
@@ -3067,24 +3189,25 @@
             });
         }
 
-        // تطبيق الفلترة
+        // تطبيق الفلترة (معدل: إضافة فلتر نوع الزيارة)
         function applyReviewFilters() {
             const fromDate = document.getElementById('reviewFilterFrom').value;
             const toDate = document.getElementById('reviewFilterTo').value;
             const ratingFilter = document.getElementById('reviewFilterRating').value;
             const statusFilter = document.getElementById('reviewFilterStatus').value;
+            const visitTypeFilter = document.getElementById('reviewFilterVisitType').value;
 
             filteredReviews = allReviews.filter(r => {
-                // فلتر التاريخ
                 if (fromDate && r.date && r.date < fromDate) return false;
                 if (toDate && r.date && r.date > toDate) return false;
-                // فلتر التقييم
                 if (ratingFilter) {
                     const avg = ((r.food || 0) + (r.service || 0) + (r.cleanliness || 0) + (r.price || 0)) / 4;
                     if (Math.round(avg) !== parseInt(ratingFilter)) return false;
                 }
-                // فلتر التصنيف
                 if (statusFilter && (!r.status || !r.status.includes(statusFilter.replace(/[✅❌⚠️]/g, '').trim()))) {
+                    return false;
+                }
+                if (visitTypeFilter && r.visitType !== visitTypeFilter) {
                     return false;
                 }
                 return true;
@@ -3093,12 +3216,13 @@
             showToast(`تم فلترة التقييمات: ${filteredReviews.length} من ${allReviews.length}`);
         }
 
-        // إلغاء الفلترة
+        // إلغاء الفلترة (معدل: إعادة تعيين فلتر نوع الزيارة)
         function clearReviewFilters() {
             document.getElementById('reviewFilterFrom').value = '';
             document.getElementById('reviewFilterTo').value = '';
             document.getElementById('reviewFilterRating').value = '';
             document.getElementById('reviewFilterStatus').value = '';
+            document.getElementById('reviewFilterVisitType').value = '';
             filteredReviews = [...allReviews];
             renderReviewsTable();
             showToast('تم إلغاء الفلترة');
@@ -3117,9 +3241,9 @@
                     { header: 'التاريخ', width: 18 },
                     { header: 'الاسم', width: 20 },
                     { header: 'الهاتف', width: 18 },
+                    { header: 'نوع الزيارة', width: 16 },
                     { header: 'تاريخ الزيارة', width: 18 },
                     { header: 'عدد الأشخاص', width: 14 },
-                    { header: 'نوع الزيارة', width: 16 },
                     { header: 'الطعام', width: 10 },
                     { header: 'الخدمة', width: 10 },
                     { header: 'النظافة', width: 10 },
@@ -3133,10 +3257,10 @@
                 ws.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB48554' } };
                 allReviews.forEach((r, i) => {
                     const avg = ((r.food || 0) + (r.service || 0) + (r.cleanliness || 0) + (r.price || 0)) / 4;
-                    ws.addRow([i + 1, r.date || '', r.name || '', r.phone || '', r.visitDate || '', r
-                        .peopleCount || '', r.visitType || '', r.food || 0, r.service || 0, r
-                        .cleanliness || 0, r.price || 0, avg.toFixed(1), r.status || '', r
-                        .recommendation || '', r.notes || ''
+                    ws.addRow([i + 1, r.date || '', r.name || '', r.phone || '', r.visitType || '',
+                        r.visitDate || '', r.peopleCount || '',
+                        r.food || 0, r.service || 0, r.cleanliness || 0, r.price || 0,
+                        avg.toFixed(1), r.status || '', r.recommendation || '', r.notes || ''
                     ]);
                 });
                 const buffer = await workbook.xlsx.writeBuffer();
@@ -3157,7 +3281,7 @@
                 allReviews.forEach((r, i) => {
                     const avg = ((r.food || 0) + (r.service || 0) + (r.cleanliness || 0) + (r.price || 0)) / 4;
                     rows +=
-                        `<tr><td>${i+1}</td><td>${r.date||''}</td><td>${r.name||''}</td><td>${r.food||0}</td><td>${r.service||0}</td><td>${r.cleanliness||0}</td><td>${r.price||0}</td><td>${avg.toFixed(1)}</td><td>${r.status||''}</td><td>${r.recommendation||''}</td></tr>`;
+                        `<tr><td>${i+1}</td><td>${r.date||''}</td><td>${r.name||''}</td><td>${r.phone||''}</td><td>${r.visitType||''}</td><td>${r.food||0}</td><td>${r.service||0}</td><td>${r.cleanliness||0}</td><td>${r.price||0}</td><td>${avg.toFixed(1)}</td><td>${r.status||''}</td><td>${r.recommendation||''}</td></tr>`;
                 });
                 const total = allReviews.reduce((s, r) => s + (r.food + r.service + r.cleanliness + r.price) / 4, 0);
                 const avgOverall = total / allReviews.length;
@@ -3193,7 +3317,7 @@
                         <p>💰 متوسط الأسعار: ${(allReviews.reduce((s,r)=>s+(r.price||0),0)/allReviews.length).toFixed(1)}</p>
                     </div>
                     <h3 class="section-title">📋 تفاصيل التقييمات</h3>
-                    <table><thead><tr><th>#</th><th>التاريخ</th><th>الاسم</th><th>الطعام</th><th>الخدمة</th><th>النظافة</th><th>الأسعار</th><th>المتوسط</th><th>التصنيف</th><th>التوصية</th></tr></thead><tbody>${rows}</tbody></table>
+                    <table><thead><tr><th>#</th><th>التاريخ</th><th>الاسم</th><th>الهاتف</th><th>نوع الزيارة</th><th>الطعام</th><th>الخدمة</th><th>النظافة</th><th>الأسعار</th><th>المتوسط</th><th>التصنيف</th><th>التوصية</th></tr></thead><tbody>${rows}</tbody></table>
                     <div class="footer">تم الإنشاء بواسطة FoodCost - FAROUK GRUP © ${now.getFullYear()}</div>
                 </body></html>`;
                 const blob = new Blob(['\uFEFF' + html], { type: 'application/msword' });
@@ -3212,12 +3336,10 @@
             const restaurantName = document.getElementById('restaurantNameText').textContent || 'المطعم';
             const email = currentUserEmail;
             if (!email) return;
-            // رابط صفحة التقييم (نفترض أنها موجودة في نفس المجلد)
             const baseUrl = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
             const reviewUrl = `${baseUrl}review.html?restaurant=${encodeURIComponent(email)}&name=${encodeURIComponent(restaurantName)}`;
-            document.getElementById('reviewLinkDisplay').textContent = reviewUrl;
+            window._reviewLink = reviewUrl;
 
-            // توليد QR باستخدام API خارجية (خفيفة)
             const qrImg = document.getElementById('qrCodeImg');
             const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(reviewUrl)}&format=png&bgcolor=ffffff&color=b48554`;
             qrImg.src = qrApi;
@@ -3226,29 +3348,57 @@
 
         // نسخ رابط التقييم
         function copyReviewLink() {
-            const link = document.getElementById('reviewLinkDisplay').textContent;
+            const link = window._reviewLink || '';
+            if (!link) { showToast('لا يوجد رابط للنسخ', true); return; }
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(link).then(() => {
                     showToast('✅ تم نسخ الرابط');
                 }).catch(() => {
-                    // Fallback
-                    const input = document.createElement('input');
-                    input.value = link;
-                    document.body.appendChild(input);
-                    input.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(input);
-                    showToast('✅ تم نسخ الرابط');
+                    fallbackCopy(link);
                 });
             } else {
-                const input = document.createElement('input');
-                input.value = link;
-                document.body.appendChild(input);
-                input.select();
-                document.execCommand('copy');
-                document.body.removeChild(input);
-                showToast('✅ تم نسخ الرابط');
+                fallbackCopy(link);
             }
+        }
+
+        function fallbackCopy(text) {
+            const input = document.createElement('input');
+            input.value = text;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            showToast('✅ تم نسخ الرابط');
+        }
+
+        // طباعة الكيو آر كود
+        function printQR() {
+            const qrImg = document.getElementById('qrCodeImg');
+            if (!qrImg.src) { showToast('لا توجد صورة للطباعة', true); return; }
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html dir="rtl">
+                <head><title>طباعة كيو آر كود التقييم</title>
+                <style>
+                    body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #fff; font-family: 'Tajawal', sans-serif; }
+                    .container { text-align: center; padding: 20px; }
+                    img { max-width: 300px; height: auto; border: 1px solid #ddd; padding: 10px; border-radius: 8px; }
+                    h3 { color: #b48554; margin-bottom: 10px; }
+                    p { color: #555; margin-top: 10px; font-size: 0.9rem; }
+                    @media print { .no-print { display: none; } }
+                </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h3>${escapeHtml(document.getElementById('restaurantNameText').textContent || 'المطعم')}</h3>
+                        <img src="${qrImg.src}" alt="QR Code" />
+                        <p>امسح الكود لتقييم تجربتك</p>
+                        <button class="no-print" onclick="window.print()" style="margin-top:20px; padding:10px 20px; background:#b48554; color:#fff; border:none; border-radius:8px; cursor:pointer;">🖨️ طباعة</button>
+                    </div>
+                </body>
+                </html>
+            `);
+            win.document.close();
         }
 
         // ===== تحديث شامل =====
@@ -3261,9 +3411,6 @@
         // ===== أحداث =====
         document.addEventListener('click', e => { if (e.target.classList.contains('modal-overlay')) closeModals(); });
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModals(); });
-
-        // ===== تحميل التقييمات عند التبديل للتبويب 4 =====
-        // تم دمجها في switchTab
 
         // ===== زر تثبيت PWA =====
         let deferredPrompt;
@@ -3290,10 +3437,7 @@
             if (btn) btn.classList.add('hidden');
         });
 
-        // ============================================================
-        // ===== التهيئة النهائية =====
-        // ============================================================
-        console.log('✅ نظام FoodCost جاهز - الإصدار 1.5 مع التقييمات');
+        console.log('✅ نظام FoodCost جاهز - الإصدار 1.5 مع التقييمات وعرض الملاحظات وإحصاءات أنواع الزيارات');
     </script>
 </body>
 </html>
