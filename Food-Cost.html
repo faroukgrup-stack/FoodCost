@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام إدارة التكلفة وهندسة المنيو – FoodCost</title>
-    <meta name="description" content="منصة متكاملة لإدارة تكاليف المطاعم وتحليل قوائم الطعام وحساب نقطة التعادل مع تقارير احترافية.">
+    <meta name="description" content="منصة متكاملة لإدارة تكاليف المطاعم وتحليل قوائم الطعام وحساب نقطة التعادل مع تقارير احترافية وتقييم العملاء عبر QR Code.">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -127,7 +127,7 @@
         .problem-card:hover { border-color: var(--gold); box-shadow: var(--shadow-sm); }
         .problem-card i { font-size: 2rem; color: #c0392b; margin-bottom: 15px; }
         .problem-card h4 { font-size: 1.3rem; margin-bottom: 12px; color: var(--finance-dark); }
-        /* الميزات */
+        /* الميزات الأساسية */
         .features-section { padding: 80px 0; background: var(--finance-bg); }
         .features-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
@@ -146,6 +146,102 @@
         }
         .feature-card h4 { font-size: 1.4rem; margin-bottom: 15px; }
         .feature-card p { color: var(--text-muted); }
+
+        /* ===== قسم QR Code والتقييمات ===== */
+        .qr-feature-section {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #f0f5f0, #e0ece0);
+        }
+        .qr-feature-grid {
+            display: flex;
+            align-items: center;
+            gap: 50px;
+            flex-wrap: wrap;
+        }
+        .qr-feature-content {
+            flex: 1;
+            min-width: 300px;
+        }
+        .qr-feature-content h3 {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--finance-dark);
+            margin-bottom: 20px;
+        }
+        .qr-feature-content h3 span { color: var(--gold); }
+        .qr-feature-content p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+        .qr-feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .qr-feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 18px;
+            font-size: 1rem;
+            color: var(--text-dark);
+        }
+        .qr-feature-list li i {
+            color: var(--finance-green);
+            font-size: 1.4rem;
+            margin-top: 3px;
+            width: 30px;
+            text-align: center;
+        }
+        .qr-feature-image {
+            flex: 0.9;
+            min-width: 280px;
+            text-align: center;
+        }
+        .qr-feature-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            border: 3px solid var(--gold-light);
+            transform: rotate(-1deg);
+            transition: transform 0.3s;
+        }
+        .qr-feature-image img:hover { transform: rotate(0deg); }
+        .qr-demo-box {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 25px;
+        }
+        .qr-demo-item {
+            background: var(--light);
+            padding: 15px 20px;
+            border-radius: 16px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+            width: 180px;
+        }
+        .qr-demo-item i {
+            font-size: 2.8rem;
+            color: var(--gold);
+            margin-bottom: 10px;
+            display: block;
+        }
+        .qr-demo-item span {
+            font-weight: 700;
+            color: var(--finance-dark);
+            font-size: 0.95rem;
+        }
+        .qr-demo-item small {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
         /* معاينة سريعة */
         .preview-section { padding: 80px 0; background: var(--light); }
         .preview-grid {
@@ -201,7 +297,7 @@
         }
         footer span { color: var(--gold); }
 
-        /* ===== نافذة الدفع (بنفس أسلوب المنصة الشاملة) ===== */
+        /* ===== نافذة الدفع ===== */
         .payment-overlay {
             position: fixed;
             inset: 0;
@@ -273,11 +369,95 @@
             border: none;
         }
 
+        /* ===== تصميم قسم الفيديو باستخدام الـ Iframe الخاص بك ===== */
+        .video-section {
+            padding: 80px 0;
+            background: var(--finance-bg);
+        }
+        .video-grid {
+            display: flex;
+            align-items: center;
+            gap: 50px;
+            flex-wrap: wrap;
+        }
+        .video-content {
+            flex: 1;
+            min-width: 300px;
+        }
+        .video-content p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 25px;
+        }
+        .video-features {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .video-features li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            font-size: 1rem;
+            color: var(--text-dark);
+        }
+        .video-features li i {
+            color: var(--finance-green);
+            font-size: 1.3rem;
+        }
+        .video-wrapper {
+            flex: 1.2;
+            min-width: 320px;
+        }
+        .video-container {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            background: #000;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* مشغل الفيديو الأصلي من جوجل درايف */
+        .video-container iframe {
+            width: 100%;
+            height: 100%;
+            display: block;
+            border: none;
+        }
+        /* *** الحل السحري: طبقة شفافة فوق الزر العلوي *** */
+        .drive-btn-blocker {
+            position: absolute;
+            top: 15px;      /* نفس ارتفاع زر جوجل درايف */
+            right: 15px;    /* نفس عرض زر جوجل درايف */
+            width: 40px;    /* عرض يغطي الزر بالكامل */
+            height: 40px;   /* ارتفاع يغطي الزر بالكامل */
+            background: transparent; /* شفاف تماماً */
+            z-index: 9999;  /* يجب أن يكون أعلى من الـ iframe */
+            cursor: default;
+            /* هذه الخاصية تجعل النقر يصل إلى هذه الطبقة وليس إلى زر Drive */
+            pointer-events: auto; 
+        }
+
+        /* تحسينات الجوال */
         @media (max-width: 768px) {
             .hero-content h2 { font-size: 2.2rem; }
             .hero-image img { transform: none; }
             .section-title { font-size: 1.8rem; }
             .payment-popup { width: 95%; height: 85vh; max-width: 500px; }
+            .qr-feature-grid { flex-direction: column-reverse; }
+            .qr-feature-image { min-width: 200px; }
+            .qr-demo-box { flex-direction: column; align-items: center; }
+            .qr-demo-item { width: 100%; max-width: 220px; }
+            .video-grid { flex-direction: column; }
+            .video-content, .video-wrapper { min-width: 100%; }
+            .video-features { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
@@ -296,7 +476,7 @@
         <div class="hero-content">
             <span class="hero-badge">نظام إدارة التكلفة</span>
             <h2>تحكم في <span>تكاليف مطعمك</span> وارفع أرباحك</h2>
-            <p>منصة متكاملة لحساب التكاليف، هندسة قائمة الطعام، تحليل نقطة التعادل، وتصدير تقارير احترافية – كل ذلك في مكان واحد.</p>
+            <p>منصة متكاملة لحساب التكاليف، هندسة قائمة الطعام، تحليل نقطة التعادل، وجمع تقييمات العملاء عبر QR Code – كل ذلك في مكان واحد.</p>
             <div class="price-tag">99$ <small>/ سنوياً</small></div>
             <button class="btn-gold" id="openModalBtn"><i class="fas fa-rocket"></i> اشترك الآن</button>
             <div class="trust-badges">
@@ -307,6 +487,38 @@
         </div>
         <div class="hero-image">
             <img src="https://lh3.googleusercontent.com/d/10_m7-rwAF9hQmI-c2af5K6_UDzw5iRmz" alt="منصة FoodCost">
+        </div>
+    </div>
+</section>
+
+<!-- ===== قسم الفيديو (مع الإطار الخاص بك + الحاجز الشفاف) ===== -->
+<section class="video-section">
+    <div class="container">
+        <h3 class="section-title">شاهد شرح المنصة في دقيقة</h3>
+        <div class="video-grid">
+            <!-- النص والشرح -->
+            <div class="video-content">
+                <p>
+                    تعرف على كيفية إدارة تكاليف مطعمك بذكاء، تحليل قائمة الطعام باستخدام مصفوفة BCG، وحساب نقطة التعادل، وجمع تقييمات العملاء عبر QR Code – كل ذلك في فيديو واحد سريع.
+                </p>
+                <ul class="video-features">
+                    <li><i class="fas fa-check-circle"></i> واجهة سهلة</li>
+                    <li><i class="fas fa-check-circle"></i> تحليل فوري</li>
+                    <li><i class="fas fa-check-circle"></i> تقارير احترافية</li>
+                    <li><i class="fas fa-check-circle"></i> متوافق مع الجوال</li>
+                </ul>
+            </div>
+
+            <!-- مشغل الفيديو من Drive مع الحاجز -->
+            <div class="video-wrapper">
+                <div class="video-container">
+                    <!-- كود الـ iframe الخاص بك بالضبط -->
+                    <iframe src="https://drive.google.com/file/d/1lTThMU0CHamI80qrW612fPLZ74anoggy/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    
+                    <!-- الطبقة الشفافة التي تمنع النقر على زر Drive العلوي -->
+                    <div class="drive-btn-blocker"></div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -327,9 +539,9 @@
                 <p>لا تعرف أي الأطباق تحقق أرباحاً وأيها تخسرك المال، مما يضعف أداء قائمتك.</p>
             </div>
             <div class="problem-card">
-                <i class="fas fa-file-invoice"></i>
-                <h4>تقارير مبعثرة</h4>
-                <p>البيانات مشتتة بين برامج مختلفة، ولا تملك تقريراً شاملاً يعكس أداء مطعمك المالي.</p>
+                <i class="fas fa-star"></i>
+                <h4>غياب آراء العملاء المنظمة</h4>
+                <p>تصلك تقييمات متفرقة ولا تستطيع تحليلها بشكل منهجي لتحسين الجودة والخدمة.</p>
             </div>
         </div>
     </div>
@@ -364,6 +576,45 @@
     </div>
 </section>
 
+<!-- ===== قسم QR Code والتقييمات ===== -->
+<section class="qr-feature-section">
+    <div class="container">
+        <div class="qr-feature-grid">
+            <div class="qr-feature-content">
+                <span class="hero-badge" style="background:var(--finance-green);">✨ ميزة جديدة</span>
+                <h3>تقييم العملاء عبر <span>QR Code</span></h3>
+                <p>امنح عملاءك طريقة سريعة وسهلة لتقييم تجربتهم في مطعمك، واحصل على رؤى واضحة لتحسين الجودة والخدمة.</p>
+                <ul class="qr-feature-list">
+                    <li><i class="fas fa-qrcode"></i> <div><strong>رمز QR مخصص لكل مطعم</strong><br>يتم إنشاء كود فريد لمطعمك يمكن طباعته ووضعه على الطاولات أو عند المدخل.</div></li>
+                    <li><i class="fas fa-mobile-alt"></i> <div><strong>تقييم سريع من الهاتف</strong><br>العملاء يمسحون الكود ويدخلون تقييمهم في دقيقة واحدة دون حاجة لتطبيق.</div></li>
+                    <li><i class="fas fa-chart-bar"></i> <div><strong>تحليل فوري للنتائج</strong><br>عرض متوسط التقييمات، توزيع الآراء، وأهم النقاط التي تحتاج تحسيناً.</div></li>
+                    <li><i class="fas fa-utensils"></i> <div><strong>ربط التقييمات بالأطباق</strong><br>تعرف على آراء العملاء في كل طبق على حدة، وحدد نقاط القوة والضعف في قائمتك.</div></li>
+                </ul>
+            </div>
+            <div class="qr-feature-image">
+                <img src="https://lh3.googleusercontent.com/d/1JXxgzF9RE691VK3H12IXHcBcvC6MdbId" alt="QR Code للتقييم" style="max-width:350px;">
+                <div class="qr-demo-box">
+                    <div class="qr-demo-item">
+                        <i class="fas fa-qrcode"></i>
+                        <span>كود QR</span>
+                        <small>يمسحه العميل</small>
+                    </div>
+                    <div class="qr-demo-item">
+                        <i class="fas fa-star"></i>
+                        <span>تقييم سريع</span>
+                        <small>طعام، خدمة، نظافة</small>
+                    </div>
+                    <div class="qr-demo-item">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>تحليل ذكي</span>
+                        <small>رسوم بيانية وتوصيات</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- معاينة سريعة -->
 <section class="preview-section">
     <div class="container">
@@ -381,6 +632,10 @@
                 <img src="https://lh3.googleusercontent.com/d/1LxDwgMgE7ba9Srv0Pzz-KHuYBZjtwaHD" alt="نقطة التعادل">
                 <h5>⚖️ نقطة التعادل</h5>
             </div>
+            <div class="preview-item">
+                <img src="https://lh3.googleusercontent.com/d/1bwCfhSpzcYgFFX-nz0dcabgqK-tziyri" alt="لوحة التقييمات">
+                <h5>⭐ لوحة تحليل التقييمات</h5>
+            </div>
         </div>
     </div>
 </section>
@@ -396,6 +651,8 @@
             <div class="toc-item"><i class="fas fa-calculator"></i> حساب نقطة التعادل</div>
             <div class="toc-item"><i class="fas fa-file-word"></i> تصدير تقارير Word</div>
             <div class="toc-item"><i class="fas fa-file-excel"></i> تصدير تقارير Excel</div>
+            <div class="toc-item"><i class="fas fa-qrcode"></i> توليد QR Code للتقييم</div>
+            <div class="toc-item"><i class="fas fa-star"></i> تحليل تقييمات العملاء</div>
         </div>
     </div>
 </section>
@@ -410,12 +667,12 @@
                 <div class="faq-answer">نعم، المنصة مصممة لتكون بسيطة وسهلة الاستخدام وتناسب جميع أحجام المطاعم، من المطاعم الصغيرة إلى السلاسل الكبيرة.</div>
             </div>
             <div class="faq-item">
-                <div class="faq-question"><span>هل أحتاج إلى خبرة محاسبية لاستخدامها؟</span> <i class="fas fa-chevron-down"></i></div>
-                <div class="faq-answer">لا، المنصة موجهة لأصحاب ومدراء المطاعم غير الماليين، وتشرح كل خطوة بلغة بسيطة وواضحة.</div>
+                <div class="faq-question"><span>كيف يعمل نظام QR Code للتقييم؟</span> <i class="fas fa-chevron-down"></i></div>
+                <div class="faq-answer">تقوم المنصة بتوليد كود QR فريد لمطعمك. يمكنك طباعته ووضعه في مكان ظاهر. العملاء يمسحون الكود بهواتفهم ويدخلون تقييمهم بسهولة، وتظهر النتائج في لوحة التحكم الخاصة بك.</div>
             </div>
             <div class="faq-item">
-                <div class="faq-question"><span>كيف يمكنني تصدير التقارير؟</span> <i class="fas fa-chevron-down"></i></div>
-                <div class="faq-answer">بضغطة زر واحدة يمكنك تصدير تقرير شامل بصيغة Excel أو Word يحتوي على جميع البيانات والرسوم البيانية والتوصيات.</div>
+                <div class="faq-question"><span>هل أحتاج إلى خبرة محاسبية لاستخدامها؟</span> <i class="fas fa-chevron-down"></i></div>
+                <div class="faq-answer">لا، المنصة موجهة لأصحاب ومدراء المطاعم غير الماليين، وتشرح كل خطوة بلغة بسيطة وواضحة.</div>
             </div>
             <div class="faq-item">
                 <div class="faq-question"><span>هل الاشتراك يتجدد تلقائياً؟</span> <i class="fas fa-chevron-down"></i></div>
@@ -428,8 +685,8 @@
 <!-- CTA -->
 <section class="cta-section">
     <div class="container">
-        <h3>ابدأ الآن في تحسين تكاليف مطعمك</h3>
-        <p>انضم إلى مئات من أصحاب ومدراء المطاعم الذين يستخدمون المنصة لزيادة أرباحهم وتقليل الهدر.</p>
+        <h3>ابدأ الآن في تحسين تكاليف مطعمك ورضا عملائك</h3>
+        <p>انضم إلى مئات من أصحاب ومدراء المطاعم الذين يستخدمون المنصة لزيادة أرباحهم وتقليل الهدر وتحسين تجربة العملاء.</p>
         <div class="price-tag" style="background:rgba(255,255,255,0.1); color:var(--gold); display:inline-block; padding:10px 30px; border-radius:50px; font-size:1.8rem; margin-bottom:20px;">
             99$ <small style="color:rgba(255,255,255,0.6);">/ سنوياً</small>
         </div>
@@ -442,11 +699,11 @@
 <footer>
     <div class="container">
         <p>© 2026 مجموعة فاروق للاستشارات والأعمال. جميع الحقوق محفوظة.</p>
-        <p style="margin-top:10px;"><span>FoodCost</span> – نظام إدارة التكلفة وهندسة المنيو للمطاعم.</p>
+        <p style="margin-top:10px;"><span>FoodCost</span> – نظام إدارة التكلفة وهندسة المنيو وتقييم العملاء للمطاعم.</p>
     </div>
 </footer>
 
-<!-- ===== نافذة الدفع (بنفس أسلوب المنصة الشاملة) ===== -->
+<!-- ===== نافذة الدفع ===== -->
 <div class="payment-overlay" id="paymentModal">
     <div class="payment-popup">
         <div class="payment-header">
