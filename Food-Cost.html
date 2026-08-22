@@ -369,7 +369,7 @@
             border: none;
         }
 
-        /* ===== تصميم قسم الفيديو باستخدام الـ Iframe الخاص بك ===== */
+        /* ===== تصميم قسم الفيديو (YouTube) ===== */
         .video-section {
             padding: 80px 0;
             background: var(--finance-bg);
@@ -414,35 +414,20 @@
         }
         .video-container {
             position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* نسبة 16:9 */
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: var(--shadow-lg);
             background: #000;
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            box-shadow: var(--shadow-lg);
         }
-        /* مشغل الفيديو الأصلي من جوجل درايف */
         .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            display: block;
             border: none;
-        }
-        /* *** الحل السحري: طبقة شفافة فوق الزر العلوي *** */
-        .drive-btn-blocker {
-            position: absolute;
-            top: 15px;      /* نفس ارتفاع زر جوجل درايف */
-            right: 15px;    /* نفس عرض زر جوجل درايف */
-            width: 40px;    /* عرض يغطي الزر بالكامل */
-            height: 40px;   /* ارتفاع يغطي الزر بالكامل */
-            background: transparent; /* شفاف تماماً */
-            z-index: 9999;  /* يجب أن يكون أعلى من الـ iframe */
-            cursor: default;
-            /* هذه الخاصية تجعل النقر يصل إلى هذه الطبقة وليس إلى زر Drive */
-            pointer-events: auto; 
         }
 
         /* تحسينات الجوال */
@@ -458,6 +443,7 @@
             .video-grid { flex-direction: column; }
             .video-content, .video-wrapper { min-width: 100%; }
             .video-features { grid-template-columns: 1fr 1fr; }
+            .video-container { border-radius: 15px; }
         }
     </style>
 </head>
@@ -491,12 +477,11 @@
     </div>
 </section>
 
-<!-- ===== قسم الفيديو (مع الإطار الخاص بك + الحاجز الشفاف) ===== -->
+<!-- ===== قسم الفيديو (YouTube) ===== -->
 <section class="video-section">
     <div class="container">
         <h3 class="section-title">شاهد شرح المنصة في دقيقة</h3>
         <div class="video-grid">
-            <!-- النص والشرح -->
             <div class="video-content">
                 <p>
                     تعرف على كيفية إدارة تكاليف مطعمك بذكاء، تحليل قائمة الطعام باستخدام مصفوفة BCG، وحساب نقطة التعادل، وجمع تقييمات العملاء عبر QR Code – كل ذلك في فيديو واحد سريع.
@@ -509,14 +494,16 @@
                 </ul>
             </div>
 
-            <!-- مشغل الفيديو من Drive مع الحاجز -->
             <div class="video-wrapper">
                 <div class="video-container">
-                    <!-- كود الـ iframe الخاص بك بالضبط -->
-                    <iframe src="https://drive.google.com/file/d/1lTThMU0CHamI80qrW612fPLZ74anoggy/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
-                    
-                    <!-- الطبقة الشفافة التي تمنع النقر على زر Drive العلوي -->
-                    <div class="drive-btn-blocker"></div>
+                    <iframe 
+                        src="https://www.youtube.com/embed/y5cf3bwrPu4?rel=0&modestbranding=1" 
+                        title="فيديو شرح منصة FoodCost" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        referrerpolicy="strict-origin-when-cross-origin" 
+                        allowfullscreen>
+                    </iframe>
                 </div>
             </div>
         </div>
