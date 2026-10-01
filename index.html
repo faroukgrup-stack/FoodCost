@@ -1781,10 +1781,39 @@
     <!-- ===== كل الكود الوظيفي (JavaScript) ===== -->
     <!-- ============================================================ -->
     <script>
+    // ---- كود الحماية ومنع الوصول لأدوات المطور ----
+    document.addEventListener('keydown', function(e) {
+      // منع زر F12
+      if (e.key === 'F12' || e.keyCode === 123) {
+        e.preventDefault();
+        alert('تم تعطيل زر F12!');
+        return false;
+      }
+      // منع اختصارات أدوات المطور (Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C)
+      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
+        e.preventDefault();
+        alert('تم تعطيل أدوات المطور!');
+        return false;
+      }
+      // منع عرض مصدر الصفحة (Ctrl+U)
+      if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
+        e.preventDefault();
+        alert('تم تعطيل عرض المصدر!');
+        return false;
+      }
+    });
+
+    // منع النقر بزر الماوس الأيمن (Context Menu)
+    document.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      alert('النقر بزر الماوس الأيمن معطل!');
+      return false;
+    });
+    // ---- نهاية كود الحماية ----
         // ============================================================
         // إعدادات API
         // ============================================================
-        const COST_API_URL = "https://script.google.com/macros/s/AKfycbxJtkw9FkLjnH6j-HlBS6HHrIDKE0WVjoNg1xeD5SLAq2qxwxc9hl2Hj0aminzl_b-N/exec";
+        const COST_API_URL = "https://script.google.com/macros/s/AKfycbyZXiTItX-DQ0ZW5yVum6syi7INS9GODBhFBnfScImeWDT-HzsKiL44-3rX6v8U1weD/exec";
         const SESSION_DURATION_MS = 24 * 60 * 60 * 1000;
         const PAYMENT_LINK = "https://www.entervia.co/checkout/78";
 
