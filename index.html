@@ -1781,35 +1781,40 @@
     <!-- ===== كل الكود الوظيفي (JavaScript) ===== -->
     <!-- ============================================================ -->
     <script>
-    // ---- كود الحماية ومنع الوصول لأدوات المطور ----
-    document.addEventListener('keydown', function(e) {
-      // منع زر F12
-      if (e.key === 'F12' || e.keyCode === 123) {
-        e.preventDefault();
-        alert('تم تعطيل زر F12!');
-        return false;
-      }
-      // منع اختصارات أدوات المطور (Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C)
-      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
-        e.preventDefault();
-        alert('تم تعطيل أدوات المطور!');
-        return false;
-      }
-      // منع عرض مصدر الصفحة (Ctrl+U)
-      if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
-        e.preventDefault();
-        alert('تم تعطيل عرض المصدر!');
-        return false;
-      }
-    });
+// ---- كود الحماية ومنع الوصول لأدوات المطور ----
+(function () {
+  "use strict";
 
-    // منع النقر بزر الماوس الأيمن (Context Menu)
-    document.addEventListener('contextmenu', function(e) {
+  // منع F12 واختصارات أدوات المطور وعرض المصدر
+  document.addEventListener('keydown', function (e) {
+    // F12
+    if (e.key === 'F12' || e.keyCode === 123) {
       e.preventDefault();
-      alert('النقر بزر الماوس الأيمن معطل!');
       return false;
-    });
-    // ---- نهاية كود الحماية ----
+    }
+    // Ctrl+Shift+I / J / C
+    if (e.ctrlKey && e.shiftKey &&
+        (e.key === 'I' || e.key === 'i' ||
+         e.key === 'J' || e.key === 'j' ||
+         e.key === 'C' || e.key === 'c')) {
+      e.preventDefault();
+      return false;
+    }
+    // Ctrl+U (عرض المصدر)
+    if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
+      e.preventDefault();
+      return false;
+    }
+  }, true);
+
+  // منع النقر بزر الماوس الأيمن (بدون alert)
+  document.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+    return false;
+  }, true);
+
+})();
+// ---- نهاية كود الحماية ----
         // ============================================================
         // إعدادات API
         // ============================================================
