@@ -1,0 +1,865 @@
+// ============================================================
+// نظام إدارة التكلفة وهندسة المنيو - FAROUK GRUP
+// النسخة الكاملة مع دعم التدقيق المركزي، التجميد، والتقييمات
+// ============================================================
+
+// ========== إعدادات جداول البيانات ==========
+var MASTER_SPREADSHEET_ID = '12rrGRywm5oH6XOCKKxR7_4WRf937lsOrM0wbvIc2L18';
+var SHEET_MAPPING = 'Mapping';
+var SHEET_USERS = 'Users';
+var TEMPLATE_SPREADSHEET_ID = '1bXWUHvxpR7TDerHCHC5RDr4HSA8tWn5ZUGdM6ka7njY';
+
+var SHEET_MATERIALS = 'رو ماتيريال';
+var SHEET_MAIN = 'مين ريسيبي';
+var SHEET_SETTINGS = 'اعدادات';
+
+var FOOD_SECRET_KEY = "F00dC0st_S3cur3_K3y_2026!";
+var DEFAULT_SUBSCRIPTION_YEARS = 1;
+
+// ============================================================
+// ========== دوال الوصول إلى الأوراق ==========
+// ============================================================
+function getUsersSheet() {
+  try {
+    var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    if (!ss) { console.error('❌ تعذر فتح الجدول الرئيسي'); return null; }
+    var sheet = ss.getSheetByName(SHEET_USERS);
+    if (!sheet) { console.error('❌ ورقة "' + SHEET_USERS + '" غير موجودة'); return null; }
+    return sheet;
+  } catch (err) {
+    console.error('❌ خطأ في getUsersSheet:', err.message);
+    return null;
+  }
+}
+
+function ensureFrozenColumn(sheet) {
+  if (!sheet) return false;
+  try {
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    if (headers.length < 6) {
+      sheet.getRange(1, 6).setValue('frozen');
+      var lastRow = sheet.getLastRow();
+      if (lastRow > 1) sheet.getRange(2, 6, lastRow - 1, 1).setValue(false);
+    } else {
+      if (headers[5] !== 'frozen') sheet.getRange(1, 6).setValue('frozen');
+    }
+    return true;
+  } catch (err) {
+    console.error('❌ خطأ في ensureFrozenColumn:', err.message);
+    return false;
+  }
+}
+
+// ============================================================
+// Web App Entry Points
+// ============================================================
+function doGet(e) {
+  var result = handleRequest(e);
+  return ContentService.createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+function doPost(e) { return doGet(e); }
+
+// ============================================================
+// ===== Central Request Handler (النسخة المعدلة) =====
+// ============================================================
+function handleRequest(e) {
+  try {
+    // ===== 1. جمع جميع المعاملات الواردة في كائن واحد =====
+    var allParams = {};
+    for (var key in e.parameter) {
+      allParams[key] = e.parameter[key];
+    }
+
+    // ===== 2. دمج أي معاملات JSON إضافية (للمرونة) =====
+    if (e.parameter.params) {
+      try {
+        var extraParams = JSON.parse(e.parameter.params);
+        for (var k in extraParams) {
+          allParams[k] = extraParams[k];
+        }
+      } catch (err) {}
+    }
+
+    var fn = e.parameter.fn;
+    var restaurantEmail = e.parameter.restaurantEmail;
+
+    // --- دوال لا تحتاج إلى restaurantEmail ---
+    if (fn === 'login') {
+      return login(e.parameter.username, e.parameter.password);
+    }
+    if (fn === 'register') {
+      return registerUser(allParams);
+    }
+    if (fn === 'validateToken') {
+      return validateToken(e.parameter.token);
+    }
+    if (fn === 'getUsers') {
+      return getUsers();
+    }
+    if (fn === 'audit') {
+      var emails = JSON.parse(e.parameter.emails || '[]');
+      var durationYears = parseInt(e.parameter.durationYears) || DEFAULT_SUBSCRIPTION_YEARS;
+      return auditUsers(emails, durationYears);
+    }
+    // --- دوال إدارة المستخدمين الجديدة من لوحة التحكم ---
+    if (fn === 'addUser') {
+      return addUser(allParams);
+    }
+    if (fn === 'deleteUser') {
+      return deleteUser(allParams);
+    }
+    if (fn === 'updateUser') {
+      var masterSS = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+      return updateUser(masterSS, allParams);
+    }
+
+    // --- طلب من المركزي (إنشاء / تجديد) ---
+    if (!fn && e.parameter.email && e.parameter.password) {
+      var email = e.parameter.email.toString().trim();
+      var password = e.parameter.password.toString().trim();
+      return createOrRenewUser(email, password, DEFAULT_SUBSCRIPTION_YEARS);
+    }
+
+    // --- باقي الدوال تحتاج إلى restaurantEmail ---
+    if (!restaurantEmail) {
+      return { success: false, error: 'البريد الإلكتروني للمطعم مطلوب' };
+    }
+
+    var spreadsheetId = getOrCreateSpreadsheetId(restaurantEmail);
+    var ss = SpreadsheetApp.openById(spreadsheetId);
+
+    switch (fn) {
+      case 'getAllData': return getAllData(ss);
+      case 'getAllMaterials': return getAllMaterials(ss);
+      case 'addMaterial': return addMaterial(ss, allParams);
+      case 'deleteMaterial': return deleteMaterial(ss, allParams.materialId);
+      case 'updateMaterial': return updateMaterial(ss, allParams);
+      case 'getAllRecipes': return getAllRecipes(ss);
+      case 'addRecipe': return addRecipe(ss, allParams.recipeName);
+      case 'deleteRecipe': return deleteRecipe(ss, allParams.recipeName);
+      case 'getRecipeIngredients': return getRecipeIngredients(ss, allParams.recipeName);
+      case 'saveRecipeIngredients': return saveRecipeIngredients(ss, allParams.recipeName, allParams.ingredients);
+      case 'updateRestaurantName': return updateRestaurantName(ss, allParams.name);
+      case 'getSettings': return getSettings(ss);
+      case 'updateSettings': return updateSettings(ss, allParams.wastePercent, allParams.foodCostPercent);
+      case 'renameRecipe': return renameRecipe(ss, allParams);
+      case 'submitReview': return submitReview(allParams);
+      case 'getReviews': return getReviews(restaurantEmail);
+      default: return { success: false, error: 'دالة غير معروفة' };
+    }
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+// ============================================================
+// ===== دوال تسجيل الدخول وإدارة المستخدمين =====
+// ============================================================
+function login(username, password) {
+  var sheet = getUsersSheet();
+  if (!sheet) return { status: 'error', message: 'تعذر الوصول إلى جدول المستخدمين' };
+  ensureFrozenColumn(sheet);
+  var data = sheet.getDataRange().getValues();
+  var user = username ? username.toString().trim() : '';
+  var pass = password ? password.toString().trim() : '';
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0].toString().trim().toLowerCase() === user.toLowerCase() &&
+        data[i][1].toString().trim() === pass) {
+      var frozen = data[i][5] === true || data[i][5] === 'TRUE' || data[i][5] === 'true';
+      if (frozen) return { status: 'frozen', message: '❌ تم تجميد حسابك. الرجاء مراجعة الإدارة.' };
+      var expiryDate = new Date(data[i][2]);
+      var today = new Date();
+      if (today > expiryDate) return { status: 'expired', message: 'انتهى اشتراكك' };
+      var daysLeft = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+      var raw = FOOD_SECRET_KEY + "|" + user + "|" + expiryDate.toISOString().split('T')[0];
+      var token = Utilities.base64Encode(raw);
+      return { status: 'success', name: data[i][3] || user, daysLeft: daysLeft, email: user, token: token };
+    }
+  }
+  return { status: 'invalid', message: 'بيانات الدخول غير صحيحة' };
+}
+
+function validateToken(token) {
+  try {
+    var decoded = Utilities.base64Decode(token);
+    var parts = Utilities.newBlob(decoded).getDataAsString().split('|');
+    if (parts.length === 3 && parts[0] === FOOD_SECRET_KEY) {
+      var expiryDate = new Date(parts[2]);
+      var today = new Date();
+      if (expiryDate >= today) return { status: 'success', message: 'توكن صالح', email: parts[1] };
+      else return { status: 'expired', message: 'انتهت صلاحية التوكن' };
+    }
+    return { status: 'invalid', message: 'توكن غير صالح' };
+  } catch (e) {
+    return { status: 'error', message: 'خطأ في فك التشفير' };
+  }
+}
+
+function registerUser(params) {
+  try {
+    var email = params.email ? params.email.toString().trim().toLowerCase() : '';
+    var password = params.password ? params.password.toString().trim() : '';
+    var fullName = params.fullName ? params.fullName.toString().trim() : '';
+    if (!email || !password) return { status: 'error', message: 'البريد الإلكتروني وكلمة المرور مطلوبان' };
+    if (password.length < 6) return { status: 'error', message: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' };
+    var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return { status: 'error', message: 'صيغة البريد الإلكتروني غير صحيحة' };
+    var allowedDomains = ['gmail.com','yahoo.com','outlook.com','hotmail.com','live.com','icloud.com','proton.me','protonmail.com','zoho.com','mail.com','aol.com','yandex.com','msn.com','me.com','mac.com'];
+    var domain = email.split('@')[1];
+    if (!domain || allowedDomains.indexOf(domain.toLowerCase()) === -1) return { status: 'error', message: 'نطاق البريد غير مسموح' };
+    var sheet = getUsersSheet();
+    if (!sheet) return { status: 'error', message: 'تعذر الوصول إلى جدول المستخدمين' };
+    ensureFrozenColumn(sheet);
+    var data = sheet.getDataRange().getValues();
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][0].toString().trim().toLowerCase() === email) {
+        return { status: 'exists', message: 'هذا البريد الإلكتروني مسجل مسبقاً. يمكنك تجديد الاشتراك.', renewLink: 'f@14-G-17.html' };
+      }
+    }
+    var expiryDate = new Date();
+    expiryDate.setFullYear(expiryDate.getFullYear() + DEFAULT_SUBSCRIPTION_YEARS);
+    var displayName = fullName || email.split('@')[0];
+    sheet.appendRow([email, password, expiryDate, displayName, new Date(), false]);
+    try { createRestaurantSpreadsheet(email); } catch (e) { console.warn('تعذر إنشاء ملف المطعم: ' + email + ' - ' + e.message); }
+    return { status: 'success', message: 'تم إنشاء الحساب بنجاح! ', loginUrl: 'index.html' };
+  } catch (err) {
+    return { status: 'error', message: 'حدث خطأ في السيرفر: ' + err.message };
+  }
+}
+
+function createOrRenewUser(email, password, years) {
+  try {
+    var sheet = getUsersSheet();
+    if (!sheet) return { status: 'error', message: 'تعذر الوصول إلى جدول المستخدمين' };
+    ensureFrozenColumn(sheet);
+    var data = sheet.getDataRange().getValues();
+    var rowIndex = -1;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][0].toString().trim().toLowerCase() === email.trim().toLowerCase()) { rowIndex = i + 1; break; }
+    }
+    var duration = years || DEFAULT_SUBSCRIPTION_YEARS;
+    var today = new Date();
+    if (rowIndex === -1) {
+      var newExpiry = new Date(today);
+      newExpiry.setFullYear(today.getFullYear() + duration);
+      var displayName = email.split('@')[0];
+      sheet.appendRow([email, password, newExpiry, displayName, today, false]);
+      try { createRestaurantSpreadsheet(email); } catch (e) { console.warn('تعذر إنشاء ملف المطعم: ' + email); }
+      var formattedExpiry = Utilities.formatDate(newExpiry, 'GMT+3', 'yyyy-MM-dd');
+      return { status: 'success', newExpiry: formattedExpiry };
+    } else {
+      var currentExpiry = data[rowIndex - 1][2];
+      var currentDate = new Date(currentExpiry);
+      if (currentDate < today) currentDate = today;
+      currentDate.setFullYear(currentDate.getFullYear() + duration);
+      sheet.getRange(rowIndex, 3).setValue(currentDate);
+      sheet.getRange(rowIndex, 6).setValue(false);
+      var updatedFormatted = Utilities.formatDate(currentDate, 'GMT+3', 'yyyy-MM-dd');
+      return { status: 'exists', newExpiry: updatedFormatted };
+    }
+  } catch (err) {
+    console.error(err);
+    return { status: 'error', message: err.toString() };
+  }
+}
+
+function auditUsers(paidEmails, durationYears) {
+  try {
+    var sheet = getUsersSheet();
+    if (!sheet) return { status: 'error', message: 'تعذر الوصول إلى جدول المستخدمين' };
+    ensureFrozenColumn(sheet);
+    var data = sheet.getDataRange().getValues();
+    var updated = 0, frozen = 0, total = data.length - 1;
+    var paidSet = {};
+    paidEmails.forEach(function(email) { paidSet[email.trim().toLowerCase()] = true; });
+    for (var i = 1; i < data.length; i++) {
+      var email = data[i][0].toString().trim().toLowerCase();
+      var row = i + 1;
+      if (paidSet[email]) {
+        sheet.getRange(row, 6).setValue(false);
+        updated++;
+      } else {
+        var isFrozen = data[i][5] === true || data[i][5] === 'TRUE' || data[i][5] === 'true';
+        if (!isFrozen) {
+          sheet.getRange(row, 6).setValue(true);
+          frozen++;
+        }
+      }
+    }
+    return { status: 'success', message: 'تم التدقيق بنجاح', updated: updated, frozen: frozen, totalUsers: total };
+  } catch (err) {
+    return { status: 'error', message: err.message };
+  }
+}
+
+function getUsers() {
+  try {
+    var sheet = getUsersSheet();
+    if (!sheet) return { status: 'error', message: 'تعذر الوصول إلى جدول المستخدمين' };
+    ensureFrozenColumn(sheet);
+    var data = sheet.getDataRange().getValues();
+    if (data.length < 2) return { status: 'success', data: [] };
+    var users = [];
+    for (var i = 1; i < data.length; i++) {
+      var row = data[i];
+      var email = row[0].toString().trim();
+      var expiryDate = new Date(row[2]);
+      var fullName = row[3] ? row[3].toString().trim() : email;
+      var frozen = row[5] === true || row[5] === 'TRUE' || row[5] === 'true';
+      var today = new Date();
+      var daysLeft = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+      users.push({ 
+        username: email, 
+        fullName: fullName, 
+        expiryDate: Utilities.formatDate(expiryDate, 'GMT+3', 'yyyy-MM-dd'), 
+        daysLeft: daysLeft, 
+        platformKey: 'menuEngineering', 
+        platform: 'هندسة المينيو', 
+        frozen: frozen 
+      });
+    }
+    return { status: 'success', data: users };
+  } catch (err) {
+    return { status: 'error', message: err.message };
+  }
+}
+
+// ============================================================
+// ===== دوال إدارة المستخدمين من لوحة التحكم (جديد) =====
+// ============================================================
+
+function addUser(params) {
+  try {
+    var email = params.username || params.email;
+    var password = params.password || '123456';
+    var fullName = params.fullName || email;
+    var expiryDate = params.expiryDate || null;
+
+    if (!email) return { success: false, error: 'البريد الإلكتروني مطلوب' };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return { success: false, error: 'صيغة البريد غير صحيحة' };
+    }
+
+    var sheet = getUsersSheet();
+    if (!sheet) return { success: false, error: 'تعذر الوصول إلى جدول المستخدمين' };
+    ensureFrozenColumn(sheet);
+
+    // التحقق من التكرار
+    var data = sheet.getDataRange().getValues();
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][0].toString().trim().toLowerCase() === email.toLowerCase()) {
+        return { success: false, error: 'البريد مسجل مسبقاً' };
+      }
+    }
+
+    var expiry = expiryDate ? new Date(expiryDate) : new Date();
+    if (isNaN(expiry.getTime())) {
+      expiry = new Date();
+      expiry.setFullYear(expiry.getFullYear() + DEFAULT_SUBSCRIPTION_YEARS);
+    }
+
+    sheet.appendRow([email, password, expiry, fullName || email, new Date(), false]);
+
+    // إنشاء ملف المطعم تلقائياً
+    try { createRestaurantSpreadsheet(email); } catch(e) {}
+
+    return { success: true, message: 'تمت الإضافة بنجاح' };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+function deleteUser(params) {
+  try {
+    var email = params.username || params.email;
+    if (!email) return { success: false, error: 'البريد الإلكتروني مطلوب' };
+
+    var sheet = getUsersSheet();
+    if (!sheet) return { success: false, error: 'تعذر الوصول إلى جدول المستخدمين' };
+
+    var data = sheet.getDataRange().getValues();
+    var rowIndex = -1;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][0].toString().trim().toLowerCase() === email.toLowerCase()) {
+        rowIndex = i + 1;
+        break;
+      }
+    }
+
+    if (rowIndex === -1) return { success: false, error: 'المستخدم غير موجود' };
+
+    sheet.deleteRow(rowIndex);
+    return { success: true, message: 'تم الحذف بنجاح' };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+function updateUser(masterSS, params) {
+  try {
+    var email = params.username || params.id;
+    if (!email) return { success: false, error: 'البريد الإلكتروني مطلوب' };
+
+    var sheet = masterSS.getSheetByName(SHEET_USERS);
+    if (!sheet) return { success: false, error: 'جدول المستخدمين غير موجود' };
+    ensureFrozenColumn(sheet);
+
+    var data = sheet.getDataRange().getValues();
+    var rowIndex = -1;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][0].toString().trim().toLowerCase() === email.toLowerCase()) {
+        rowIndex = i + 1;
+        break;
+      }
+    }
+    if (rowIndex === -1) return { success: false, error: 'المستخدم غير موجود' };
+
+    // تحديث الحقول (بدون الحاجة إلى oldPassword لأن المسؤول لديه صلاحية)
+    if (params.fullName !== undefined && params.fullName !== '') {
+      sheet.getRange(rowIndex, 4).setValue(params.fullName.trim());
+    }
+    if (params.expiryDate !== undefined && params.expiryDate !== '') {
+      var parsedDate = new Date(params.expiryDate);
+      if (!isNaN(parsedDate.getTime())) {
+        sheet.getRange(rowIndex, 3).setValue(parsedDate);
+      }
+    }
+    if (params.password !== undefined && params.password !== '') {
+      sheet.getRange(rowIndex, 2).setValue(params.password.trim());
+    }
+    if (params.frozen !== undefined) {
+      var frozenValue = (params.frozen === 'true' || params.frozen === true);
+      sheet.getRange(rowIndex, 6).setValue(frozenValue);
+    }
+
+    return { success: true, message: 'تم التحديث بنجاح' };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+// ============================================================
+// دوال إدارة جداول البيانات (Mapping + Template)
+// ============================================================
+function getSpreadsheetByEmail(email) {
+  var masterSS = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+  var sheet = masterSS.getSheetByName(SHEET_MAPPING);
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0].toString().trim().toLowerCase() === email.toLowerCase()) {
+      return data[i][1];
+    }
+  }
+  return null;
+}
+
+function createRestaurantSpreadsheet(email) {
+  var templateFile = DriveApp.getFileById(TEMPLATE_SPREADSHEET_ID);
+  var copy = templateFile.makeCopy(email + '_FoodCost');
+  var newSS = SpreadsheetApp.open(copy);
+  var masterSS = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+  var sheet = masterSS.getSheetByName(SHEET_MAPPING);
+  sheet.appendRow([email, newSS.getId(), new Date()]);
+  return newSS.getId();
+}
+
+function getOrCreateSpreadsheetId(email) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var id = getSpreadsheetByEmail(email);
+    if (!id) { id = createRestaurantSpreadsheet(email); }
+    return id;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// ============================================================
+// دوال البيانات الأساسية (الأطباق، المواد، الإعدادات)
+// ============================================================
+function getAllData(ss) {
+  var materials = getAllMaterials(ss).materials;
+  var recipesData = getAllRecipes(ss);
+  var settings = getSettings(ss);
+  return {
+    success: true,
+    materials: materials,
+    recipes: recipesData.recipes,
+    restaurantName: recipesData.restaurantName,
+    wastePercent: settings.wastePercent,
+    foodCostPercent: settings.foodCostPercent
+  };
+}
+
+function ensureSheets(ss) {
+  if (!ss.getSheetByName(SHEET_MATERIALS)) {
+    var s = ss.insertSheet(SHEET_MATERIALS);
+    s.getRange(1,1,1,8).setValues([['ID','Name','Unit','Price','PurchasePrice','PurchaseQty','WastePercent','PortionWeight']]);
+  }
+  if (!ss.getSheetByName(SHEET_MAIN)) {
+    var m = ss.insertSheet(SHEET_MAIN);
+    m.getRange('C1').setValue('المطعم');
+    m.getRange(2,1,1,6).setValues([['رقم','اسم الطبق','التكلفة الفعلية','نسبة العمالة %','سعر البيع المقترح','الوصفة']]);
+  }
+  if (!ss.getSheetByName(SHEET_SETTINGS)) {
+    var st = ss.insertSheet(SHEET_SETTINGS);
+    st.getRange('A1:B2').setValues([['WastePercent', 5], ['FoodCostPercent', 30]]);
+  }
+}
+
+// ---------- المواد ----------
+function getAllMaterials(ss) {
+  ensureSheets(ss);
+  var sheet = ss.getSheetByName(SHEET_MATERIALS);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return { success: true, materials: [] };
+  var data = sheet.getRange(2,1,lastRow-1,8).getValues();
+  var materials = data.map(function(row) {
+    return {
+      id: row[0],
+      name: row[1] || '',
+      unit: row[2] || '',
+      price: parseFloat(row[3]) || 0,
+      purchasePrice: parseFloat(row[4]) || 0,
+      purchaseQty: parseFloat(row[5]) || 1,
+      wastePercent: parseFloat(row[6]) || 0,
+      portionWeight: parseFloat(row[7]) || 0
+    };
+  });
+  return { success: true, materials: materials };
+}
+
+function addMaterial(ss, d) {
+  ensureSheets(ss);
+  var sheet = ss.getSheetByName(SHEET_MATERIALS);
+  var id = Utilities.getUuid();
+  var effective = computeEffectivePrice(d.purchasePrice, d.purchaseQty, d.wastePercent);
+  sheet.appendRow([id, d.name, d.unit, effective, d.purchasePrice||0, d.purchaseQty||1, d.wastePercent||0, d.portionWeight||0]);
+  recalculateAllRecipes(ss);
+  return { success: true, id: id };
+}
+
+function deleteMaterial(ss, id) {
+  ensureSheets(ss);
+  var sheet = ss.getSheetByName(SHEET_MATERIALS);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return { success: false, error: 'لا توجد مواد' };
+  var ids = sheet.getRange(2,1,lastRow-1,1).getValues().flat();
+  var row = ids.indexOf(id) + 2;
+  if (row > 1) {
+    sheet.deleteRow(row);
+    recalculateAllRecipes(ss);
+    return { success: true };
+  }
+  return { success: false, error: 'المادة غير موجودة' };
+}
+
+function updateMaterial(ss, d) {
+  ensureSheets(ss);
+  var sheet = ss.getSheetByName(SHEET_MATERIALS);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return { success: false, error: 'لا توجد مواد' };
+  var ids = sheet.getRange(2,1,lastRow-1,1).getValues().flat();
+  var row = ids.indexOf(d.id) + 2;
+  if (row > 1) {
+    var effective = computeEffectivePrice(d.purchasePrice, d.purchaseQty, d.wastePercent);
+    sheet.getRange(row,2).setValue(d.name);
+    sheet.getRange(row,3).setValue(d.unit);
+    sheet.getRange(row,4).setValue(effective);
+    sheet.getRange(row,5).setValue(d.purchasePrice||0);
+    sheet.getRange(row,6).setValue(d.purchaseQty||1);
+    sheet.getRange(row,7).setValue(d.wastePercent||0);
+    sheet.getRange(row,8).setValue(d.portionWeight||0);
+    recalculateAllRecipes(ss);
+    return { success: true };
+  }
+  return { success: false, error: 'المادة غير موجودة' };
+}
+
+function computeEffectivePrice(purchasePrice, purchaseQty, wastePercent) {
+  var usable = purchaseQty * (1 - wastePercent/100);
+  return usable > 0 ? purchasePrice / usable : 0;
+}
+
+// ---------- الأطباق ----------
+function getAllRecipes(ss) {
+  ensureSheets(ss);
+  var main = ss.getSheetByName(SHEET_MAIN);
+  var restaurantName = main.getRange('C1').getValue() || 'المطعم';
+  var lastRow = main.getLastRow();
+  if (lastRow < 3) return { success: true, recipes: [], restaurantName: restaurantName };
+  var data = main.getRange(3,2,lastRow-2,5).getValues();
+  var recipes = [];
+  data.forEach(function(row) {
+    if (row[0]) {
+      var name = row[0].toString();
+      var match = name.match(/='([^']+)'/);
+      if (match) name = match[1];
+      recipes.push({ name: name, costPrice: parseFloat(row[1]) || 0, laborPercent: parseFloat(row[2]) || 0, suggestedPrice: parseFloat(row[3]) || 0 });
+    }
+  });
+  return { success: true, recipes: recipes, restaurantName: restaurantName };
+}
+
+function addRecipe(ss, recipeName) {
+  ensureSheets(ss);
+  if (!recipeName || recipeName.trim() === '') throw new Error('اسم الطبق مطلوب');
+  if (ss.getSheetByName(recipeName)) throw new Error('الطبق موجود مسبقاً');
+  var recipeSheet = ss.insertSheet(recipeName);
+  recipeSheet.getRange('A1:C1').setValues([['المادة ID','اسم المادة','الكمية']]);
+  var main = ss.getSheetByName(SHEET_MAIN);
+  var lastRow = main.getLastRow();
+  main.getRange(lastRow+1, 2).setValue(recipeName);
+  return { success: true };
+}
+
+function deleteRecipe(ss, recipeName) {
+  ensureSheets(ss);
+  var sheet = ss.getSheetByName(recipeName);
+  if (sheet) ss.deleteSheet(sheet);
+  var main = ss.getSheetByName(SHEET_MAIN);
+  var lastRow = main.getLastRow();
+  if (lastRow >= 3) {
+    var data = main.getRange(3,2,lastRow-2,1).getValues().flat();
+    for (var i = data.length-1; i >= 0; i--) {
+      var n = data[i].toString();
+      var match = n.match(/='([^']+)'/);
+      if (match) n = match[1];
+      if (n === recipeName) main.deleteRow(i+3);
+    }
+  }
+  return { success: true };
+}
+
+// ---------- مكونات الطبق ----------
+function getRecipeIngredients(ss, recipeName) {
+  var sheet = ss.getSheetByName(recipeName);
+  if (!sheet) throw new Error('الطبق غير موجود');
+  var lastRow = sheet.getLastRow();
+  var ingredients = [];
+  if (lastRow >= 2) {
+    var data = sheet.getRange(2, 1, lastRow - 1, 3).getValues();
+    for (var i = 0; i < data.length; i++) {
+      if (data[i][0] && data[i][2]) {
+        ingredients.push({ materialId: data[i][0].toString(), materialName: data[i][1] || '', quantity: parseFloat(data[i][2]) || 0 });
+      }
+    }
+  }
+  return { success: true, ingredients: ingredients };
+}
+
+function saveRecipeIngredients(ss, recipeName, ingredients) {
+  ensureSheets(ss);
+  var sheet = ss.getSheetByName(recipeName);
+  if (!sheet) throw new Error('الطبق غير موجود');
+  if (sheet.getLastRow() > 1) sheet.getRange(2,1,sheet.getLastRow()-1,3).clearContent();
+  if (ingredients && ingredients.length > 0) {
+    var output = ingredients.map(function(ing) { return [ing.materialId, ing.materialName, ing.quantity]; });
+    sheet.getRange(2,1,output.length,3).setValues(output);
+  }
+  updateSingleRecipeCost(ss, recipeName);
+  return { success: true };
+}
+
+function updateSingleRecipeCost(ss, recipeName) {
+  var materials = getAllMaterials(ss).materials;
+  var settings = getSettings(ss);
+  var main = ss.getSheetByName(SHEET_MAIN);
+  var ingRes = getRecipeIngredients(ss, recipeName);
+  if (!ingRes.success) return;
+  var ingredients = ingRes.ingredients;
+  var totalCost = 0;
+  ingredients.forEach(function(ing) {
+    var mat = materials.find(function(m) { return m.id == ing.materialId; });
+    if (mat) totalCost += ing.quantity * mat.price;
+  });
+  var mainData = main.getDataRange().getValues();
+  var rowIndex = -1;
+  for (var i = 2; i < mainData.length; i++) {
+    if (mainData[i][1] == recipeName) { rowIndex = i; break; }
+  }
+  if (rowIndex === -1) return;
+  var costWithWaste = totalCost + (totalCost * settings.wastePercent / 100);
+  var foodCostPercentValue = settings.foodCostPercent || 30;
+  var suggestedPrice = (foodCostPercentValue > 0) ? (costWithWaste / (foodCostPercentValue / 100)) : costWithWaste;
+  main.getRange(rowIndex+1, 3).setValue(totalCost);
+  main.getRange(rowIndex+1, 5).setValue(suggestedPrice);
+}
+
+function recalculateAllRecipes(ss) {
+  var main = ss.getSheetByName(SHEET_MAIN);
+  var data = main.getDataRange().getValues();
+  if (data.length < 3) return;
+  var materials = getAllMaterials(ss).materials;
+  var settings = getSettings(ss);
+  for (var i = 2; i < data.length; i++) {
+    var recipeName = data[i][1];
+    if (!recipeName) continue;
+    var ingRes = getRecipeIngredients(ss, recipeName);
+    if (!ingRes.success) continue;
+    var ingredients = ingRes.ingredients;
+    var totalCost = 0;
+    ingredients.forEach(function(ing) {
+      var mat = materials.find(function(m) { return m.id == ing.materialId; });
+      if (mat) totalCost += ing.quantity * mat.price;
+    });
+    var costWithWaste = totalCost + (totalCost * settings.wastePercent / 100);
+    var foodCostPercentValue = settings.foodCostPercent || 30;
+    var suggestedPrice = (foodCostPercentValue > 0) ? (costWithWaste / (foodCostPercentValue / 100)) : costWithWaste;
+    main.getRange(i+1, 3).setValue(totalCost);
+    main.getRange(i+1, 5).setValue(suggestedPrice);
+  }
+}
+
+// ---------- الإعدادات ----------
+function getSettings(ss) {
+  ensureSheets(ss);
+  var sheet = ss.getSheetByName(SHEET_SETTINGS);
+  var data = sheet.getDataRange().getValues();
+  return { wastePercent: parseFloat(data[0][1]) || 0, foodCostPercent: parseFloat(data[1][1]) || 30 };
+}
+
+function updateSettings(ss, wastePercent, foodCostPercent) {
+  ensureSheets(ss);
+  var sheet = ss.getSheetByName(SHEET_SETTINGS);
+  sheet.getRange('B1').setValue(wastePercent);
+  sheet.getRange('B2').setValue(foodCostPercent);
+  recalculateAllRecipes(ss);
+  return { success: true };
+}
+
+function updateRestaurantName(ss, name) {
+  ensureSheets(ss);
+  ss.getSheetByName(SHEET_MAIN).getRange('C1').setValue(name);
+  return { success: true };
+}
+
+function renameRecipe(ss, params) {
+  var oldName = params.oldName;
+  var newName = params.newName;
+  if (!oldName || !newName) throw new Error('يجب توفير الاسم القديم والجديد');
+  var sheet = ss.getSheetByName(oldName);
+  if (!sheet) throw new Error('الطبق غير موجود');
+  if (ss.getSheetByName(newName)) throw new Error('يوجد طبق بنفس الاسم الجديد');
+  sheet.setName(newName);
+  var mainSheet = ss.getSheetByName(SHEET_MAIN);
+  var lastRow = mainSheet.getLastRow();
+  for (var i = 3; i <= lastRow; i++) {
+    var cell = mainSheet.getRange(i, 2);
+    var formula = cell.getFormula();
+    var value = cell.getValue();
+    var currentName = '';
+    if (formula) {
+      var match = formula.match(/='([^']+)'!B2/);
+      if (match) currentName = match[1];
+    } else if (value) {
+      currentName = value.toString().trim();
+    }
+    if (currentName === oldName) {
+      if (formula) { cell.setFormula("='" + newName + "'!B2"); }
+      else { cell.setValue(newName); }
+      break;
+    }
+  }
+  return { success: true };
+}
+
+// ============================================================
+// ===== دوال التقييمات =====
+// ============================================================
+
+function submitReview(params) {
+  try {
+    var restaurantEmail = params.restaurantEmail;
+    if (!restaurantEmail) {
+      return { status: 'error', message: 'البريد الإلكتروني للمطعم مطلوب' };
+    }
+
+    var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    var sheetName = 'Reviews_' + restaurantEmail.replace(/[^a-zA-Z0-9]/g, '_');
+    var sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      sheet = ss.insertSheet(sheetName);
+      sheet.appendRow([
+        'التاريخ', 'الاسم', 'رقم_الهاتف', 'تاريخ_الزيارة', 'عدد_الأشخاص',
+        'نوع_الزيارة', 'تقييم_الطعام', 'تقييم_الخدمة', 'تقييم_النظافة',
+        'تقييم_الاسعار', 'التقييم_العام', 'تصنيف_العميل', 'الأطباق_المفضلة',
+        'توصية', 'الملاحظات_والاقتراحات', 'restaurantEmail', 'restaurantName'
+      ]);
+    }
+
+    sheet.appendRow([
+      new Date(),
+      params.الاسم || 'غير مسجل',
+      params.رقم_الهاتف || '-',
+      params.تاريخ_الزيارة || '',
+      params.عدد_الأشخاص || '',
+      params.نوع_الزيارة || '',
+      params.تقييم_الطعام || '',
+      params.تقييم_الخدمة || '',
+      params.تقييم_النظافة || '',
+      params.تقييم_الاسعار || '',
+      params.التقييم_العام || '',
+      params.تصنيف_العميل || '',
+      params.الأطباق_المفضلة || '',
+      params.توصية || '',
+      params.الملاحظات_والاقتراحات || '',
+      restaurantEmail,
+      params.restaurantName || ''
+    ]);
+
+    return { status: 'success', message: 'تم حفظ التقييم' };
+  } catch (err) {
+    return { status: 'error', message: err.message };
+  }
+}
+
+function getReviews(restaurantEmail) {
+  try {
+    var ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    var sheetName = 'Reviews_' + restaurantEmail.replace(/[^a-zA-Z0-9]/g, '_');
+    var sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      return { success: true, reviews: [] };
+    }
+
+    var data = sheet.getDataRange().getValues();
+    if (data.length < 2) {
+      return { success: true, reviews: [] };
+    }
+
+    var headers = data[0];
+    var reviews = [];
+    for (var i = 1; i < data.length; i++) {
+      var row = data[i];
+      var obj = {};
+      headers.forEach(function(header, idx) {
+        var key = header;
+        if (key === 'التاريخ') key = 'date';
+        else if (key === 'الاسم') key = 'name';
+        else if (key === 'رقم_الهاتف') key = 'phone';
+        else if (key === 'تاريخ_الزيارة') key = 'visitDate';
+        else if (key === 'عدد_الأشخاص') key = 'peopleCount';
+        else if (key === 'نوع_الزيارة') key = 'visitType';
+        else if (key === 'تقييم_الطعام') key = 'food';
+        else if (key === 'تقييم_الخدمة') key = 'service';
+        else if (key === 'تقييم_النظافة') key = 'cleanliness';
+        else if (key === 'تقييم_الاسعار') key = 'price';
+        else if (key === 'التقييم_العام') key = 'overall';
+        else if (key === 'تصنيف_العميل') key = 'status';
+        else if (key === 'الأطباق_المفضلة') key = 'favoriteDishes';
+        else if (key === 'توصية') key = 'recommendation';
+        else if (key === 'الملاحظات_والاقتراحات') key = 'notes';
+        else if (key === 'restaurantEmail') key = 'restaurantEmail';
+        else if (key === 'restaurantName') key = 'restaurantName';
+        obj[key] = row[idx];
+      });
+      reviews.push(obj);
+    }
+    return { success: true, reviews: reviews };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}

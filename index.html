@@ -219,7 +219,7 @@
                         <button class="btn btn-primary" style="margin-top:15px;" onclick="saveMenuInputs()"><i class="fas fa-save"></i> حفظ البيانات</button>
                     </div>
                     <div class="table-container" id="menuEngineeringTableContainer" style="display:none;">
-                        <table><thead><tr><th>#</th><th>الطبق</th><th>التكلفة</th><th>سعر البيع</th><th>المبيعات</th><th>هامش المساهمة</th><th>نسبة المبيعات</th><th>التصنيف (BCG)</th><th>التوصية</th></tr></thead>
+                        <table><thead><tr><th>#</th><th>الطبق</th><th>التكلفة</th><th>سعر البيع</th><th>المبيعات</th><th>هامش الربح</th><th>نسبة المبيعات</th><th>التصنيف (BCG)</th><th>التوصية</th></tr></thead>
                             <tbody id="menuEngineeringBody"></tbody>
                         </table>
                     </div>
@@ -521,6 +521,29 @@
                         </div>
                     </div>
                 </div>
+                <div class="pro-grid-2" style="margin-bottom:16px;">
+                    <div>
+                        <label class="pro-label">العملة</label>
+                        <div class="currency-search-wrap" style="position:relative;">
+                            <div class="pro-input-wrap" style="margin-bottom:0;">
+                                <input type="text" id="currencySearchInput" placeholder="ابحث عن عملة... (دولار، ريال، Euro)" autocomplete="off" style="padding-left:40px;">
+                                <i class="fas fa-search pro-icon"></i>
+                            </div>
+                            <input type="hidden" id="settingsCurrency" value="ر.س">
+                            <div id="currencyDropdown" class="currency-dropdown" style="display:none;"></div>
+                            <div id="currencySelectedBadge" style="margin-top:8px; font-size:0.85rem; color:var(--accent-soft);">
+                                <i class="fas fa-coins"></i> المحدد: <strong id="currencySelectedText">ريال سعودي (ر.س)</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="pro-label">حد هامش المساهمة الأدنى %</label>
+                        <div class="pro-input-wrap">
+                            <input type="number" id="minMarginPercent" step="0.1" value="30" title="تنبيه إذا كان هامش المساهمة أقل من هذا الحد">
+                            <i class="fas fa-percentage pro-icon"></i>
+                        </div>
+                    </div>
+                </div>
                 <div style="font-size: 0.82rem; color: var(--text-muted); background: rgba(180, 133, 84, 0.06); padding: 14px; border-radius: 14px; border: 1px solid var(--border); margin-bottom:16px;">
                     <h4 style="color: var(--accent-soft); margin-bottom: 8px; font-size:0.9rem;"><i class="fas fa-chart-line"></i> المعايير العالمية الموصى بها</h4>
                     <ul style="list-style: none; padding: 0; margin:0; line-height:1.8;">
@@ -587,7 +610,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    <!-- ملفات النظام (بالترتيب الصحيح) -->
+    <!-- ملفات النظام -->
     <script src="js/config.js"></script>
     <script src="js/api.js"></script>
     <script src="js/ui.js"></script>
@@ -603,3 +626,4 @@
     <script src="js/app.js"></script>
 
 </body>
+</html>
