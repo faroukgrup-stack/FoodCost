@@ -2,7 +2,7 @@
 // config.js - إعدادات نظام FoodCost
 // ============================================================
 
-const COST_API_URL = "https://script.google.com/macros/s/AKfycbx8jP7g-iMDJvXS7NV1YCATWMZ--krWLv8lVW0F2LgsoI1zTaH5Xu9XMXUrizW06huK/exec";
+const COST_API_URL = "https://script.google.com/macros/s/AKfycbw1ZjPZTli_u2n0jujc5km79XkvXOpCzB6sMwslJW6PUui45zwIafscd3uxwzy3G-El/exec";
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 ساعة
 const PAYMENT_LINK = "https://www.entervia.co/checkout/78";
 const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 دقائق (تسريع التنقل بين الصفحات)
