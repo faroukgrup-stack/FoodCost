@@ -1329,3 +1329,50 @@
 @media (max-width: 768px) {
     #dashboardGrid { grid-template-columns: 1fr !important; }
 }
+
+
+/* ===== بحث العملات ===== */
+.currency-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    left: 0;
+    max-height: 240px;
+    overflow-y: auto;
+    background: #121824;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    z-index: 100;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+    padding: 6px;
+}
+.currency-dropdown-item {
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    transition: var(--transition);
+}
+.currency-dropdown-item:hover,
+.currency-dropdown-item.active {
+    background: rgba(180, 133, 84, 0.2);
+    color: var(--accent-soft);
+}
+.currency-dropdown-item .sym {
+    font-weight: 800;
+    color: var(--accent-soft);
+    min-width: 48px;
+    text-align: left;
+    direction: ltr;
+}
+.currency-dropdown-empty {
+    padding: 14px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
