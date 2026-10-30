@@ -41,14 +41,58 @@ function calculateBreakeven() {
         const beTotalUnits = beRevenue / weightedPrice;
         products.forEach(p => { p.beUnits = beTotalUnits * p.mix; p.beRevenue = p.beUnits * p.price; });
         document.getElementById('breakevenResults').style.display = 'block';
-        let tableHtml = '<table><thead><tr><th>الطبق</th><th>المزيج %</th><th>وحدات التعادل</th><th>إيرادات التعادل</th></tr></thead><tbody>';
-        products.forEach(p => tableHtml += `<tr><td>${p.name}</td><td>${(p.mix*100).toFixed(1)}%</td><td>${Math.ceil(p.beUnits)}</td><td>${p.beRevenue.toFixed(0)}</td></tr>`);
+        let tableHtml = '<table><thead><tr><th>الطبق</th><th>المزيج %</th><th>هامش/قطعة</th><th>وحدات التعادل</th><th>إيرادات التعادل</th></tr></thead><tbody>';
+        products.forEach(p => tableHtml += `<tr><td>${escapeHtml(p.name)}</td><td>${(p.mix*100).toFixed(1)}%</td><td>${p.cm.toFixed(2)}</td><td>${Math.ceil(p.beUnits)}</td><td>${p.beRevenue.toFixed(0)}</td></tr>`);
         tableHtml += '</tbody></table>';
         document.getElementById('breakevenTableContainer').innerHTML = tableHtml;
-        document.getElementById('breakevenSummary').innerHTML = `<div class="badge badge-warning" style="padding:10px;">إيرادات التعادل: ${beRevenue.toFixed(0)} | وحدات التعادل: ${Math.ceil(beTotalUnits)}</div>`;
+
+        // توصيات رقمية
+        const bestCM = products.slice().sort((a, b) => b.cm - a.cm)[0];
+        const worstCM = products.slice().sort((a, b) => a.cm - b.cm)[0];
+        const currentRevenue = products.reduce((s, p) => s + p.units * p.price, 0);
+        const gap = Math.max(0, beRevenue - currentRevenue);
+        let recHtml = `<div class="badge badge-warning" style="padding:10px; margin-bottom:10px; display:block;">إيرادات التعادل: ${beRevenue.toFixed(0)} ${appCurrency} | وحدات التعادل: ${Math.ceil(beTotalUnits)} | الإيراد الحالي: ${currentRevenue.toFixed(0)} ${appCurrency}</div>`;
+
+        if (gap > 0) {
+            // كم قطعة إضافية من أفضل طبق لسد الفجوة
+            const needUnits = bestCM && bestCM.cm > 0 ? Math.ceil(gap / bestCM.cm) : 0;
+            recHtml += `<div style="background:rgba(16,185,129,0.12); border:1px solid #10b981; color:#6ee7b7; border-radius:12px; padding:12px 14px; margin-bottom:8px; font-size:0.9rem;">
+                <strong>💡 لتغطية التكاليف الثابتة:</strong> زد مبيعات <strong>${escapeHtml(bestCM.name)}</strong>
+                (أعلى هامش: ${bestCM.cm.toFixed(0)} ${appCurrency}/قطعة) بمقدار <strong>${needUnits}</strong> قطعة إضافية
+                → ربح إضافي تقريبي ${ (needUnits * bestCM.cm).toFixed(0) } ${appCurrency}.
+            </div>`;
+        } else {
+            recHtml += `<div style="background:rgba(16,185,129,0.12); border:1px solid #10b981; color:#6ee7b7; border-radius:12px; padding:12px 14px; margin-bottom:8px; font-size:0.9rem;">
+                ✅ المبيعات الحالية تغطي نقطة التعادل بفائض ${(currentRevenue - beRevenue).toFixed(0)} ${appCurrency}.
+            </div>`;
+        }
+        if (worstCM && bestCM && worstCM.name !== bestCM.name && worstCM.cm > 0) {
+            const shift = Math.min(worstCM.units, Math.ceil(worstCM.units * 0.2));
+            const gain = shift * (bestCM.cm - worstCM.cm);
+            if (gain > 0) {
+                recHtml += `<div style="background:rgba(59,130,246,0.12); border:1px solid #3b82f6; color:#93c5fd; border-radius:12px; padding:12px 14px; margin-bottom:8px; font-size:0.9rem;">
+                    <strong>🔄 تحسين المزيج:</strong> تحويل ${shift} قطعة من «${escapeHtml(worstCM.name)}» إلى «${escapeHtml(bestCM.name)}»
+                    يزيد الربح بنحو <strong>${gain.toFixed(0)} ${appCurrency}</strong>.
+                </div>`;
+            }
+        }
+        if (excluded.length) {
+            recHtml += `<div style="background:rgba(239,68,68,0.12); border:1px solid #ef4444; color:#fca5a5; border-radius:12px; padding:12px 14px; font-size:0.9rem;">
+                <strong>🛑 أطباق مستبعدة من الحساب (خاسرة):</strong> ${excluded.map(p => p.name).join('، ')}
+            </div>`;
+        }
+
+        document.getElementById('breakevenSummary').innerHTML = recHtml;
         const ctx = document.getElementById('breakevenChart').getContext('2d');
         if (breakevenChartInstance) breakevenChartInstance.destroy();
-        breakevenChartInstance = new Chart(ctx, { type: 'bar', data: { labels: products.map(p => p.name), datasets: [{ label: 'وحدات التعادل', data: products.map(p => Math.ceil(p.beUnits)), backgroundColor: '#b48554' }] } });
+        breakevenChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: products.map(p => p.name),
+                datasets: [{ label: 'وحدات التعادل', data: products.map(p => Math.ceil(p.beUnits)), backgroundColor: '#b48554' }]
+            },
+            options: { responsive: true, plugins: { legend: { labels: { color: '#aab7d4' } } }, scales: { x: { ticks: { color: '#aab7d4' } }, y: { ticks: { color: '#aab7d4' } } } }
+        });
         window.lastBreakeven = { products, excluded, beRevenue, beTotalUnits, fixedCosts };
     }
 

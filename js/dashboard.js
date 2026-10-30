@@ -152,7 +152,59 @@ async function loadDashboard() {
             lossDiv.innerHTML = '<p style="color:var(--text-muted); text-align:center;">لا توجد أطباق خاسرة 👍</p>';
         }
 
-        // ===== تغيرات الأسعار =====
+        
+        // ===== رؤى إضافية =====
+        let insightsDiv = document.getElementById('dashboardInsights');
+        if (!insightsDiv) {
+            const grid = document.getElementById('dashboardGrid');
+            if (grid) {
+                insightsDiv = document.createElement('div');
+                insightsDiv.id = 'dashboardInsights';
+                insightsDiv.style.cssText = 'display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-bottom:24px;';
+                grid.parentNode.insertBefore(insightsDiv, grid);
+            }
+        }
+        if (insightsDiv) {
+            if (typeof loadMenuDataFromStorage === 'function') loadMenuDataFromStorage();
+            const dishes = allRecipes.map(r => {
+                const cost = r.costPrice || 0;
+                const price = getRealPrice(r);
+                const margin = price - cost;
+                const marginPct = price > 0 ? (margin / price * 100) : 0;
+                const units = (menuData[r.name] && menuData[r.name].units) || 0;
+                return { name: r.name, cost, price, margin, marginPct, units };
+            }).filter(d => d.price > 0);
+
+            const topMargin = dishes.slice().sort((a,b) => b.margin - a.margin)[0];
+            const topSales = dishes.filter(d => d.units > 0).slice().sort((a,b) => b.units - a.units)[0];
+            const needReview = dishes.filter(d => d.marginPct > 0 && d.marginPct < (minMarginPercent || 30));
+            const lossCount = dishes.filter(d => d.cost > 0 && d.price > 0 && d.cost > d.price).length;
+
+            insightsDiv.innerHTML = `
+                <div class="dash-card" style="text-align:right; padding:16px;">
+                    <div class="label"><i class="fas fa-gem"></i> أعلى هامش مساهمة</div>
+                    <div class="value" style="font-size:1.1rem;">${topMargin ? escapeHtml(topMargin.name) : '—'}</div>
+                    <div class="sub">${topMargin ? topMargin.margin.toFixed(1) + ' ' + appCurrency + ' (' + topMargin.marginPct.toFixed(0) + '%)' : ''}</div>
+                </div>
+                <div class="dash-card" style="text-align:right; padding:16px;">
+                    <div class="label"><i class="fas fa-fire"></i> الأعلى مبيعاً</div>
+                    <div class="value" style="font-size:1.1rem;">${topSales ? escapeHtml(topSales.name) : '—'}</div>
+                    <div class="sub">${topSales ? topSales.units + ' قطعة' : 'أدخل المبيعات في هندسة المنيو'}</div>
+                </div>
+                <div class="dash-card" style="text-align:right; padding:16px;">
+                    <div class="label"><i class="fas fa-tags"></i> تحتاج مراجعة تسعير</div>
+                    <div class="value" style="font-size:1.1rem; color:${needReview.length ? '#f59e0b' : '#10b981'}">${needReview.length}</div>
+                    <div class="sub">${needReview.length ? needReview.slice(0,3).map(d => d.name).join('، ') : 'ضمن الحد ' + (minMarginPercent||30) + '%'}</div>
+                </div>
+                <div class="dash-card" style="text-align:right; padding:16px;">
+                    <div class="label"><i class="fas fa-exclamation-triangle"></i> أطباق خاسرة</div>
+                    <div class="value" style="font-size:1.1rem; color:${lossCount ? '#ef4444' : '#10b981'}">${lossCount}</div>
+                    <div class="sub">حسب سعر البيع الحقيقي</div>
+                </div>
+            `;
+        }
+
+// ===== تغيرات الأسعار =====
         const priceDiv = document.getElementById('dashboardPriceChanges');
         if (res.success && res.recentPriceChanges && res.recentPriceChanges.length) {
             priceDiv.innerHTML = `<table style="width:100%; font-size:0.85rem;"><thead><tr><th>المادة</th><th>التغير</th><th>التاريخ</th></tr></thead>

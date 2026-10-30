@@ -6,7 +6,13 @@ let currentUserEmail = "";
 let allMaterials = [], allRecipes = [], currentTab = 'dashboard',
     currentRecipeIngredients = [], currentEditingRecipe = null, pendingDelete = null;
 let globalWaste = 5, foodCostPercent = 30, menuData = {},
+    appCurrency = 'ر.س', minMarginPercent = 30,
     menuChartInstance = null, breakevenChartInstance = null, reviewsChartInstance = null;
+
+function formatMoney(amount) {
+    const n = parseFloat(amount) || 0;
+    return n.toFixed(2) + ' ' + (appCurrency || '');
+}
 let selectedMaterialId = null, selectedMaterialUnit = '';
 let dataLoaded = false, dataCacheTimestamp = 0;
 let allReviews = [], filteredReviews = [];
@@ -78,6 +84,8 @@ async function loadAllData(forceRefresh = false) {
         allRecipes = data.recipes || [];
         globalWaste = data.wastePercent || 0;
         foodCostPercent = data.foodCostPercent || 30;
+        if (data.currency) appCurrency = data.currency;
+        if (data.minMarginPercent != null) minMarginPercent = data.minMarginPercent;
         const nameEl = document.getElementById('restaurantNameText');
         if (nameEl) nameEl.textContent = data.restaurantName || 'المطعم';
         dataLoaded = true;
