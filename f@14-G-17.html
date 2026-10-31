@@ -663,7 +663,7 @@
         AOS.init({ duration: 700, once: true, offset: 50 });
 
         // ===== رابط API الرئيسي =====
-        const API_URL = 'https://script.google.com/macros/s/AKfycbw1ZjPZTli_u2n0jujc5km79XkvXOpCzB6sMwslJW6PUui45zwIafscd3uxwzy3G-El/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwRMTtEKS9xma_EgT7OWKD-chXdXdfNU0L_-7IUEIfBEl-rGlil2_4T61vjsRgk02ba/exec';
 
         // ===== النطاقات المسموحة للتسجيل =====
         const ALLOWED_DOMAINS = [
@@ -872,23 +872,27 @@
                 // الخطوة 1: التحقق من صحة البريد وكلمة المرور عبر login
                 const loginUrl = API_URL + '?fn=login&username=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password);
                 const loginResp = await fetch(loginUrl);
-                const loginData = await loginResp.json();
+                // ✅ الجديد — اسمح بالتجديد للاشتراكات المنتهية
+const loginData = await loginResp.json();
 
-                if (loginData.status !== 'success') {
-                    // فشل التحقق
-                    msgBox.style.display = 'block';
-                    msgBox.className = 'msg-box error';
-                    if (loginData.status === 'expired') {
-                        msgBox.innerHTML = '<i class="fas fa-exclamation-triangle"></i> اشتراكك منتهٍ. يمكنك التجديد من خلال الضغط على زر التجديد مرة أخرى.';
-                    } else if (loginData.status === 'frozen') {
-                        msgBox.innerHTML = '<i class="fas fa-ban"></i> حسابك مجمّد. راجع الإدارة.';
-                    } else {
-                        msgBox.innerHTML = '<i class="fas fa-times-circle"></i> البريد الإلكتروني أو كلمة المرور غير صحيحة.';
-                    }
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-sync-alt"></i> تجديد الاشتراك';
-                    return;
-                }
+// ارفض فقط: بيانات خاطئة أو حساب مجمّد
+if (loginData.status === 'invalid' || loginData.status === 'error') {
+    msgBox.style.display = 'block';
+    msgBox.className = 'msg-box error';
+    msgBox.innerHTML = '<i class="fas fa-times-circle"></i> البريد الإلكتروني أو كلمة المرور غير صحيحة.';
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-sync-alt"></i> تجديد الاشتراك';
+    return;
+}
+if (loginData.status === 'frozen') {
+    msgBox.style.display = 'block';
+    msgBox.className = 'msg-box error';
+    msgBox.innerHTML = '<i class="fas fa-ban"></i> حسابك مجمّد. راجع الإدارة.';
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-sync-alt"></i> تجديد الاشتراك';
+    return;
+}
+// status === 'success' أو 'expired' → اسمح بالتجديد
 
                 // الخطوة 2: التحقق ناجح، نقوم بتجديد الاشتراك (إضافة سنة إلى تاريخ اليوم)
                 // ملاحظة: هذا الحل سيضيف سنة من تاريخ اليوم، وليس من تاريخ الانتهاء الحالي.
