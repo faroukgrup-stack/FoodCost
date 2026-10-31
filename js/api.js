@@ -1,5 +1,6 @@
 // ============================================================
 // api.js - الاتصال بالسيرفر + الأدوات المشتركة
+// النسخة المتوافقة مع Google Script v2.3 (توكن + authError)
 // ============================================================
 
 let currentUserEmail = "";
@@ -40,20 +41,45 @@ function closeModals() {
 }
 function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
+// ============================================================
+// callServer — يرسل التوكن + يتعامل مع authError
+// ============================================================
 async function callServer(fn, params = {}, showLoad = true) {
     if (showLoad) showLoading();
     try {
         const url = new URL(COST_API_URL);
         url.searchParams.set('fn', fn);
         url.searchParams.set('restaurantEmail', currentUserEmail);
+
+        // ✅ إرسال التوكن مع كل طلب
+        const token = localStorage.getItem('foodUserToken');
+        if (token) url.searchParams.set('token', token);
+
         if (Object.keys(params).length) url.searchParams.set('params', JSON.stringify(params));
+
         const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const result = await res.json();
-        const mutations = ['addRecipe', 'addMaterial', 'updateMaterial', 'deleteRecipe',
+
+        // ✅ التعامل مع انتهاء الجلسة أو التوكن غير الصالح
+        if (result && result.authError) {
+            if (typeof hideLoading === 'function') hideLoading();
+            showToast('انتهت الجلسة، يرجى تسجيل الدخول مجدداً', true);
+            setTimeout(function() {
+                if (typeof logout === 'function') logout();
+            }, 1500);
+            return { success: false, error: result.error || 'انتهت الجلسة' };
+        }
+
+        // تسجيل تغييرات البيانات لتذكير النسخ الاحتياطي
+        const mutations = [
+            'addRecipe', 'addMaterial', 'updateMaterial', 'deleteRecipe',
             'deleteMaterial', 'saveRecipeIngredients', 'renameRecipe',
-            'updateSettings', 'updateRestaurantName'];
+            'updateSettings', 'updateRestaurantName', 'updateRecipeSellingPrice',
+            'addSale', 'deleteSale'
+        ];
         if (result && result.success && mutations.includes(fn)) markDataChanged();
+
         return result;
     } catch (e) {
         return { success: false, error: e.message };
@@ -94,7 +120,10 @@ async function loadAllData(forceRefresh = false) {
         // لا نعيد رسم كل الجداول هنا — كل تبويب يرسم عند فتحه
         if (typeof generateQRCode === 'function') generateQRCode();
     } else {
-        showToast(data.error || 'فشل تحميل البيانات', true);
+        // لا نعرض toast مزدوجاً لو كان authError (callServer عرضه بالفعل)
+        if (!data.authError) {
+            showToast(data.error || 'فشل تحميل البيانات', true);
+        }
     }
 }
 
