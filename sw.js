@@ -1,6 +1,6 @@
 // sw.js - Service Worker لتطبيق FoodCost
 
-const CACHE_NAME = 'foodcost-v2';
+const CACHE_NAME = 'foodcost-v2.0';
 const STATIC_ASSETS = [
   '.',
   'index.html',
