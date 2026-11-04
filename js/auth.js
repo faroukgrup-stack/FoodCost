@@ -21,7 +21,7 @@ function logout() {
         if (token && typeof COST_API_URL === 'string') {
             fetch(COST_API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                headers: { 'Content-Type': 'text/plain;charset=UTF-8', 'Accept': 'application/json' },
                 body: JSON.stringify({ fn: 'logout', token: token })
             }).catch(function () {});
         }
@@ -72,9 +72,12 @@ async function attemptLogin() {
             // إرسال بيانات الدخول عبر POST (لا تظهر في عنوان URL)
             const resp = await fetch(COST_API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                headers: { 'Content-Type': 'text/plain;charset=UTF-8', 'Accept': 'application/json' },
                 body: JSON.stringify({ fn: 'login', username: user, password: pass })
             });
+            if (!resp.ok) {
+                throw new Error('HTTP ' + resp.status);
+            }
             const result = await resp.json();
             if (result.status === 'success') {
                 let token = result.token;
@@ -101,7 +104,8 @@ async function attemptLogin() {
                 errDiv.textContent = '❌ ' + (result.message || 'بيانات خاطئة');
             }
         } catch (e) {
-            errDiv.textContent = '❌ فشل الاتصال بالسيرفر';
+            console.error('attemptLogin failed:', e);
+            errDiv.textContent = '❌ تعذر إتمام تسجيل الدخول: ' + e.message;
         } finally {
             btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول';
             btn.disabled = false;
