@@ -58,27 +58,50 @@ function computeMenuAnalysisForReport() {
     }
 
 function computeBreakevenForReport() {
-        if (window.lastBreakeven) return window.lastBreakeven;
+        // استخدم النتيجة المحسوبة حديثًا إن وُجدت (من الدالة المصحّحة)
+        if (window.lastBreakeven && window.lastBreakeven.products) return window.lastBreakeven;
+
         const fixedCosts = parseFloat(document.getElementById('beFixedCosts')?.value) || 0;
         if (fixedCosts <= 0) return null;
-        const products = [];
+
+        const allProducts = [];
         allRecipes.forEach((r, i) => {
             const units = parseInt(document.getElementById(`be_units_${i}`)?.value) || 0;
             if (units > 0) {
                 const price = menuData[r.name]?.price || r.suggestedPrice || 0;
                 const varCost = r.costPrice || 0;
-                if (price > varCost) products.push({ name: r.name, price, varCost, units });
+                allProducts.push({ name: r.name, price, varCost, units, cm: price - varCost });
             }
         });
+        if (!allProducts.length) return null;
+
+        // نفضّل الأطباق ذات الهامش الموجب للحساب الأساسي
+        const products = allProducts.filter(p => p.cm > 0);
         if (!products.length) return null;
+
         const totalUnits = products.reduce((s, p) => s + p.units, 0);
-        products.forEach(p => { p.mix = p.units / totalUnits; p.cm = p.price - p.varCost; p.cmRatio = p.cm / p.price; });
-        const weightedCMRatio = products.reduce((s, p) => s + p.mix * p.cmRatio, 0);
-        const beRevenue = fixedCosts / weightedCMRatio;
+        products.forEach(p => { p.mix = p.units / totalUnits; });
+
+        // متوسط هامش المساهمة النقدي للوحدة (مرجّح بالوحدات) — الصيغة الصحيحة
+        const weightedCM = products.reduce((s, p) => s + p.mix * p.cm, 0);
+        if (weightedCM <= 0) return null;
+
         const weightedPrice = products.reduce((s, p) => s + p.mix * p.price, 0);
-        const beTotalUnits = beRevenue / weightedPrice;
-        products.forEach(p => { p.beUnits = beTotalUnits * p.mix; p.beRevenue = p.beUnits * p.price; });
-        return { products, beRevenue, beTotalUnits, fixedCosts };
+        const beTotalUnits = fixedCosts / weightedCM;
+        const beRevenue = beTotalUnits * weightedPrice;
+
+        products.forEach(p => {
+            p.beUnits = beTotalUnits * p.mix;
+            p.beRevenue = p.beUnits * p.price;
+        });
+
+        return {
+            products,
+            excluded: allProducts.filter(p => p.cm <= 0),
+            beRevenue,
+            beTotalUnits,
+            fixedCosts
+        };
     }
 
 async function gatherFullReportData() {

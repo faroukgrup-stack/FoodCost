@@ -139,6 +139,10 @@ function initCurrencySearch() {
 
 function openPaymentModal() {
     const modal = document.getElementById('paymentModal');
+    const iframe = document.getElementById('paymentIframe');
+    if (iframe && (!iframe.src || iframe.src === '' || iframe.src === window.location.href)) {
+        iframe.src = (typeof PAYMENT_LINK !== 'undefined' ? PAYMENT_LINK : '');
+    }
     if (modal) modal.classList.add('open');
 }
 function closePaymentModal() {

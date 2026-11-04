@@ -15,20 +15,42 @@ function getRemainingSessionTime() {
     }
 
 function logout() {
-        localStorage.removeItem('foodUserToken');
-        localStorage.removeItem('foodUserName');
-        localStorage.removeItem('foodUserEmail');
-        localStorage.removeItem('foodDaysLeft');
-        localStorage.removeItem('foodLoginTimestamp');
-        const loginScreen = document.getElementById('loginScreen');
-        const appMain = document.getElementById('appMain');
-        if (loginScreen) loginScreen.style.display = 'flex';
-        if (appMain) appMain.style.display = 'none';
+    try {
+        // إبطال الجلسة على السيرفر (لا ننتظر النتيجة)
+        const token = localStorage.getItem('foodUserToken');
+        if (token && typeof COST_API_URL === 'string') {
+            fetch(COST_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ fn: 'logout', token: token })
+            }).catch(function () {});
+        }
+        const email = localStorage.getItem('foodUserEmail') || currentUserEmail;
+        if (email) {
+            localStorage.removeItem('menuEngineeringData_' + email);
+            localStorage.removeItem('foodCurrency_' + email);
+            localStorage.removeItem('foodMinMargin_' + email);
+        }
+    } catch (e) {}
+
+    localStorage.removeItem('foodUserToken');
+    localStorage.removeItem('foodUserName');
+    localStorage.removeItem('foodUserEmail');
+    localStorage.removeItem('foodDaysLeft');
+    localStorage.removeItem('foodLoginTimestamp');
+    const loginScreen = document.getElementById('loginScreen');
+    const appMain = document.getElementById('appMain');
+    if (loginScreen) loginScreen.style.display = 'flex';
+    if (appMain) appMain.style.display = 'none';
+    try {
         document.getElementById('usernameInput').value = '';
         document.getElementById('passwordInput').value = '';
         document.getElementById('errorMsg').textContent = '';
-        dataLoaded = false;
-    }
+    } catch (e2) {}
+    dataLoaded = false;
+}
+// clear user menu cache on logout
+
 
 function startSessionTimer() {
         const remaining = getRemainingSessionTime();
@@ -47,8 +69,12 @@ async function attemptLogin() {
         btn.disabled = true;
         errDiv.textContent = '';
         try {
-            const url = COST_API_URL + '?fn=login&username=' + encodeURIComponent(user) + '&password=' + encodeURIComponent(pass);
-            const resp = await fetch(url);
+            // إرسال بيانات الدخول عبر POST (لا تظهر في عنوان URL)
+            const resp = await fetch(COST_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ fn: 'login', username: user, password: pass })
+            });
             const result = await resp.json();
             if (result.status === 'success') {
                 let token = result.token;
@@ -68,7 +94,7 @@ async function attemptLogin() {
                 setTimeout(() => checkPendingBackup(), 2500);
                 switchTab('dashboard');
             } else if (result.status === 'expired') {
-                errDiv.innerHTML = '❌ انتهى اشتراكك. <a href="Food-Cost.html" target="_blank" style="color:#cfa776; text-decoration:underline;">جدد من هنا</a>';
+                errDiv.innerHTML = '❌ انتهى اشتراكك. <a href="f@14-G-17.html" target="_blank" style="color:#cfa776; text-decoration:underline;">جدد من هنا</a>';
             } else if (result.status === 'frozen') {
                 errDiv.textContent = '❌ ' + (result.message || 'تم تجميد الحساب');
             } else {
