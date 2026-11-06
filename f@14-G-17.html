@@ -803,9 +803,10 @@
                 const params = { fn: 'register', email, password, fullName: fullName || '' };
                 const resp = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    headers: { 'Content-Type': 'text/plain;charset=UTF-8', 'Accept': 'application/json' },
                     body: JSON.stringify(params)
                 });
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 const data = await resp.json();
 
                 msgBox.style.display = 'block';
@@ -823,12 +824,12 @@
                         <button class="renew-link" onclick="closeModals(); openRenewModal();">اضغط هنا لتجديد الاشتراك</button>`;
                 } else {
                     msgBox.className = 'msg-box error';
-                    msgBox.innerHTML = '<i class="fas fa-times-circle"></i> ' + (data.message || 'حدث خطأ غير معروف');
+                    msgBox.innerHTML = '<i class="fas fa-times-circle"></i> ' + (data.message || data.error || 'حدث خطأ غير معروف');
                 }
             } catch (err) {
                 msgBox.style.display = 'block';
                 msgBox.className = 'msg-box error';
-                msgBox.innerHTML = '<i class="fas fa-plug"></i> تعذر الاتصال بالسيرفر. حاول مجدداً.';
+                msgBox.textContent = 'تعذر إتمام الطلب: ' + err.message + '. تحقق من الاتصال ورابط نشر السيرفر.';
                 console.error(err);
             } finally {
                 btn.disabled = false;
@@ -880,9 +881,10 @@
                 };
                 const renewResp = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    headers: { 'Content-Type': 'text/plain;charset=UTF-8', 'Accept': 'application/json' },
                     body: JSON.stringify(params)
                 });
+                if (!renewResp.ok) throw new Error('HTTP ' + renewResp.status);
                 const renewData = await renewResp.json();
 
                 msgBox.style.display = 'block';
@@ -896,12 +898,12 @@
                     document.getElementById('renewForm').reset();
                 } else {
                     msgBox.className = 'msg-box error';
-                    msgBox.innerHTML = '<i class="fas fa-times-circle"></i> ' + (renewData.message || 'فشل التجديد. حاول مجدداً.');
+                    msgBox.innerHTML = '<i class="fas fa-times-circle"></i> ' + (renewData.message || renewData.error || 'فشل التجديد. حاول مجدداً.');
                 }
             } catch (err) {
                 msgBox.style.display = 'block';
                 msgBox.className = 'msg-box error';
-                msgBox.innerHTML = '<i class="fas fa-plug"></i> تعذر الاتصال بالسيرفر. حاول مجدداً.';
+                msgBox.textContent = 'تعذر إتمام الطلب: ' + err.message + '. تحقق من الاتصال ورابط نشر السيرفر.';
                 console.error(err);
             } finally {
                 btn.disabled = false;
