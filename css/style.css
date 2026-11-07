@@ -1373,6 +1373,8 @@ h1, h2, h3, h4 { font-family: var(--f-display); font-weight: 600; }
 #saveSettingsBtn,#dmSettingsSaveBtn,#dmItemSaveBtn{background:#bd2929!important;border:1px solid #ffaaaa!important;color:white!important;min-height:48px}
 .has-unsaved{outline:2px solid #ffb4a4;outline-offset:2px}
 #settingsModal,#dmItemModal{z-index:12000;padding:10px}
+/* نافذة تغيير كلمة المرور تُفتح من داخل الإعدادات فيجب أن تظهر فوقها */
+#changePasswordModal{z-index:12500}
 #settingsModal .modal-box,#dmItemModal .modal-box{max-height:92vh;max-height:92dvh}
 #loading,#exportLoadingOverlay{z-index:16000}
 .modal-footer-pro button{touch-action:manipulation}
