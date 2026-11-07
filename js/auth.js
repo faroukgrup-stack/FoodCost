@@ -135,7 +135,13 @@ async function logoutWithBackupCheck() {
         logout();
     }
 
-function openChangePasswordModal() { document.getElementById('changePasswordModal').classList.add('active'); }
+function openChangePasswordModal() {
+    const m = document.getElementById('changePasswordModal');
+    ['oldPassword','newPassword','confirmPassword'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    m.classList.add('active');
+    setTimeout(() => { const el = document.getElementById('oldPassword'); if (el) el.focus(); }, 50);
+}
+function closeChangePasswordModal() { document.getElementById('changePasswordModal').classList.remove('active'); }
 
 async function changePassword() {
         const oldPass = document.getElementById('oldPassword').value.trim();
@@ -149,6 +155,16 @@ async function changePassword() {
         try {
             const result = await callServer('updateUser', params, false);
             if (result.success) {
+                // السيرفر يلغي كل الجلسات بعد تغيير كلمة المرور (حماية) — نسجّل الدخول من جديد بصمت بالكلمة الجديدة
+                try {
+                    const resp = await fetch(COST_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+                        body: JSON.stringify({ fn: 'login', username: currentUserEmail, password: newPass }) });
+                    const lr = await resp.json();
+                    if (lr && lr.status === 'success' && lr.token) {
+                        localStorage.setItem('foodUserToken', lr.token);
+                        localStorage.setItem('foodLoginTimestamp', Date.now().toString());
+                    }
+                } catch (e) { /* إن فشل سيُطلب تسجيل الدخول لاحقاً بالكلمة الجديدة */ }
                 showToast('✅ تم تحديث كلمة المرور بنجاح');
                 document.getElementById('oldPassword').value = '';
                 document.getElementById('newPassword').value = '';
