@@ -376,7 +376,7 @@
     <div id="thankYouMessage"><i class="fas fa-check-circle"></i> شكراً جزيلاً! <br> تم استلام تقييمك بنجاح. نتمنى رؤيتك قريباً 🌟</div>
 </div>
 
-<script src="js/config.js?v=3.0"></script>
+<script src="js/config.js?v=3.1"></script>
     <script>
     // ---- كود الحماية ومنع الوصول لأدوات المطور ----
     document.addEventListener('keydown', function(e) {
@@ -412,6 +412,7 @@
         // ===== 1. قراءة معاملات URL =====
         const urlParams = new URLSearchParams(window.location.search);
         const restaurantEmail = urlParams.get('restaurant') || '';
+        const publicId = urlParams.get('r') || '';
         const restaurantName = urlParams.get('name') || 'مطعمنا';
 
         // عرض اسم المطعم في البطاقة
@@ -444,6 +445,7 @@
 
             // إضافة البريد الإلكتروني واسم المطعم
             if (restaurantEmail) data['restaurantEmail'] = restaurantEmail;
+            else if (publicId) data['r'] = publicId;
             if (restaurantName) data['restaurantName'] = restaurantName;
 
             // التأكد من رقم الهاتف
@@ -511,7 +513,7 @@
 
         form.addEventListener('submit', handleSubmit);
 
-        if (!restaurantEmail) {
+        if (!restaurantEmail && !publicId) {
             console.warn('⚠️ لم يتم توفير بريد إلكتروني للمطعم. سيتم تخزين التقييم في جدول افتراضي.');
         }
     })();

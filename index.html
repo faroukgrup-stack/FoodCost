@@ -9,7 +9,7 @@
     <meta name="theme-color" content="#b48554">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-        <link rel="stylesheet" href="css/style.css?v=3.0">
+        <link rel="stylesheet" href="css/style.css?v=3.1">
 
 <style id="menu-v3-admin">
 .dm-thumb{width:84px!important;height:84px!important;aspect-ratio:1;object-fit:cover;border-radius:14px}
@@ -327,7 +327,9 @@
                                 <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
                                     <button class="btn btn-sm btn-primary" onclick="copyMenuLink()"><i class="fas fa-copy"></i> نسخ الرابط</button>
                                     <button class="btn btn-sm btn-outline" onclick="printMenuQR()"><i class="fas fa-print"></i> طباعة</button>
+                                    <button class="btn btn-sm btn-outline" onclick="refreshSharePage(true)" title="تحديث معاينة الرابط باسم المطعم"><i class="fas fa-share-alt"></i> تحديث صفحة المشاركة</button>
                                 </div>
+                                <p id="dmShareStatus" style="font-size:0.72rem;color:var(--text-muted);margin-top:10px;line-height:1.6;"></p>
                             </div>
                         </div>
                     </div>
@@ -767,26 +769,26 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <!-- ملفات النظام -->
-    <script src="js/config.js?v=3.0"></script>
-    <script src="js/api.js?v=3.0"></script>
-    <script src="js/ui.js?v=3.0"></script>
-    <script src="js/auth.js?v=3.0"></script>
-    <script src="js/dashboard.js?v=3.0"></script>
-    <script src="js/recipes.js?v=3.0"></script>
-    <script src="js/materials.js?v=3.0"></script>
-    <script src="js/menu-engineering.js?v=3.0"></script>
-    <script src="js/breakeven.js?v=3.0"></script>
-    <script src="js/reviews.js?v=3.0"></script>
-    <script src="js/reports.js?v=3.0"></script>
-    <script src="js/backup.js?v=3.0"></script>
-    <script src="js/digital-menu.js?v=3.0"></script>
-    <script src="js/app.js?v=3.0"></script>
-<script src="js/repairs-r4.js?v=3.0"></script>
+    <script src="js/config.js?v=3.1"></script>
+    <script src="js/api.js?v=3.1"></script>
+    <script src="js/ui.js?v=3.1"></script>
+    <script src="js/auth.js?v=3.1"></script>
+    <script src="js/dashboard.js?v=3.1"></script>
+    <script src="js/recipes.js?v=3.1"></script>
+    <script src="js/materials.js?v=3.1"></script>
+    <script src="js/menu-engineering.js?v=3.1"></script>
+    <script src="js/breakeven.js?v=3.1"></script>
+    <script src="js/reviews.js?v=3.1"></script>
+    <script src="js/reports.js?v=3.1"></script>
+    <script src="js/backup.js?v=3.1"></script>
+    <script src="js/digital-menu.js?v=3.1"></script>
+    <script src="js/app.js?v=3.1"></script>
+<script src="js/repairs-r4.js?v=3.1"></script>
 
     <button type="button" id="pwaInstallBtn" class="hidden" style="position:fixed; bottom:20px; left:20px; z-index:999; background:var(--accent); color:#0a0e17; border:none; border-radius:14px; padding:12px 18px; font-family:var(--f-body);
  font-weight:700; cursor:pointer; box-shadow:0 8px 24px rgba(180,133,84,0.4);">
         <i class="fas fa-download"></i> تثبيت التطبيق
     </button>
-<script src="js/foodcost-r5.js?v=3.0"></script>
+<script src="js/foodcost-r5.js?v=3.1"></script>
 </body>
 </html>
