@@ -376,7 +376,8 @@
     <div id="thankYouMessage"><i class="fas fa-check-circle"></i> شكراً جزيلاً! <br> تم استلام تقييمك بنجاح. نتمنى رؤيتك قريباً 🌟</div>
 </div>
 
-<script>
+<script src="js/config.js?v=3.0"></script>
+    <script>
     // ---- كود الحماية ومنع الوصول لأدوات المطور ----
     document.addEventListener('keydown', function(e) {
       // منع زر F12
@@ -420,7 +421,7 @@
         }
 
         // ===== 2. عنوان السيرفر =====
-        const API_URL = 'https://script.google.com/macros/s/AKfycbz3iJX7JedDL8RLlvxtWvVVMRp396vvzPQvR5jLGqYXv5KMm2kuiZwsFvSMHbMRyXhI/exec';
+        const API_URL = COST_API_URL; // يُقرأ من js/config.js (Supabase)
         const form = document.getElementById('feedbackForm');
 
         // ===== 3. معالجة الإرسال (باستخدام URLSearchParams) =====

@@ -629,6 +629,7 @@
     </div>
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="js/config.js?v=3.0"></script>
     <script>
     // ---- كود الحماية ومنع الوصول لأدوات المطور ----
     document.addEventListener('keydown', function(e) {
@@ -663,7 +664,7 @@
         AOS.init({ duration: 700, once: true, offset: 50 });
 
         // ===== رابط API الرئيسي =====
-        const API_URL = 'https://script.google.com/macros/s/AKfycbz3iJX7JedDL8RLlvxtWvVVMRp396vvzPQvR5jLGqYXv5KMm2kuiZwsFvSMHbMRyXhI/exec';
+        const API_URL = COST_API_URL; // يُقرأ من js/config.js (Supabase)
 
         // ===== النطاقات المسموحة للتسجيل =====
         const ALLOWED_DOMAINS = [

@@ -9,7 +9,24 @@
     <meta name="theme-color" content="#b48554">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="css/style.css?v=3.0">
+
+<style id="menu-v3-admin">
+.dm-thumb{width:84px!important;height:84px!important;aspect-ratio:1;object-fit:cover;border-radius:14px}
+#dmCropCanvas{max-width:100%;width:320px;height:auto;aspect-ratio:1;touch-action:none}
+.dm-banner-thumb{width:210px!important;height:auto!important;aspect-ratio:16/9;position:relative}
+.dm-banner-thumb img{width:100%;height:100%;object-fit:cover}
+.dm-sort-group{border:1px solid #394254;border-radius:14px;margin:14px 0;padding:12px;min-height:80px}
+.dm-sort-group h4{margin:0 0 12px;color:var(--accent-soft)}
+.dm-grip{touch-action:none;cursor:grab;min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;user-select:none}
+.dm-cat-row{display:flex;align-items:center;gap:6px;padding:8px;border:1px solid #394254;border-radius:12px;margin:6px 0;flex-wrap:wrap}
+.dm-cat-name{flex:1}.dm-sort-ghost{position:fixed;pointer-events:none;z-index:99999;background:#223146;padding:14px;border:1px solid #cbb086;border-radius:12px}
+.dm-drop-target{outline:2px dashed #cbb086!important;outline-offset:3px}.dm-sort-source{opacity:.4}
+.dm-crop-dialog{width:min(94vw,760px);max-height:94dvh;overflow:auto;background:#151e2d;color:#fff;border:1px solid #b48554;border-radius:20px;padding:20px;font-family:inherit}
+.dm-crop-dialog::backdrop{background:#000b}.dm-crop-stage{width:100%;aspect-ratio:16/9;touch-action:none;background:#080e17;border-radius:12px}
+.dm-crop-tools{display:flex;gap:10px;margin-top:16px;align-items:center;flex-wrap:wrap}.dm-crop-tools button{padding:12px;border-radius:10px;cursor:pointer}.dm-paste-btn{margin:8px}
+[data-image-error]{position:relative}[data-image-error]::after{content:attr(data-image-error);position:absolute;inset:0;display:grid;place-items:center;font-size:12px;color:#b7aa9c}
+</style>
 </head>
 <body>
     <div class="glow-bg"><span></span><span></span><span></span></div>
@@ -128,6 +145,9 @@
                     <button type="button" class="nav-btn" data-tab="3" onclick="switchTab(3)">
                         <i class="fas fa-balance-scale"></i> نقطة التعادل
                     </button>
+                    <button type="button" class="nav-btn" data-tab="5" onclick="switchTab(5)">
+                        <i class="fas fa-qrcode"></i> المينيو الإلكتروني
+                    </button>
                     <button type="button" class="nav-btn" data-tab="4" onclick="switchTab(4)">
                         <i class="fas fa-star"></i> التقييمات
                     </button>
@@ -145,7 +165,7 @@
                             <i class="fas fa-envelope"></i> البريد
                         </a>
                     </div>
-                    <div class="version-badge"><i class="fas fa-code-branch"></i> الإصدار 2.1</div>
+                    <div class="version-badge"><i class="fas fa-code-branch"></i> الإصدار 2.2</div>
                     <div class="copyright-text">
                         © 2026 <strong>FAROUK GRUP</strong><br>
                         <span style="font-size:0.68rem;">جميع الحقوق محفوظة</span>
@@ -242,6 +262,74 @@
                         <div class="table-container" id="breakevenTableContainer"></div>
                         <div class="chart-container"><canvas id="breakevenChart"></canvas></div>
                         <div id="breakevenSummary" style="margin-top:20px;"></div>
+                    </div>
+                </div>
+
+
+                <!-- التبويب 5: المينيو الإلكتروني -->
+                <div id="tab5" style="display:none;">
+                    <div class="tab-actions">
+                        <button class="btn btn-primary" onclick="openAddMenuItemModal(false)"><i class="fas fa-plus-circle"></i> صنف جديد</button>
+                        <button class="btn btn-outline" onclick="syncDigitalMenuPrices()">سحب الأسعار الجديدة</button>
+<button class="btn btn-outline" onclick="importRecipesToMenu()"><i class="fas fa-link"></i> استيراد الأطباق</button>
+                        <button class="btn btn-outline" id="dmSettingsSaveBtn" onclick="saveDigitalMenuSettings()"><i class="fas fa-save"></i> حفظ الإعدادات</button>
+                    </div>
+
+                    <div class="dm-layout">
+                        <div class="dm-main">
+                            <div class="table-container" style="padding:18px; margin-bottom:16px;">
+                                <h4 style="color:var(--accent-soft); margin-bottom:12px;"><i class="fas fa-cog"></i> إعدادات عرض المينيو</h4>
+                                <div class="pro-grid-2">
+                                    <div>
+                                        <label class="pro-label">اسم المطعم الظاهر</label>
+                                        <div class="pro-input-wrap"><input type="text" id="dmDisplayName" placeholder="اسم المطعم"><i class="fas fa-store pro-icon"></i></div>
+                                    </div>
+                                    <div>
+                                        <label class="pro-label">العنوان الفرعي</label>
+                                        <div class="pro-input-wrap"><input type="text" id="dmSubtitle" placeholder="قائمة الطعام"><i class="fas fa-heading pro-icon"></i></div>
+                                    </div>
+                                    <div>
+                                        <label class="pro-label">رقم واتساب الطلبات</label>
+                                        <div class="pro-input-wrap"><input type="text" id="dmWhatsapp" placeholder="90555..." class="ltr-num"><i class="fab fa-whatsapp pro-icon"></i></div>
+                                    </div>
+                                    <div>
+                                        <label class="pro-label">العملة</label>
+                                        <div class="pro-input-wrap"><input type="text" id="dmCurrency" placeholder="ر.س"><i class="fas fa-coins pro-icon"></i></div>
+                                    </div>
+                                </div>
+                                <div style="margin-top:14px;">
+                                    <label class="pro-label">الأقسام</label>
+                                    <div id="dmCatChips" class="dm-chips"></div>
+                                    <div style="display:flex; gap:8px; margin-top:8px;">
+                                        <input type="text" id="dmNewCategory" placeholder="اسم القسم" style="flex:1;">
+                                        <button type="button" class="btn btn-primary btn-sm" onclick="addDigitalCategory()"><i class="fas fa-plus"></i> إضافة</button>
+                                    </div>
+                                </div>
+                                <div style="margin-top:16px;">
+                                    <label class="pro-label">شريط الصور أعلى المينيو (3 صور كحد أقصى)</label>
+                                    <div id="dmBannerList" class="dm-banner-admin"></div>
+                                    <button type="button" class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="document.getElementById('dmBannerFile').click()"><i class="fas fa-images"></i> إضافة صورة للشريط</button>
+                                    <button type="button" class="btn btn-outline btn-sm dm-paste-btn" onclick="pasteMenuImage('banner')">لصق صورة الشريط</button><p style="font-size:12px;margin:8px 0">قص عرضي 16:9 · تُحفظ الصور تلقائياً بعد اعتماد القص</p><input type="file" id="dmBannerFile" accept="image/*" style="display:none;" onchange="uploadBannerImage(this)">
+                                </div>
+                            </div>
+
+                            <div class="table-container" style="padding:18px;">
+                                <h4 style="color:var(--accent-soft); margin-bottom:12px;"><i class="fas fa-utensils"></i> أصناف المينيو</h4>
+                                <div id="dmItemsList"></div>
+                            </div>
+                        </div>
+
+                        <div class="dm-side">
+                            <div class="table-container" style="padding:18px; text-align:center;">
+                                <h4 style="color:var(--accent-soft); margin-bottom:12px;"><i class="fas fa-qrcode"></i> QR المينيو</h4>
+                                <img id="dmQrImg" src="" alt="QR" style="width:200px;height:200px;background:#fff;border-radius:12px;padding:8px;">
+                                <p id="dmMenuLink" style="font-size:0.75rem;color:var(--text-muted);word-break:break-all;margin:10px 0;"></p>
+                                <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+                                    <button class="btn btn-sm btn-primary" onclick="copyMenuLink()"><i class="fas fa-copy"></i> نسخ الرابط</button>
+                                    <button class="btn btn-sm btn-outline" onclick="printMenuQR()"><i class="fas fa-print"></i> طباعة</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -599,6 +687,75 @@
         </div>
     </div>
 
+
+    <!-- مودال صنف المينيو الإلكتروني -->
+    <div class="modal-overlay" id="dmItemModal">
+        <div class="modal-box wide">
+            <div class="modal-header-pro">
+                <div class="mh-left">
+                    <div class="mh-icon"><i class="fas fa-utensils"></i></div>
+                    <div>
+                        <h3 id="dmItemModalTitle">إضافة صنف</h3>
+                        <div class="mh-sub">صورة · أحجام · ربط بالوصفات</div>
+                    </div>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeModals()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body-pro">
+                <input type="hidden" id="dmItemId">
+                <div class="pro-grid-2" style="margin-bottom:12px;">
+                    <div>
+                        <label class="pro-label">اسم الصنف <span class="req">*</span></label>
+                        <div class="pro-input-wrap"><input type="text" id="dmItemName" placeholder="اسم الطبق"><i class="fas fa-pen pro-icon"></i></div>
+                    </div>
+                    <div>
+                        <label class="pro-label">القسم</label>
+                        <select id="dmItemCategory" style="width:100%;padding:12px;border-radius:14px;background:rgba(10,14,23,0.8);border:1px solid var(--border);color:var(--text);"></select>
+                    </div>
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label class="pro-label">الوصف</label>
+                    <textarea id="dmItemDesc" rows="2" style="width:100%;padding:12px;border-radius:14px;background:rgba(10,14,23,0.8);border:1px solid var(--border);color:var(--text);font-family:inherit;"></textarea>
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label class="pro-label">ربط بوصفة موجودة (اختياري)</label>
+                    <select id="dmItemRecipe" onchange="onRecipeSelectChange()" style="width:100%;padding:12px;border-radius:14px;background:rgba(10,14,23,0.8);border:1px solid var(--border);color:var(--text);"></select>
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label class="pro-label">الأحجام والأسعار</label>
+                    <div id="dmSizesContainer"></div>
+                    <button type="button" class="btn btn-sm btn-outline" style="margin-top:8px;" onclick="addSizeRow('','')"><i class="fas fa-plus"></i> إضافة حجم</button>
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label class="pro-label">إضافات اختيارية (تظهر داخل نافذة الطبق فقط)</label>
+                    <div id="dmExtrasContainer"></div>
+                    <button type="button" class="btn btn-sm btn-outline" style="margin-top:8px;" onclick="addExtraRow('','')"><i class="fas fa-plus"></i> إضافة (مثل شريحة جبن)</button>
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label class="pro-label">الصورة (سحب وإفلات أو اختيار + قص)</label>
+                    <div id="dmDropZone" class="dm-drop-zone">
+                        <div id="dmCropPreview"></div>
+                        <button type="button" class="btn btn-outline btn-sm dm-paste-btn" onclick="event.stopPropagation();pasteMenuImage('meal')">لصق صورة الوجبة</button><p>صورة مربعة 1:1 — يمكن اللصق بـ Ctrl+V أثناء فتح محرر الصنف</p><canvas id="dmCropCanvas" width="320" height="320" style="display:none;max-width:100%;border-radius:12px;cursor:move;"></canvas>
+                        <input type="file" id="dmImageFile" accept="image/*" style="display:none;">
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+                        <button type="button" class="btn btn-sm btn-outline" onclick="zoomCrop(0.15)"><i class="fas fa-search-plus"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="zoomCrop(-0.15)"><i class="fas fa-search-minus"></i></button>
+                    </div>
+                    <input type="hidden" id="dmItemImageUrl">
+                </div>
+                <div style="display:flex;gap:20px;flex-wrap:wrap;">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="dmItemVisible" checked> ظاهر للزبائن</label>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="dmItemFeatured"> مميز</label>
+                </div>
+            </div>
+            <div class="modal-footer-pro">
+                <button type="button" class="btn btn-success" id="dmItemSaveBtn" onclick="saveMenuItemFromModal()"><i class="fas fa-save"></i> حفظ</button>
+                <button type="button" class="btn btn-cancel" onclick="closeModals()"><i class="fas fa-times"></i> إلغاء</button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="confirmModal"><div class="modal-box"><h3 id="confirmTitle"></h3><p id="confirmMessage"></p><div class="modal-actions"><button onclick="closeModals()" class="btn btn-outline">إلغاء</button><button onclick="confirmDelete()" class="btn btn-danger">حذف</button></div></div></div>
     <div class="modal-overlay" id="restaurantModal"><div class="modal-box"><h3><i class="fas fa-store"></i> تعديل اسم المطعم</h3><input type="text" id="restaurantNameInput" /><div class="modal-actions"><button onclick="closeModals()" class="btn btn-outline">إلغاء</button><button onclick="updateRestaurantName()" class="btn btn-primary">حفظ</button></div></div></div>
 
@@ -610,23 +767,26 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <!-- ملفات النظام -->
-    <script src="js/config.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/dashboard.js"></script>
-    <script src="js/recipes.js"></script>
-    <script src="js/materials.js"></script>
-    <script src="js/menu-engineering.js"></script>
-    <script src="js/breakeven.js"></script>
-    <script src="js/reviews.js"></script>
-    <script src="js/reports.js"></script>
-    <script src="js/backup.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/config.js?v=3.0"></script>
+    <script src="js/api.js?v=3.0"></script>
+    <script src="js/ui.js?v=3.0"></script>
+    <script src="js/auth.js?v=3.0"></script>
+    <script src="js/dashboard.js?v=3.0"></script>
+    <script src="js/recipes.js?v=3.0"></script>
+    <script src="js/materials.js?v=3.0"></script>
+    <script src="js/menu-engineering.js?v=3.0"></script>
+    <script src="js/breakeven.js?v=3.0"></script>
+    <script src="js/reviews.js?v=3.0"></script>
+    <script src="js/reports.js?v=3.0"></script>
+    <script src="js/backup.js?v=3.0"></script>
+    <script src="js/digital-menu.js?v=3.0"></script>
+    <script src="js/app.js?v=3.0"></script>
+<script src="js/repairs-r4.js?v=3.0"></script>
 
     <button type="button" id="pwaInstallBtn" class="hidden" style="position:fixed; bottom:20px; left:20px; z-index:999; background:var(--accent); color:#0a0e17; border:none; border-radius:14px; padding:12px 18px; font-family:var(--f-body);
  font-weight:700; cursor:pointer; box-shadow:0 8px 24px rgba(180,133,84,0.4);">
         <i class="fas fa-download"></i> تثبيت التطبيق
     </button>
+<script src="js/foodcost-r5.js?v=3.0"></script>
 </body>
 </html>
