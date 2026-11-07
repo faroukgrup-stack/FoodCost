@@ -184,7 +184,11 @@ function generateQRCode() {
         return;
     }
 
-    const reviewUrl = `${baseUrl}review.html?restaurant=${encodeURIComponent(email)}&name=${encodeURIComponent(restaurantName)}`;
+    // رابط عام بمعرّف المطعم (بدون إظهار البريد الإلكتروني)
+    const sh = window._shareInfo;
+    const reviewUrl = (sh && sh.publicId)
+        ? `${baseUrl}review.html?r=${encodeURIComponent(sh.publicId)}&name=${encodeURIComponent(restaurantName)}`
+        : `${baseUrl}review.html?restaurant=${encodeURIComponent(email)}&name=${encodeURIComponent(restaurantName)}`;
     window._reviewLink = reviewUrl;
     const qrImg = document.getElementById('qrCodeImg');
     if (qrImg) {

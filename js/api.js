@@ -116,6 +116,7 @@ async function loadAllData(forceRefresh = false) {
         if (data.minMarginPercent != null) minMarginPercent = data.minMarginPercent;
         const nameEl = document.getElementById('restaurantNameText');
         if (nameEl) nameEl.textContent = data.restaurantName || 'المطعم';
+        if (data.share) window._shareInfo = data.share;
         dataLoaded = true;
         dataCacheTimestamp = now;
         loadMenuDataFromStorage();

@@ -72,8 +72,10 @@ async function loadDigitalMenu() {
         currency: appCurrency || 'ر.س',
         banners: []
       }, res.menuSettings || {});
+      if (res.share) window._shareInfo = res.share;
       renderDigitalMenuUI();
       generateMenuQR();
+      refreshSharePage(false);
     } else {
       showToast((res && res.error) || 'فشل تحميل المينيو', true);
     }
@@ -740,7 +742,14 @@ function generateMenuQR() {
     if (img) { img.removeAttribute('src'); img.alt = 'ارفع على سيرفر'; }
     return;
   }
-  const menuUrl = `${baseUrl}menu.html?restaurant=${encodeURIComponent(email)}`;
+  // رابط المشاركة: صفحة باسم المطعم (معاينة واتساب) أو رابط بالمعرّف العام — بدون البريد الإلكتروني
+  const sh = window._shareInfo;
+  let menuUrl;
+  if (sh && sh.publicId) {
+    menuUrl = (sh.autoPublish && sh.published) ? `${baseUrl}m/${sh.publicId}/` : `${baseUrl}menu.html?r=${encodeURIComponent(sh.publicId)}`;
+  } else {
+    menuUrl = `${baseUrl}menu.html?restaurant=${encodeURIComponent(email)}`;
+  }
   window._menuLink = menuUrl;
   const qrImg = document.getElementById('dmQrImg');
   if (qrImg) {
@@ -748,6 +757,34 @@ function generateMenuQR() {
   }
   const linkEl = document.getElementById('dmMenuLink');
   if (linkEl) linkEl.textContent = menuUrl;
+}
+
+// نشر/تحديث صفحة المشاركة باسم المطعم (تظهر في معاينة الرابط على واتساب وغيره)
+async function refreshSharePage(manual) {
+  try {
+    const res = await callServer('publishSharePage', { force: !!manual }, false);
+    if (res && res.share) window._shareInfo = res.share;
+    const st = document.getElementById('dmShareStatus');
+    if (res && res.success && res.published) {
+      if (st) st.textContent = 'صفحة المشاركة باسم المطعم منشورة — قد يستغرق ظهور التحديث دقيقة أو دقيقتين.';
+      if (manual) showToast('تم تحديث صفحة المشاركة');
+    } else if (res && res.html) {
+      if (st) st.textContent = res.reason === 'not-configured'
+        ? 'النشر التلقائي غير مفعّل. يمكنك تنزيل صفحة المشاركة ورفعها يدوياً إلى: ' + res.path
+        : 'تعذر النشر التلقائي: ' + (res.error || '') + ' — يمكنك التنزيل والرفع يدوياً إلى: ' + res.path;
+      window._sharePageHtml = res.html;
+      if (manual) downloadSharePage();
+    } else if (manual) showToast((res && res.error) || 'فشل', true);
+    generateMenuQR();
+  } catch (e) { if (manual) showToast('خطأ: ' + e.message, true); }
+}
+function downloadSharePage() {
+  const html = window._sharePageHtml;
+  if (!html) return refreshSharePage(true);
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'index.html'; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
 }
 
 function copyMenuLink() {
