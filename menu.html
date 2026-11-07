@@ -157,6 +157,38 @@
   </div>
 
 <script>
+
+function menuImageUrl(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return '';
+    if (u.hostname === 'drive.google.com' || u.hostname === 'lh3.googleusercontent.com') {
+      const id = u.searchParams.get('id') || (u.pathname.match(/\/d\/([a-zA-Z0-9_-]+)/) || [])[1];
+      if (id) return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(id) + '&sz=w1600';
+    }
+    return u.href;
+  } catch (_) { return ''; }
+}
+function menuImageFallback(img) {
+  if (!img.dataset.retried) {
+    img.dataset.retried = '1';
+    const u = new URL(img.src);
+    const id = u.searchParams.get('id');
+    if (id && u.hostname === 'drive.google.com') {
+      img.src = 'https://lh3.googleusercontent.com/d/' + encodeURIComponent(id) + '=w1600';
+      return;
+    }
+  }
+  img.style.display = 'none';
+  const note = document.createElement('span');
+  note.textContent = 'الصورة غير متاحة';
+  note.style.cssText = 'font-size:12px;padding:12px;display:block';
+  img.after(note);
+  img.onerror = null;
+}
+
 const COST_API_URL = "https://script.google.com/macros/s/AKfycbw8M72l5vC9nlcm9cyJICwOYR_zD3In_5MBgCk24NlHyHK3R_pL03ISUzUmSKXes9LZ/exec";
 const params = new URLSearchParams(location.search);
 const restaurantEmail = (params.get('restaurant') || '').trim().toLowerCase();
@@ -196,7 +228,7 @@ function renderBanners(list) {
   const track = document.getElementById('bannerTrack');
   if (!list.length) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
-  track.innerHTML = list.slice(0, 3).map(u => `<img src="${esc(u)}" alt="">`).join('');
+  track.innerHTML = list.slice(0, 3).map(u => `<img src="${esc(menuImageUrl(u))}" alt="" onerror="menuImageFallback(this)">`).join('');
   if (list.length > 1) startBanner(track);
 }
 
@@ -235,10 +267,10 @@ function renderGrid() {
   if (!items.length) { grid.innerHTML = '<div class="empty">لا توجد أطباق في هذا القسم</div>'; return; }
   grid.innerHTML = items.map(it => {
     const img = it.imageUrl
-      ? `style="background-image:url('${esc(it.imageUrl)}')"`
+      ? `style="background-image:none"`
       : '';
     return `<article class="card">
-      <div class="card-img" ${img} onclick="openItem('${js(it.id)}')">${it.imageUrl ? '' : '<div class="ph">🍽</div>'}</div>
+      <div class="card-img" ${img} onclick="openItem('${js(it.id)}')">${it.imageUrl ? `<img src="${esc(menuImageUrl(it.imageUrl))}" alt="" loading="lazy" onerror="menuImageFallback(this)" style="width:100%;height:100%;object-fit:cover">` : '<div class="ph">🍽</div>'}</div>
       <div class="card-body">
         <div class="card-name" onclick="openItem('${js(it.id)}')">${esc(it.name)}</div>
         <div class="card-foot">
@@ -267,7 +299,7 @@ function openItem(id) {
   draft = prev || { id, size: sizes[0].name, qty: 1, extras: {} };
   if (!sizes.some(s => s.name === draft.size)) draft.size = sizes[0].name;
   const img = it.imageUrl
-    ? `<div class="hero-img"><img class="sheet-img" src="${esc(it.imageUrl)}" alt=""><button class="x" onclick="closeSheet()">×</button></div>`
+    ? `<div class="hero-img"><img onerror="menuImageFallback(this)" class="sheet-img" src="${esc(menuImageUrl(it.imageUrl))}" alt=""><button class="x" onclick="closeSheet()">×</button></div>`
     : `<div class="hero-img" style="height:48px"><button class="x" onclick="closeSheet()">×</button></div>`;
   document.getElementById('itemSheetBox').innerHTML = `
     ${img}
