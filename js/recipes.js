@@ -264,7 +264,7 @@ async function promptRenameRecipe() {
     }
     if (cleanName === oldName) return;
 
-    // تحقق من الرموز غير المسموحة في أسماء أوراق Google Sheets
+    // تحقق من الرموز غير المسموحة في أسماء الأطباق (للتوافق مع النسخ الاحتياطية القديمة)
     if (/[\[\]\*\/\\\?\:]/.test(cleanName)) {
         showToast('الاسم يحتوي رموزاً غير مسموحة: [ ] * / \\ ? :', true);
         return;

@@ -35,7 +35,7 @@ function switchTab(n) {
     // إخفاء كل التبويبات
     const dash = document.getElementById('tabDashboard');
     if (dash) dash.style.display = 'none';
-    ['tab0', 'tab1', 'tab2', 'tab3', 'tab4'].forEach(id => {
+    ['tab0', 'tab1', 'tab2', 'tab3', 'tab4', 'tab5'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
@@ -68,6 +68,7 @@ function renderCurrentTab(n) {
     else if (n === 2) { loadMenuDataFromStorage(); renderMenuInputForm(); }
     else if (n === 3) renderBreakevenInputs();
     else if (n === 4) { loadReviews(); generateQRCode(); }
+    else if (n === 5) { if (typeof initDigitalMenuTab === 'function') initDigitalMenuTab(); }
 }
 
 function refreshAll() {

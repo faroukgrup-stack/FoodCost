@@ -1,6 +1,6 @@
 // ============================================================
 // api.js - الاتصال بالسيرفر + الأدوات المشتركة
-// النسخة المتوافقة مع Google Script v2.3 (توكن + authError)
+// النسخة 3.0 — السيرفر على Supabase Edge Function (توكن + authError) بنفس عقد الواجهة السابق
 // ============================================================
 
 let currentUserEmail = "";
@@ -57,7 +57,9 @@ async function callServer(fn, params = {}, showLoad = true) {
 
         if (Object.keys(params).length) url.searchParams.set('params', JSON.stringify(params));
 
-        const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
+        url.searchParams.set('_ts',String(Date.now()));
+        const write=/^(add|update|delete|save|rename|restore|upload)/.test(fn);
+        const res=write?await fetch(COST_API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(Object.assign({},params,{fn,restaurantEmail:currentUserEmail,token:token||''}))}):await fetch(url.toString(),{cache:'no-store',headers:{Accept:'application/json'}});
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const result = await res.json();
 
@@ -76,7 +78,7 @@ async function callServer(fn, params = {}, showLoad = true) {
             'addRecipe', 'addMaterial', 'updateMaterial', 'deleteRecipe',
             'deleteMaterial', 'saveRecipeIngredients', 'renameRecipe',
             'updateSettings', 'updateRestaurantName', 'updateRecipeSellingPrice',
-            'addSale', 'deleteSale'
+            'addSale', 'deleteSale', 'saveDigitalMenu', 'uploadMenuImage'
         ];
         if (result && result.success && mutations.includes(fn)) markDataChanged();
 

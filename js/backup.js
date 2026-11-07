@@ -188,12 +188,12 @@ async function backupData(silent = false) {
             }
         }
 
-        localStorage.setItem('foodLastBackupTime', Date.now().toString());
+        if(data.complete) localStorage.setItem('foodLastBackupTime', Date.now().toString());
         if (!silent) {
             hideLoading();
             const msg = data.complete
                 ? '✅ تم إنشاء النسخة الاحتياطية'
-                : '⚠️ تم الحفظ مع تحذيرات (بعض المكونات ناقصة)';
+                : '⚠️ تم الحفظ مع تحذيرات (بعض البيانات أو ملفات الصور ناقصة)';
             showToast(msg, !data.complete);
         }
         return true;
@@ -238,7 +238,7 @@ function restoreData() {
             if (data.complete === false || (data.warnings && data.warnings.length)) {
                 const warnMsg = '⚠️ هذه النسخة الاحتياطية غير مكتملة أو تحتوي تحذيرات.\n\n' +
                     (data.warnings || []).slice(0, 4).join('\n') +
-                    '\n\nقد تكون بعض المكونات ناقصة. هل تريد المتابعة؟';
+                    '\n\nقد تكون بعض البيانات أو ملفات الصور ناقصة. هل تريد المتابعة؟';
                 if (!confirm(warnMsg)) return;
             }
 
