@@ -183,6 +183,7 @@ header h1{font-size:clamp(1.5rem,4vw,2.2rem);color:#fff}header p{font-size:.95re
     <div class="sheet-box" id="cartSheetBox"></div>
   </div>
 
+<script src="js/config.js?v=2.2"></script>
 <script>
 
 function menuImageUrl(value) {
@@ -190,25 +191,44 @@ function menuImageUrl(value) {
     const u = new URL(String(value || '').trim());
     if (!['https:','http:'].includes(u.protocol)) return '';
     if (['drive.google.com','lh3.googleusercontent.com'].includes(u.hostname)) {
-      const id = u.searchParams.get('id') || (u.pathname.match(/\/d\/([\w-]+)/)||[])[1];
-      if (id) return 'https://drive.google.com/thumbnail?id='+encodeURIComponent(id)+'&sz=w1600';
+      const id = u.searchParams.get('id') || (u.pathname.match(/\/d\/([\w-]+)/)||[])[1] || (u.pathname.match(/\/file\/d\/([\w-]+)/)||[])[1];
+      if (id) {
+        return 'https://drive.google.com/uc?export=view&id=' + encodeURIComponent(id);
+      }
     }
     return u.href;
   } catch(e) { return ''; }
 }
 function menuImageFallback(img) {
   if (!img.dataset.retry) {
-    img.dataset.retry='1';
-    const u = new URL(img.src), id = u.searchParams.get('id');
-    if (u.hostname==='drive.google.com' && id) {
-      img.src='https://lh3.googleusercontent.com/d/'+encodeURIComponent(id)+'=w1600'; return;
-    }
+    img.dataset.retry = '1';
+    try {
+      const u = new URL(img.src);
+      let id = u.searchParams.get('id');
+      if (!id && u.hostname === 'drive.google.com') {
+        id = (u.pathname.match(/\/d\/([\w-]+)/)||[])[1] || (u.pathname.match(/\/file\/d\/([\w-]+)/)||[])[1];
+      }
+      if (id) {
+        img.src = 'https://lh3.googleusercontent.com/d/' + encodeURIComponent(id) + '=w1600';
+        return;
+      }
+    } catch (e) {}
+  } else if (img.dataset.retry === '1') {
+    img.dataset.retry = '2';
+    try {
+      const u = new URL(img.src);
+      let id = u.searchParams.get('id') || (u.pathname.match(/\/d\/([\w-]+)/)||[])[1];
+      if (id) {
+        img.src = 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(id) + '&sz=w1600';
+        return;
+      }
+    } catch (e) {}
   }
-  img.onerror=null; img.style.visibility='hidden';
-  img.parentElement.dataset.imageError='الصورة غير متاحة';
+  img.onerror = null;
+  img.style.visibility = 'hidden';
+  if (img.parentElement) img.parentElement.dataset.imageError = 'الصورة غير متاحة';
 }
 
-const COST_API_URL = "https://script.google.com/macros/s/AKfycbw8M72l5vC9nlcm9cyJICwOYR_zD3In_5MBgCk24NlHyHK3R_pL03ISUzUmSKXes9LZ/exec";
 const params = new URLSearchParams(location.search);
 const restaurantEmail = (params.get('restaurant') || '').trim().toLowerCase();
 let menuData = null;
