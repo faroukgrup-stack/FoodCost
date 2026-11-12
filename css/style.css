@@ -1384,3 +1384,156 @@ h1, h2, h3, h4 { font-family: var(--f-display); font-weight: 600; }
 .dm-crop-dialog .dm-crop-tools{position:sticky;bottom:-18px;padding:12px 0;background:#151e2d;justify-content:center;z-index:2}
 .dm-crop-dialog button{min-height:46px;min-width:110px;font:inherit}
 .dm-crop-dialog [data-save]{background:#bd2929;color:white}
+/* ===== تحسين المنيو الإلكتروني على الجوال ===== */
+@media (max-width: 768px) {
+
+  .dm-layout {
+    display: block !important;
+    gap: 0 !important;
+  }
+
+  .dm-side {
+    order: 0 !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* بطاقة الصنف */
+  .dm-item-card {
+    display: grid !important;
+    grid-template-columns: 64px 1fr !important;
+    grid-template-areas:
+      "thumb info"
+      "actions actions";
+    gap: 10px !important;
+    padding: 12px !important;
+    margin-bottom: 12px !important;
+    align-items: start !important;
+  }
+
+  .dm-item-order {
+    display: none !important;
+  }
+
+  .dm-thumb {
+    grid-area: thumb !important;
+    width: 64px !important;
+    height: 64px !important;
+  }
+
+  .dm-item-info {
+    grid-area: info !important;
+    min-width: 0 !important;
+  }
+
+  .dm-item-info strong {
+    font-size: 1rem !important;
+    line-height: 1.4 !important;
+    word-break: break-word !important;
+  }
+
+  .dm-meta {
+    gap: 4px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .dm-meta .badge {
+    font-size: 0.7rem !important;
+    padding: 3px 8px !important;
+  }
+
+  .dm-sizes {
+    font-size: 0.78rem !important;
+    line-height: 1.5 !important;
+    word-break: break-word !important;
+  }
+
+  /* أزرار التعديل والحذف أسفل البطاقة */
+  .dm-item-actions {
+    grid-area: actions !important;
+    display: flex !important;
+    gap: 8px !important;
+  }
+
+  .dm-item-actions .btn {
+    flex: 1 !important;
+    min-height: 42px !important;
+    font-size: 0.85rem !important;
+    justify-content: center !important;
+  }
+
+  /* تصنيفات المنيو */
+  .dm-chips {
+    gap: 6px !important;
+  }
+
+  .dm-chip {
+    font-size: 0.78rem !important;
+    padding: 6px 8px 6px 10px !important;
+  }
+
+  /* صفوف التصنيفات في لوحة الإدارة */
+  .dm-cat-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 8px 0 !important;
+  }
+
+  .dm-cat-row .btn {
+    min-height: 38px !important;
+    padding: 6px 10px !important;
+    font-size: 0.78rem !important;
+  }
+
+  /* إدخال الحجم/الإضافة داخل نافذة الصنف */
+  .dm-size-row {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .dm-size-row input {
+    min-width: 0 !important;
+  }
+
+  .dm-size-row .dm-size-name,
+  .dm-size-row .dm-extra-name {
+    flex: 1 1 100% !important;
+  }
+
+  .dm-size-row .dm-size-price,
+  .dm-size-row .dm-extra-price {
+    flex: 1 1 45% !important;
+  }
+
+  .dm-size-row .btn-danger {
+    flex: 0 0 44px !important;
+    min-height: 42px !important;
+  }
+
+  /* البانرات */
+  .dm-banner-admin {
+    gap: 8px !important;
+  }
+
+  .dm-banner-thumb {
+    width: calc(50% - 4px) !important;
+    height: 90px !important;
+  }
+}
+
+/* شاشات صغيرة جدًا */
+@media (max-width: 380px) {
+  .dm-item-card {
+    grid-template-columns: 54px 1fr !important;
+  }
+
+  .dm-thumb {
+    width: 54px !important;
+    height: 54px !important;
+  }
+
+  .dm-item-actions .btn {
+    font-size: 0.78rem !important;
+    padding: 8px 6px !important;
+  }
+}
