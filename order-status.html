@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>حالة الطلبات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--c:#b48554}
+body{font-family:Tajawal,system-ui,sans-serif;background:#0b0e17;color:#fff;min-height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;align-items:center;justify-content:space-between;padding:2vh 3vw;background:#121726;border-bottom:4px solid var(--c)}
+header .b{display:flex;align-items:center;gap:16px}
+header img{height:7vh;max-height:70px;border-radius:12px}
+header h1{font-size:clamp(1.4rem,3.2vw,2.6rem)}
+#clock{font-size:clamp(1.2rem,2.6vw,2.2rem);font-weight:800;color:var(--c)}
+main{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:0}
+section{padding:2vh 2vw;display:flex;flex-direction:column}
+section+section{border-right:3px solid #1f2740}
+h2{font-size:clamp(1.4rem,3vw,2.6rem);text-align:center;padding:1.5vh;border-radius:16px;margin-bottom:2vh}
+.prep h2{background:rgba(245,158,11,.15);color:#fbbf24}.ready h2{background:rgba(16,185,129,.15);color:#34d399}
+.nums{display:flex;flex-wrap:wrap;gap:1.6vw;justify-content:center;align-content:flex-start}
+.n{font-size:clamp(2rem,6vw,5.5rem);font-weight:800;min-width:16vw;text-align:center;padding:1vh 1.5vw;border-radius:18px;background:#141a2b}
+.prep .n{color:#fde68a}
+.ready .n{color:#fff;background:#065f46;animation:glow 2s infinite}
+.ready .n.fresh{animation:flash .6s 4,glow 2s infinite 2.4s}
+@keyframes glow{50%{box-shadow:0 0 30px rgba(16,185,129,.6)}}
+@keyframes flash{50%{transform:scale(1.12);background:#10b981}}
+.empty{color:#475569;font-size:clamp(1rem,2vw,1.6rem);text-align:center;margin-top:6vh}
+footer{text-align:center;padding:1.2vh;color:#64748b;font-size:clamp(.8rem,1.4vw,1.1rem)}
+#msg{position:fixed;inset:0;display:none;align-items:center;justify-content:center;text-align:center;background:#0b0e17;font-size:1.4rem;padding:30px;color:#aab7d4}
+</style>
+</head>
+<body>
+<header><div class="b"><img id="logo" alt="" style="display:none"><h1 id="name">حالة الطلبات</h1></div><div id="clock"></div></header>
+<main>
+  <section class="prep"><h2>قيد التحضير</h2><div class="nums" id="prep"></div></section>
+  <section class="ready"><h2>جاهز للاستلام</h2><div class="nums" id="ready"></div></section>
+</main>
+<footer>يرجى التوجه للاستلام عند ظهور رقم طلبك في قائمة «جاهز للاستلام»</footer>
+<div id="msg"></div>
+<script src="js/config.js?v=4.0"></script>
+<script>
+const qs = new URLSearchParams(location.search), R = qs.get('r'), Bq = qs.get('b') || '';
+const $ = s => document.querySelector(s);
+let seen = null, sound = qs.get('sound') !== '0';
+function chime() { if (!sound) return; try { const c = new (window.AudioContext || window.webkitAudioContext)(); [660, 880, 1100].forEach((f, i) => { const o = c.createOscillator(), g = c.createGain(); o.frequency.value = f; o.connect(g); g.connect(c.destination); const t = c.currentTime + i * .18; g.gain.setValueAtTime(.2, t); g.gain.exponentialRampToValueAtTime(.001, t + .3); o.start(t); o.stop(t + .32); }); } catch (e) { } }
+async function load() {
+  if (!R) { $('#msg').style.display = 'flex'; $('#msg').textContent = 'رابط غير مكتمل — افتح الشاشة من لوحة التحكم ← الطلب أونلاين والشاشات'; return; }
+  try {
+    const r = await (await fetch(COST_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: 'getOrderBoard', r: R, b: Bq }) })).json();
+    if (r.success === false) { $('#msg').style.display = 'flex'; $('#msg').textContent = r.error || 'غير متاح'; return; }
+    $('#msg').style.display = 'none';
+    if (r.color) document.documentElement.style.setProperty('--c', r.color);
+    $('#name').textContent = r.name || 'حالة الطلبات'; document.title = (r.name || '') + ' · حالة الطلبات';
+    if (r.logo) { $('#logo').src = r.logo; $('#logo').style.display = ''; }
+    const fresh = seen ? r.ready.filter(n => !seen.has(n)) : [];
+    if (fresh.length) chime();
+    seen = new Set(r.ready);
+    $('#prep').innerHTML = r.preparing.length ? r.preparing.map(n => '<div class="n">' + n + '</div>').join('') : '<div class="empty">—</div>';
+    $('#ready').innerHTML = r.ready.length ? r.ready.slice().reverse().map(n => '<div class="n' + (fresh.includes(n) ? ' fresh' : '') + '">' + n + '</div>').join('') : '<div class="empty">—</div>';
+  } catch (e) { }
+}
+setInterval(() => { $('#clock').textContent = new Date().toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' }); }, 1000);
+document.body.addEventListener('click', () => { document.documentElement.requestFullscreen && !document.fullscreenElement && document.documentElement.requestFullscreen().catch(() => { }); });
+load(); setInterval(load, 5000);
+</script>
+</body>
+</html>

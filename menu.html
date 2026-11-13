@@ -161,7 +161,7 @@ header h1{font-size:clamp(1.5rem,4vw,2.2rem);color:#fff}header p{font-size:.95re
 .cartbar{max-width:760px;margin:auto;bottom:max(12px,env(safe-area-inset-bottom));box-shadow:0 12px 36px #0007;padding:16px 20px}.cartbar button{padding:8px;font-size:1rem}
 .cart-heading,.order-total{display:flex;justify-content:space-between;align-items:center;gap:12px}.order-total{padding:18px 0;font-size:1.1rem}.cart-line{padding:18px 0}.cart-line p,.cart-line small{color:var(--muted)}
 .cart-step{display:flex;align-items:center;gap:12px;margin-top:12px}.cart-step button{border:1px solid var(--line);background:#243044;color:var(--text);border-radius:10px;min-width:40px;min-height:40px;font:inherit;padding:4px 10px}
-#custName,#custNote{display:block;width:100%;padding:14px;background:#10151e;color:#fff;border:1px solid var(--line);border-radius:12px;font:inherit;margin:8px 0 16px}.checkout-note{font-size:.82rem;color:var(--muted);margin:14px 0}
+#custName,#custNote,#custPhone{display:block;width:100%;padding:14px;background:#10151e;color:#fff;border:1px solid var(--line);border-radius:12px;font:inherit;margin:8px 0 16px}.checkout-note{font-size:.82rem;color:var(--muted);margin:14px 0}
 #menuStatus{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:100;pointer-events:none;font-size:13px;background:#edc98a;color:#152033;border-radius:12px;padding:0;max-width:90vw}#menuStatus:not(:empty){padding:10px 16px}
 [data-image-error]{position:relative}[data-image-error]::after{content:attr(data-image-error);position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:12px}
 @media(min-width:700px){.section-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}.sheet{align-items:center}.sheet-box{border-radius:26px;max-height:90dvh}}
@@ -249,7 +249,7 @@ footer.menu-foot b{color:var(--gold);font-weight:600;letter-spacing:.8px}
     <div class="sheet-box" id="cartSheetBox"></div>
   </div>
 
-<script src="js/config.js?v=3.1"></script>
+<script src="js/config.js?v=4.0"></script>
 <script>
 
 function menuImageUrl(value) {
@@ -328,6 +328,7 @@ async function loadMenu() {
     renderBanners(data.settings.banners || []);
     renderCats();
     renderGrid();
+    renderGoogleCard();
   } catch (e) {
     document.getElementById('grid').innerHTML = '<div class="empty">تعذر تحميل القائمة: ' + esc(e.message) + '</div>';
   }
@@ -519,7 +520,7 @@ function openCart() {
   const prevNote=document.getElementById('custNote')?.value||sessionStorage.getItem('menuCustomerNote')||'';
   const lines=cart.map((c,i)=>`<div class="cart-line"><div><b>${esc(c.name)}</b><p>${esc(c.size||'')}</p><small>${(c.extras||[]).map(e=>esc(e.name)+' ×'+e.qty).join('، ')}</small><div class="cart-step"><button onclick="changeCartQty(${i},-1)" aria-label="تقليل الكمية">−</button><span>${c.qty}</span><button onclick="changeCartQty(${i},1)" aria-label="زيادة الكمية">+</button><button onclick="removeCartLine(${i})">حذف</button></div></div><strong>${lineTotal(c).toFixed(2)} ${esc(cur())}</strong></div>`).join('');
   const total=cart.reduce((s,c)=>s+lineTotal(c),0);
-  document.getElementById('cartSheetBox').innerHTML=`<div class="sheet-pad"><div class="cart-heading"><h2>مراجعة طلبك</h2><button class="x" style="position:static" onclick="closeCart()" aria-label="إغلاق">×</button></div>${lines||'<div class="empty">طلبك فارغ — أضف وجبتك المفضلة</div>'}<div class="order-total"><span>الإجمالي</span><strong>${total.toFixed(2)} ${esc(cur())}</strong></div><label for="custName">الاسم (اختياري)</label><input id="custName" value="${esc(prevName)}" placeholder="اسمك" oninput="sessionStorage.setItem('menuCustomerName',this.value)"><label for="custNote">ملاحظات الطلب</label><textarea id="custNote" rows="3" placeholder="أي تفاصيل تود إضافتها؟" oninput="sessionStorage.setItem('menuCustomerNote',this.value)">${esc(prevNote)}</textarea><p class="checkout-note">سيتم فتح واتساب لمراجعة الرسالة وإرسالها. لا يُعد الطلب مؤكداً حتى يرد المطعم.</p><button class="addwide" ${cart.length?'':'disabled'} style="width:100%" onclick="sendWhatsApp()">متابعة إلى واتساب · ${total.toFixed(2)} ${esc(cur())}</button></div>`;
+  document.getElementById('cartSheetBox').innerHTML=`<div class="sheet-pad"><div class="cart-heading"><h2>مراجعة طلبك</h2><button class="x" style="position:static" onclick="closeCart()" aria-label="إغلاق">×</button></div>${lines||'<div class="empty">طلبك فارغ — أضف وجبتك المفضلة</div>'}<div class="order-total"><span>الإجمالي</span><strong>${total.toFixed(2)} ${esc(cur())}</strong></div><label for="custName">الاسم (اختياري)</label><input id="custName" value="${esc(prevName)}" placeholder="اسمك" oninput="sessionStorage.setItem('menuCustomerName',this.value)"><label for="custNote">ملاحظات الطلب</label><textarea id="custNote" rows="3" placeholder="أي تفاصيل تود إضافتها؟" oninput="sessionStorage.setItem('menuCustomerNote',this.value)">${esc(prevNote)}</textarea>${checkoutHtml(total)}</div>`;
   document.getElementById('cartSheet').classList.add('open');
 }
 function changeCartQty(i,d){if(!cart[i])return;cart[i].qty=Math.max(1,cart[i].qty+d);paintCart();openCart();}
@@ -544,6 +545,46 @@ function sendWhatsApp() {
   msg += '\nالمجموع: ' + total + ' ' + cur();
   window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(msg), '_blank');
   document.getElementById('menuStatus').textContent='تم فتح واتساب. أرسل الرسالة لإكمال الطلب؛ بقيت السلة محفوظة للمراجعة.';
+}
+
+// ---------- الطلب المباشر إلى الكاشير (الباقات المتقدمة) ----------
+const tableNo = (params.get('t') || '').trim().slice(0, 20);
+function orderingOn() { return !!(menuData && menuData.ordering && menuData.ordering.enabled); }
+function checkoutHtml(total) {
+  const wa = String((menuData.settings && menuData.settings.whatsapp) || '').replace(/\D/g, '');
+  const dis = cart.length ? '' : 'disabled';
+  if (!orderingOn()) return `<p class="checkout-note">سيتم فتح واتساب لمراجعة الرسالة وإرسالها. لا يُعد الطلب مؤكداً حتى يرد المطعم.</p><button class="addwide" ${dis} style="width:100%" onclick="sendWhatsApp()">متابعة إلى واتساب · ${total.toFixed(2)} ${esc(cur())}</button>`;
+  const ord = menuData.ordering, prevPhone = sessionStorage.getItem('menuCustomerPhone') || '';
+  const tbl = tableNo && ord.tableOrdering ? `<div class="checkout-note" style="font-weight:700">الطلب على طاولة رقم: ${esc(tableNo)}</div>` : '';
+  return `<label for="custPhone">رقم الجوال ${ord.requirePhone ? '(مطلوب)' : '(اختياري)'}</label><input id="custPhone" dir="ltr" inputmode="tel" value="${esc(prevPhone)}" placeholder="05xxxxxxxx" oninput="sessionStorage.setItem('menuCustomerPhone',this.value)">${tbl}
+    <p class="checkout-note">يصل طلبك مباشرة إلى المطعم، ويتم تأكيده من الكاشير.</p>
+    <button class="addwide" id="sendOrderBtn" ${dis} style="width:100%" onclick="sendOrderDirect()">إرسال الطلب للمطعم · ${total.toFixed(2)} ${esc(cur())}</button>
+    ${wa ? `<button class="addwide" ${dis} style="width:100%;margin-top:8px;background:transparent;border:1px solid currentColor;color:inherit" onclick="sendWhatsApp()">أو أرسل عبر واتساب</button>` : ''}`;
+}
+async function sendOrderDirect() {
+  if (!cart.length) return;
+  const name = (document.getElementById('custName').value || '').trim();
+  const phone = (document.getElementById('custPhone').value || '').trim();
+  const note = (document.getElementById('custNote').value || '').trim();
+  if (menuData.ordering.requirePhone && phone.replace(/\D/g, '').length < 7) { alert('يرجى إدخال رقم جوال صحيح'); return; }
+  const btn = document.getElementById('sendOrderBtn'); btn.disabled = true; btn.textContent = 'جاري الإرسال...';
+  const total = cart.reduce((s, c) => s + lineTotal(c), 0);
+  const body = { fn: 'savePublicOrder', items: JSON.stringify(cart.map(c => ({ name: c.name, size: c.size, qty: c.qty, price: c.price, extras: c.extras || [] }))), total, notes: note, customerName: name, customerPhone: phone, tableNumber: menuData.ordering.tableOrdering ? tableNo : '' };
+  if (publicId) body.r = publicId; else body.restaurantEmail = restaurantEmail;
+  try {
+    const r = await (await fetch(COST_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) })).json();
+    if (!r.success) throw new Error(r.error || 'تعذر إرسال الطلب');
+    cart = []; paintCart();
+    document.getElementById('cartSheetBox').innerHTML = `<div class="sheet-pad" style="text-align:center"><div style="font-size:3rem;color:#10b981">&#10004;</div><h2>تم استلام طلبك</h2><p class="checkout-note" style="margin:10px 0 16px">وصل طلبك إلى المطعم وسيتم تجهيزه بعد التأكيد${tableNo && menuData.ordering.tableOrdering ? ' — طاولة ' + esc(tableNo) : ''}.</p>${menuData.googleReviewUrl ? `<a class="addwide" style="display:block;text-decoration:none;text-align:center" href="${esc(menuData.googleReviewUrl)}" target="_blank" rel="noopener">قيّم تجربتك على Google</a>` : ''}<button class="addwide" style="width:100%;margin-top:8px" onclick="closeCart()">حسناً</button></div>`;
+  } catch (e) { alert(e.message); btn.disabled = false; btn.textContent = 'إرسال الطلب للمطعم'; }
+}
+function renderGoogleCard() {
+  if (!menuData || !menuData.googleReviewUrl || document.getElementById('gReviewCard')) return;
+  const d = document.createElement('a');
+  d.id = 'gReviewCard'; d.href = menuData.googleReviewUrl; d.target = '_blank'; d.rel = 'noopener';
+  d.style.cssText = 'display:flex;align-items:center;gap:12px;max-width:520px;margin:24px auto 110px;padding:14px 18px;border-radius:16px;background:#fff;color:#202124;text-decoration:none;box-shadow:0 6px 20px rgba(0,0,0,.18);font-weight:700';
+  d.innerHTML = '<span style="font-size:1.6rem;font-weight:800;color:#4285F4">G</span><span style="flex:1">أعجبتك تجربتك؟ قيّمنا على Google<br><span style="color:#fbbc04;letter-spacing:2px">&#9733;&#9733;&#9733;&#9733;&#9733;</span></span><span>&#8592;</span>';
+  const grid = document.getElementById('grid'); grid.parentNode.insertBefore(d, grid.nextSibling);
 }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 function js(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }

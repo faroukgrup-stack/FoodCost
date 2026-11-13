@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>شاشة المطبخ والتجهيز</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Tajawal,system-ui,sans-serif;background:#0b0e17;color:#e8ecf5;min-height:100vh}
+header{display:flex;align-items:center;gap:14px;padding:12px 18px;background:#121726;border-bottom:1px solid #222a3d;position:sticky;top:0;z-index:5;flex-wrap:wrap}
+header h1{font-size:1.2rem;color:#d9b182;flex:1}
+.chip{background:#1b2236;border:1px solid #2a334b;border-radius:999px;padding:6px 14px;font-weight:700;font-size:.9rem}
+.chip b{color:#d9b182}
+button{font-family:inherit;cursor:pointer}
+.hb{background:#1b2236;border:1px solid #2a334b;color:#e8ecf5;border-radius:10px;padding:8px 12px;font-weight:700}
+.hb.on{background:#b48554;color:#0b0e17;border-color:#b48554}
+.filters{display:flex;gap:6px}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;padding:16px;align-items:start}
+.card{background:#141a2b;border:2px solid #263049;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;animation:pop .3s}
+@keyframes pop{from{transform:scale(.95);opacity:0}to{transform:none;opacity:1}}
+.card.new{border-color:#3b82f6}.card.preparing{border-color:#f59e0b}.card.ready{border-color:#10b981;opacity:.85}
+.card.late{box-shadow:0 0 0 3px rgba(239,68,68,.5)}
+.ch{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#1b2236}
+.ch .num{font-size:1.6rem;font-weight:800}
+.ch .meta{text-align:left;font-size:.82rem;color:#aab7d4;line-height:1.5}
+.timer{font-weight:800;font-size:1rem;color:#e8ecf5}.late .timer{color:#f87171}
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.75rem;font-weight:700;background:#263049}
+ul{list-style:none;padding:8px 14px;flex:1}
+li{padding:7px 0;border-bottom:1px dashed #263049;font-size:1.05rem;font-weight:700;cursor:pointer}
+li.done{text-decoration:line-through;opacity:.45}
+li .q{display:inline-block;min-width:32px;color:#d9b182}
+li small{display:block;color:#aab7d4;font-weight:500;font-size:.82rem;margin-right:32px}
+li .nt{color:#fbbf24}
+.onote{margin:0 14px 8px;padding:8px;border-radius:8px;background:rgba(251,191,36,.1);color:#fbbf24;font-size:.88rem}
+.acts{display:flex;gap:8px;padding:10px 14px;border-top:1px solid #263049}
+.acts button{flex:1;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:1rem}
+.b-prep{background:#f59e0b;color:#111}.b-ready{background:#10b981;color:#062}.b-serve{background:#334155;color:#fff}.b-back{flex:0 0 46px!important;background:#263049;color:#e8ecf5}
+.empty{grid-column:1/-1;text-align:center;padding:80px 20px;color:#64748b;font-size:1.2rem}
+.empty i{font-size:3rem;display:block;margin-bottom:12px}
+#login{max-width:380px;margin:10vh auto;background:#141a2b;border:1px solid #263049;border-radius:18px;padding:28px;display:none}
+#login h2{color:#d9b182;margin-bottom:6px;text-align:center}#login p{color:#aab7d4;text-align:center;margin-bottom:16px;font-size:.9rem}
+#login input{width:100%;padding:12px;border-radius:10px;border:1px solid #2a334b;background:#0b0e17;color:#fff;font-family:inherit;margin-bottom:10px;font-size:1rem}
+#login button{width:100%;padding:12px;border:0;border-radius:10px;background:#b48554;color:#0b0e17;font-weight:800;font-size:1rem}
+#err{color:#f87171;text-align:center;min-height:1.2em;margin-top:8px}
+#app{display:none}
+.off{background:#7f1d1d!important;color:#fff}
+</style>
+</head>
+<body>
+<div id="login">
+  <h2><i class="fas fa-fire-burner"></i> شاشة المطبخ</h2>
+  <p>سجّل الدخول بحساب موظف المطبخ</p>
+  <input id="lr" placeholder="رمز المطعم أو بريده" dir="ltr">
+  <input id="lu" placeholder="اسم المستخدم" dir="ltr" autocomplete="username">
+  <input id="lp" placeholder="رمز PIN" type="password" inputmode="numeric" dir="ltr" autocomplete="current-password">
+  <button id="lb">دخول</button>
+  <div id="err"></div>
+</div>
+<div id="app">
+  <header>
+    <h1><i class="fas fa-fire-burner"></i> شاشة المطبخ <span id="brName" style="color:#aab7d4;font-size:.95rem"></span></h1>
+    <span class="chip">جديد <b id="cNew">0</b></span><span class="chip">قيد التحضير <b id="cPrep">0</b></span><span class="chip">جاهز <b id="cReady">0</b></span>
+    <div class="filters"><button class="hb on" data-f="all">الكل</button><button class="hb" data-f="new">جديد</button><button class="hb" data-f="preparing">تحضير</button><button class="hb" data-f="ready">جاهز</button></div>
+    <button class="hb" id="snd" title="الصوت"><i class="fas fa-volume-up"></i></button>
+    <button class="hb" id="fs" title="ملء الشاشة"><i class="fas fa-expand"></i></button>
+    <span class="chip" id="conn"><i class="fas fa-circle" style="color:#10b981;font-size:.6rem"></i> <span id="clock"></span></span>
+    <button class="hb" id="out" title="خروج"><i class="fas fa-sign-out-alt"></i></button>
+  </header>
+  <div id="grid"></div>
+</div>
+<script src="js/config.js?v=4.0"></script>
+<script>
+const $ = s => document.querySelector(s);
+const h = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const TYPES = { dine_in: 'محلي', takeaway: 'سفري', delivery: 'توصيل', pickup: 'استلام', online: 'أونلاين' };
+let token = localStorage.getItem('foodUserToken'), email = localStorage.getItem('foodUserEmail'), branch = localStorage.getItem('fcBranch') || '';
+let orders = [], filter = 'all', known = null, sound = localStorage.getItem('kdsSound') !== '0', skew = 0, done = JSON.parse(localStorage.getItem('kdsDone') || '{}');
+async function api(fn, p) {
+  const body = Object.assign({ fn, restaurantEmail: email, token, branchId: branch, tzOffset: new Date().getTimezoneOffset() }, p || {});
+  const r = await fetch(COST_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) });
+  return r.json();
+}
+function showLogin(msg) { $('#app').style.display = 'none'; $('#login').style.display = 'block'; $('#lr').value = localStorage.getItem('fcStaffRest') || ''; $('#err').textContent = msg || ''; }
+$('#lb').onclick = async () => {
+  $('#err').textContent = '';
+  const r = await (await fetch(COST_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: 'staffLogin', restaurant: $('#lr').value.trim(), username: $('#lu').value.trim(), pin: $('#lp').value }) })).json().catch(() => ({}));
+  if (r.status !== 'success') { $('#err').textContent = r.message || r.error || 'فشل الدخول'; return; }
+  token = r.token; email = r.email;
+  localStorage.setItem('foodUserToken', token); localStorage.setItem('foodUserEmail', email); localStorage.setItem('foodUserName', r.name || ''); localStorage.setItem('fcStaffRest', $('#lr').value.trim());
+  localStorage.setItem('foodStaff', JSON.stringify(r.staff || {})); localStorage.setItem('foodLoginTimestamp', Date.now());
+  start();
+};
+$('#lp').addEventListener('keydown', e => { if (e.key === 'Enter') $('#lb').click(); });
+function beep() {
+  if (!sound) return;
+  try { const c = new (window.AudioContext || window.webkitAudioContext)(); [0, .25].forEach(t => { const o = c.createOscillator(), g = c.createGain(); o.frequency.value = 880; o.connect(g); g.connect(c.destination); g.gain.setValueAtTime(.25, c.currentTime + t); g.gain.exponentialRampToValueAtTime(.001, c.currentTime + t + .2); o.start(c.currentTime + t); o.stop(c.currentTime + t + .22); }); } catch (e) { }
+}
+function mins(o) { const t = new Date(o.kitchen_at || o.created_at).getTime(); return Math.max(0, Math.floor((Date.now() + skew - t) / 1000)); }
+function fmt(s) { const m = Math.floor(s / 60), x = s % 60; return (m < 10 ? '0' : '') + m + ':' + (x < 10 ? '0' : '') + x; }
+function draw() {
+  const g = $('#grid');
+  $('#cNew').textContent = orders.filter(o => o.kitchen_status === 'new').length;
+  $('#cPrep').textContent = orders.filter(o => o.kitchen_status === 'preparing').length;
+  $('#cReady').textContent = orders.filter(o => o.kitchen_status === 'ready').length;
+  const list = orders.filter(o => filter === 'all' || o.kitchen_status === filter);
+  if (!list.length) { g.innerHTML = '<div class="empty"><i class="fas fa-mug-hot"></i>لا توجد طلبات حالياً</div>'; return; }
+  g.innerHTML = list.map(o => {
+    const s = mins(o), late = o.kitchen_status !== 'ready' && s > 15 * 60;
+    const items = (o.items || []).map(l => {
+      const key = o.id + ':' + l.lid, d = done[key];
+      return '<li class="' + (d ? 'done' : '') + '" data-l="' + h(key) + '"><span class="q">' + (+l.qty) + '×</span>' + h(l.name) + (l.variant ? ' <span class="tag">' + h(l.variant) + '</span>' : '') +
+        ((l.extras || []).length ? '<small>+ ' + l.extras.map(e => h(e.name) + (e.qty > 1 ? ' ×' + e.qty : '')).join('، ') + '</small>' : '') + (l.note ? '<small class="nt"><i class="fas fa-comment"></i> ' + h(l.note) + '</small>' : '') + '</li>';
+    }).join('');
+    const btn = o.kitchen_status === 'new' ? '<button class="b-prep" data-s="preparing" data-id="' + o.id + '"><i class="fas fa-fire"></i> بدء التحضير</button>'
+      : o.kitchen_status === 'preparing' ? '<button class="b-ready" data-s="ready" data-id="' + o.id + '"><i class="fas fa-check"></i> جاهز</button>'
+      : '<button class="b-serve" data-s="served" data-id="' + o.id + '"><i class="fas fa-concierge-bell"></i> تم التسليم</button>';
+    const back = o.kitchen_status !== 'new' ? '<button class="b-back" title="تراجع" data-s="' + (o.kitchen_status === 'ready' ? 'preparing' : 'new') + '" data-id="' + o.id + '"><i class="fas fa-undo"></i></button>' : '';
+    return '<div class="card ' + o.kitchen_status + (late ? ' late' : '') + '"><div class="ch"><div><div class="num">#' + o.number + '</div><span class="tag">' + h(TYPES[o.order_type] || o.order_type) + '</span>' + (o.table_name ? ' <span class="tag">طاولة ' + h(o.table_name) + '</span>' : '') + (o.source === 'menu' ? ' <span class="tag">من المينيو</span>' : '') + '</div>' +
+      '<div class="meta"><div class="timer" data-t="' + o.id + '">' + fmt(s) + '</div>' + h(o.customer_name || '') + '</div></div>' + (o.notes ? '<div class="onote"><i class="fas fa-sticky-note"></i> ' + h(o.notes) + '</div>' : '') + '<ul>' + items + '</ul><div class="acts">' + back + btn + '</div></div>';
+  }).join('');
+}
+async function load() {
+  try {
+    const r = await api('kitchenList');
+    if (r.success === false || r.status === 'error' || r.status === 'invalid') {
+      if (r.authError || !token) { showLogin(r.error || r.message); return; }
+      $('#grid').innerHTML = '<div class="empty"><i class="fas fa-lock"></i>' + h(r.error || r.message || 'تعذر التحميل') + '</div>'; return;
+    }
+    $('#conn').classList.remove('off');
+    skew = new Date(r.serverTime).getTime() - Date.now();
+    $('#brName').textContent = r.branchName ? '· ' + r.branchName : '';
+    const ids = r.orders.filter(o => o.kitchen_status === 'new').map(o => o.id);
+    if (known && ids.some(id => !known.has(id))) beep();
+    known = new Set(r.orders.map(o => o.id));
+    orders = r.orders; draw();
+  } catch (e) { $('#conn').classList.add('off'); }
+}
+document.addEventListener('click', async e => {
+  const f = e.target.closest('[data-f]'); if (f) { filter = f.dataset.f; document.querySelectorAll('[data-f]').forEach(b => b.classList.toggle('on', b === f)); draw(); }
+  const li = e.target.closest('li[data-l]'); if (li) { const k = li.dataset.l; if (done[k]) delete done[k]; else done[k] = 1; localStorage.setItem('kdsDone', JSON.stringify(done)); li.classList.toggle('done'); }
+  const b = e.target.closest('button[data-s]');
+  if (b) { b.disabled = true; const o = orders.find(x => x.id === b.dataset.id); const r = await api('kitchenBump', { id: b.dataset.id, status: b.dataset.s }); if (r.success === false) alert(r.error); else if (o) { if (b.dataset.s === 'served') orders = orders.filter(x => x !== o); else o.kitchen_status = b.dataset.s; draw(); } load(); }
+});
+$('#snd').onclick = () => { sound = !sound; localStorage.setItem('kdsSound', sound ? '1' : '0'); $('#snd').innerHTML = '<i class="fas fa-volume-' + (sound ? 'up' : 'mute') + '"></i>'; if (sound) beep(); };
+$('#fs').onclick = () => { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => { }); };
+$('#out').onclick = () => { if (!confirm('تسجيل الخروج من شاشة المطبخ؟')) return; localStorage.removeItem('foodUserToken'); token = null; showLogin(); };
+let timers = null, poll = null;
+function start() {
+  $('#login').style.display = 'none'; $('#app').style.display = 'block';
+  $('#snd').innerHTML = '<i class="fas fa-volume-' + (sound ? 'up' : 'mute') + '"></i>';
+  load(); clearInterval(timers);
+  timers = setInterval(() => {
+    $('#clock').textContent = new Date().toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
+    document.querySelectorAll('[data-t]').forEach(el => { const o = orders.find(x => x.id === el.dataset.t); if (o) el.textContent = fmt(mins(o)); });
+  }, 1000);
+  clearInterval(poll); poll = setInterval(load, 6000);
+}
+const qs = new URLSearchParams(location.search); if (qs.get('b')) { branch = qs.get('b'); localStorage.setItem('fcBranch', branch); }
+token && email ? start() : showLogin();
+</script>
+</body>
+</html>

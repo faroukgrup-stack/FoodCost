@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b0e17" id="themeColor">
+<title>تطبيق المطعم</title>
+<link rel="apple-touch-icon" id="appleIcon" href="">
+<link rel="icon" id="favIcon" href="">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--c:#b48554;--bg:#0b0e17}
+body{font-family:Tajawal,system-ui,sans-serif;background:var(--bg);color:#f1f5f9;min-height:100vh;padding-bottom:84px}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px}
+.hero{padding:34px 0 22px;text-align:center}
+.logo{width:96px;height:96px;border-radius:26px;object-fit:cover;background:#1e2537;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:2.4rem;color:var(--c);border:3px solid var(--c)}
+h1{font-size:1.6rem}.welcome{color:#cbd5e1;margin-top:6px;line-height:1.7}
+.banner{width:100%;border-radius:18px;margin:6px 0 16px;aspect-ratio:16/7;object-fit:cover}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:18px 14px;text-align:center;cursor:pointer;color:inherit;text-decoration:none;display:block;font-family:inherit;font-size:1rem;width:100%}
+.tile i{font-size:1.7rem;color:var(--c);display:block;margin-bottom:8px}
+.tile b{display:block}.tile small{color:#94a3b8;font-size:.8rem}
+.tile.big{grid-column:1/-1;background:var(--c);color:#0b0e17;border:0}.tile.big i{color:#0b0e17}.tile.big small{color:rgba(0,0,0,.65)}
+.contact{display:flex;justify-content:center;gap:12px;margin:22px 0}
+.contact a{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.07);color:var(--c);font-size:1.3rem;text-decoration:none}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:20}
+.sheet.open{display:flex}
+.box{background:#121726;width:100%;max-width:560px;border-radius:24px 24px 0 0;padding:22px 18px 30px;max-height:88vh;overflow:auto;animation:up .25s}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.box h2{font-size:1.25rem;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.x{background:none;border:0;color:#94a3b8;font-size:1.5rem;cursor:pointer}
+label{display:block;font-size:.88rem;color:#cbd5e1;margin:10px 0 5px}
+input,select,textarea{width:100%;padding:12px;border-radius:12px;border:1px solid #2a334b;background:#0b0e17;color:#fff;font-family:inherit;font-size:1rem}
+.btn{width:100%;padding:14px;border:0;border-radius:14px;background:var(--c);color:#0b0e17;font-weight:800;font-family:inherit;font-size:1rem;margin-top:16px;cursor:pointer}
+.res{margin-top:14px;padding:14px;border-radius:14px;background:rgba(255,255,255,.05);line-height:1.8;text-align:center}
+.res.err{color:#fca5a5}.res.ok{color:#86efac}
+.pts{font-size:2.6rem;font-weight:800;color:var(--c)}
+.steps{display:flex;justify-content:space-between;margin:16px 0 6px}
+.steps div{flex:1;text-align:center;font-size:.8rem;color:#64748b}
+.steps div i{display:flex;width:40px;height:40px;margin:0 auto 6px;border-radius:50%;align-items:center;justify-content:center;background:#1e2537}
+.steps div.on{color:#fff}.steps div.on i{background:var(--c);color:#0b0e17}
+#install{position:fixed;bottom:16px;left:16px;right:16px;max-width:528px;margin:0 auto;background:#fff;color:#0b0e17;border-radius:16px;padding:12px 14px;display:none;align-items:center;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:15}
+#install b{flex:1}#install button{border:0;border-radius:10px;padding:9px 14px;font-family:inherit;font-weight:800;background:var(--c);color:#0b0e17;cursor:pointer}
+#install .no{background:#e2e8f0}
+.loading{text-align:center;padding:30vh 20px;color:#94a3b8}
+footer{text-align:center;color:#475569;font-size:.75rem;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="wrap" id="root"><div class="loading">جاري التحميل...</div></div>
+<div class="sheet" id="sheet"><div class="box" id="box"></div></div>
+<div id="install"><b id="instTxt">ثبّت التطبيق على جوالك</b><button id="instBtn">تثبيت</button><button class="no" id="instNo">لاحقاً</button></div>
+<script src="js/config.js?v=4.0"></script>
+<script>
+const qs = new URLSearchParams(location.search), R = (qs.get('r') || '').trim().toLowerCase();
+const $ = s => document.querySelector(s);
+const h = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let C = null, deferred = null;
+async function api(fn, p) { return (await fetch(COST_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ fn, r: R }, p || {})) })).json(); }
+function base() { return location.href.replace(/[^/]*(\?.*)?$/, ''); }
+function setManifest() {
+  const icon = C.icon || 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="110" fill="' + (C.color || '#b48554') + '"/><text x="256" y="330" font-size="260" text-anchor="middle" fill="#0b0e17" font-family="Arial" font-weight="bold">' + h((C.shortName || C.name || 'R').trim().charAt(0)) + '</text></svg>');
+  const m = { name: C.name, short_name: (C.shortName || C.name).slice(0, 14), start_url: base() + 'app.html?r=' + encodeURIComponent(R), scope: base(), display: 'standalone', dir: 'rtl', lang: 'ar', background_color: C.bg || '#0b0e17', theme_color: C.color || '#b48554',
+    icons: [{ src: icon, sizes: '192x192', purpose: 'any' }, { src: icon, sizes: '512x512', purpose: 'any maskable' }] };
+  const l = document.createElement('link'); l.rel = 'manifest'; l.href = 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(m)); document.head.appendChild(l);
+  $('#appleIcon').href = icon; $('#favIcon').href = icon; $('#themeColor').content = C.bg || '#0b0e17';
+}
+function menuUrl() { return base() + 'menu.html?r=' + encodeURIComponent(R); }
+function render() {
+  document.documentElement.style.setProperty('--c', C.color || '#b48554'); document.documentElement.style.setProperty('--bg', C.bg || '#0b0e17');
+  document.title = C.name;
+  const f = C.features || {}, wa = String(C.whatsapp || C.phone || '').replace(/\D/g, '');
+  $('#root').innerHTML = '<div class="hero">' + (C.icon ? '<img class="logo" src="' + h(C.icon) + '" alt="">' : '<div class="logo"><i class="fas fa-utensils"></i></div>') + '<h1>' + h(C.name) + '</h1>' + (C.welcome ? '<p class="welcome">' + h(C.welcome) + '</p>' : '') + '</div>' +
+    (C.banners && C.banners[0] ? '<img class="banner" src="' + h(C.banners[0]) + '" alt="">' : '') +
+    '<div class="tiles"><a class="tile big" href="' + h(menuUrl()) + '"><i class="fas fa-book-open"></i><b>' + (f.ordering ? 'المينيو واطلب الآن' : 'تصفح المينيو') + '</b><small>' + (f.ordering ? 'اطلب مباشرة من جوالك' : 'الأصناف والأسعار') + '</small></a>' +
+    (f.reservations ? '<button class="tile" data-o="resv"><i class="fas fa-calendar-check"></i><b>احجز طاولة</b><small>اختر الموعد وعدد الأشخاص</small></button>' : '') +
+    (f.loyalty ? '<button class="tile" data-o="loy"><i class="fas fa-gift"></i><b>نقاطي</b><small>رصيد الولاء</small></button>' : '') +
+    (f.orderStatus ? '<button class="tile" data-o="st"><i class="fas fa-receipt"></i><b>حالة طلبي</b><small>تتبع طلبك برقمه</small></button>' : '') +
+    (C.googleReview ? '<a class="tile" href="' + h(C.googleReview) + '" target="_blank" rel="noopener"><i class="fab fa-google"></i><b>قيّمنا</b><small>رأيك يهمنا</small></a>' : '') +
+    (C.maps ? '<a class="tile" href="' + h(C.maps) + '" target="_blank" rel="noopener"><i class="fas fa-map-marker-alt"></i><b>موقعنا</b><small>الاتجاهات على الخريطة</small></a>' : '') + '</div>' +
+    '<div class="contact">' + (C.phone ? '<a href="tel:' + h(C.phone) + '" title="اتصال"><i class="fas fa-phone"></i></a>' : '') + (wa ? '<a href="https://wa.me/' + wa + '" target="_blank" title="واتساب"><i class="fab fa-whatsapp"></i></a>' : '') + (C.instagram ? '<a href="' + h(C.instagram) + '" target="_blank" title="إنستغرام"><i class="fab fa-instagram"></i></a>' : '') + '</div>' +
+    '<footer>' + h(C.name) + '</footer>';
+}
+function sheet(html) { $('#box').innerHTML = html; $('#sheet').classList.add('open'); }
+function closeSheet() { $('#sheet').classList.remove('open'); }
+$('#sheet').addEventListener('click', e => { if (e.target.id === 'sheet' || e.target.closest('.x')) closeSheet(); });
+function localDT(d) { const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000); return z.toISOString().slice(0, 16); }
+const OPEN = {
+  resv() {
+    const t = new Date(Date.now() + 2 * 3600e3); t.setMinutes(0, 0, 0);
+    sheet('<h2>حجز طاولة <button class="x">&times;</button></h2>' + ((C.branches || []).length > 1 ? '<label>الفرع</label><select id="rb">' + C.branches.map(b => '<option value="' + h(b.id) + '">' + h(b.name) + '</option>').join('') + '</select>' : '') +
+      '<label>الاسم</label><input id="rn" value="' + h(localStorage.getItem('appName_' + R) || '') + '"><label>رقم الجوال</label><input id="rp" dir="ltr" inputmode="tel" value="' + h(localStorage.getItem('appPhone_' + R) || '') + '">' +
+      '<label>الموعد</label><input id="rt" type="datetime-local" value="' + localDT(t) + '" min="' + localDT(new Date()) + '"><label>عدد الأشخاص</label><input id="rs" type="number" min="1" max="50" value="2"><label>ملاحظات</label><textarea id="rx" rows="2" placeholder="مناسبة خاصة، طاولة خارجية..."></textarea>' +
+      '<button class="btn" id="rgo">إرسال طلب الحجز</button><div id="rr"></div>');
+    $('#rgo').onclick = async () => {
+      const b = $('#rgo'); b.disabled = true;
+      localStorage.setItem('appName_' + R, $('#rn').value); localStorage.setItem('appPhone_' + R, $('#rp').value);
+      const r = await api('publicReservation', { name: $('#rn').value, phone: $('#rp').value, at: $('#rt').value ? new Date($('#rt').value).toISOString() : '', partySize: $('#rs').value, notes: $('#rx').value, branchId: $('#rb') ? $('#rb').value : '' }).catch(() => ({ error: 'تعذر الاتصال' }));
+      b.disabled = false;
+      $('#rr').innerHTML = '<div class="res ' + (r.success ? 'ok' : 'err') + '">' + h(r.success ? r.message : r.error) + '</div>';
+      if (r.success) b.style.display = 'none';
+    };
+  },
+  loy() {
+    sheet('<h2>نقاط الولاء <button class="x">&times;</button></h2><label>رقم الجوال المسجل لدى المطعم</label><input id="lp" dir="ltr" inputmode="tel" value="' + h(localStorage.getItem('appPhone_' + R) || '') + '"><button class="btn" id="lgo">عرض رصيدي</button><div id="lr"></div>');
+    $('#lgo').onclick = async () => {
+      localStorage.setItem('appPhone_' + R, $('#lp').value);
+      const r = await api('publicLoyalty', { phone: $('#lp').value }).catch(() => ({ error: 'تعذر الاتصال' }));
+      $('#lr').innerHTML = r.success ? '<div class="res">مرحباً ' + h(r.name) + '<div class="pts">' + r.points + '</div>نقطة · تعادل <b>' + r.value + ' ' + h(C.currency || '') + '</b><br><small>عدد الزيارات: ' + r.visits + (r.minRedeem ? ' · الحد الأدنى للاستبدال ' + r.minRedeem + ' نقطة' : '') + '</small></div>' : '<div class="res err">' + h(r.error) + '</div>';
+    };
+  },
+  st() {
+    sheet('<h2>حالة طلبي <button class="x">&times;</button></h2><label>رقم الطلب (المطبوع على الإيصال)</label><input id="sn" type="number" inputmode="numeric" value="' + h(sessionStorage.getItem('appOrder_' + R) || '') + '"><button class="btn" id="sgo">تتبع</button><div id="sr"></div>');
+    let tm = null;
+    const check = async () => {
+      sessionStorage.setItem('appOrder_' + R, $('#sn').value);
+      const r = await api('publicOrderStatus', { number: $('#sn').value }).catch(() => ({ error: 'تعذر الاتصال' }));
+      if (!r.success) { $('#sr').innerHTML = '<div class="res err">' + h(r.error) + '</div>'; return; }
+      const k = r.kitchenStatus, idx = { new: 1, preparing: 2, ready: 3, served: 4 }[k] || (r.status === 'paid' ? 4 : 0);
+      const steps = [['استلام', 'check'], ['قيد التحضير', 'fire'], ['جاهز', 'bell'], ['تم التسليم', 'smile']];
+      $('#sr').innerHTML = '<div class="res">طلب رقم <b>#' + r.number + '</b><div class="steps">' + steps.map((s, i) => '<div class="' + (i < Math.max(1, idx) ? 'on' : '') + '"><i class="fas fa-' + s[1] + '"></i>' + s[0] + '</div>').join('') + '</div>' + (k === 'ready' ? '<b style="color:#86efac">طلبك جاهز للاستلام</b>' : r.status === 'cancelled' ? '<b style="color:#fca5a5">تم إلغاء الطلب</b>' : '') + '</div>';
+      clearTimeout(tm); if ($('#sheet').classList.contains('open') && k !== 'served' && k !== 'ready') tm = setTimeout(check, 10000);
+    };
+    $('#sgo').onclick = check;
+  }
+};
+document.addEventListener('click', e => { const t = e.target.closest('[data-o]'); if (t) OPEN[t.dataset.o](); });
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; if (!localStorage.getItem('appInstNo_' + R)) $('#install').style.display = 'flex'; });
+$('#instBtn').onclick = async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; $('#install').style.display = 'none'; };
+$('#instNo').onclick = () => { localStorage.setItem('appInstNo_' + R, '1'); $('#install').style.display = 'none'; };
+(async () => {
+  if (!R) { $('#root').innerHTML = '<div class="loading">رابط غير مكتمل</div>'; return; }
+  try {
+    C = await api('getAppConfig');
+    if (!C.success) { $('#root').innerHTML = '<div class="loading">' + h(C.error || 'غير متاح') + '</div>'; return; }
+    setManifest(); render();
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.navigator.standalone;
+    if (ios && !localStorage.getItem('appInstNo_' + R)) { $('#instTxt').textContent = 'للتثبيت: اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية»'; $('#instBtn').style.display = 'none'; $('#install').style.display = 'flex'; }
+    if (qs.get('o') && OPEN[qs.get('o')]) OPEN[qs.get('o')]();
+  } catch (e) { $('#root').innerHTML = '<div class="loading">تعذر الاتصال، حاول مجدداً</div>'; }
+})();
+</script>
+</body>
+</html>
