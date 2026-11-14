@@ -22,6 +22,7 @@ h1{font-size:1.6rem}.welcome{color:#cbd5e1;margin-top:6px;line-height:1.7}
 .tile{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:18px 14px;text-align:center;cursor:pointer;color:inherit;text-decoration:none;display:block;font-family:inherit;font-size:1rem;width:100%}
 .tile i{font-size:1.7rem;color:var(--c);display:block;margin-bottom:8px}
 .tile b{display:block}.tile small{color:#94a3b8;font-size:.8rem}
+.tile.inst{grid-column:1/-1;border:1px dashed var(--c)}
 .tile.big{grid-column:1/-1;background:var(--c);color:#0b0e17;border:0}.tile.big i{color:#0b0e17}.tile.big small{color:rgba(0,0,0,.65)}
 .contact{display:flex;justify-content:center;gap:12px;margin:22px 0}
 .contact a{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.07);color:var(--c);font-size:1.3rem;text-decoration:none}
@@ -52,9 +53,10 @@ footer{text-align:center;color:#475569;font-size:.75rem;margin-top:20px}
 <div class="wrap" id="root"><div class="loading">جاري التحميل...</div></div>
 <div class="sheet" id="sheet"><div class="box" id="box"></div></div>
 <div id="install"><b id="instTxt">ثبّت التطبيق على جوالك</b><button id="instBtn">تثبيت</button><button class="no" id="instNo">لاحقاً</button></div>
-<script src="js/config.js?v=4.0"></script>
+<script src="js/config.js?v=4.2"></script>
 <script>
-const qs = new URLSearchParams(location.search), R = (qs.get('r') || '').trim().toLowerCase();
+const qs = new URLSearchParams(location.search), R = (qs.get('r') || localStorage.getItem('appLastR') || '').trim().toLowerCase();
+if (R) try { localStorage.setItem('appLastR', R); } catch (e) {}
 const $ = s => document.querySelector(s);
 const h = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 let C = null, deferred = null;
@@ -64,7 +66,8 @@ function setManifest() {
   const icon = C.icon || 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="110" fill="' + (C.color || '#b48554') + '"/><text x="256" y="330" font-size="260" text-anchor="middle" fill="#0b0e17" font-family="Arial" font-weight="bold">' + h((C.shortName || C.name || 'R').trim().charAt(0)) + '</text></svg>');
   const m = { name: C.name, short_name: (C.shortName || C.name).slice(0, 14), start_url: base() + 'app.html?r=' + encodeURIComponent(R), scope: base(), display: 'standalone', dir: 'rtl', lang: 'ar', background_color: C.bg || '#0b0e17', theme_color: C.color || '#b48554',
     icons: [{ src: icon, sizes: '192x192', purpose: 'any' }, { src: icon, sizes: '512x512', purpose: 'any maskable' }] };
-  const l = document.createElement('link'); l.rel = 'manifest'; l.href = 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(m)); document.head.appendChild(l);
+  const l = document.createElement('link'); l.rel = 'manifest'; l.href = COST_API_URL + '?fn=appManifest&r=' + encodeURIComponent(R) + '&base=' + encodeURIComponent(base()) + '&api=' + encodeURIComponent(COST_API_URL); document.head.appendChild(l);
+  void m;
   $('#appleIcon').href = icon; $('#favIcon').href = icon; $('#themeColor').content = C.bg || '#0b0e17';
 }
 function menuUrl() { return base() + 'menu.html?r=' + encodeURIComponent(R); }
@@ -79,7 +82,8 @@ function render() {
     (f.loyalty ? '<button class="tile" data-o="loy"><i class="fas fa-gift"></i><b>نقاطي</b><small>رصيد الولاء</small></button>' : '') +
     (f.orderStatus ? '<button class="tile" data-o="st"><i class="fas fa-receipt"></i><b>حالة طلبي</b><small>تتبع طلبك برقمه</small></button>' : '') +
     (C.googleReview ? '<a class="tile" href="' + h(C.googleReview) + '" target="_blank" rel="noopener"><i class="fab fa-google"></i><b>قيّمنا</b><small>رأيك يهمنا</small></a>' : '') +
-    (C.maps ? '<a class="tile" href="' + h(C.maps) + '" target="_blank" rel="noopener"><i class="fas fa-map-marker-alt"></i><b>موقعنا</b><small>الاتجاهات على الخريطة</small></a>' : '') + '</div>' +
+    (C.maps ? '<a class="tile" href="' + h(C.maps) + '" target="_blank" rel="noopener"><i class="fas fa-map-marker-alt"></i><b>موقعنا</b><small>الاتجاهات على الخريطة</small></a>' : '') +
+    (isStandalone() ? '' : '<button class="tile inst" data-o="inst"><i class="fas fa-mobile-screen-button"></i><b>حمّل التطبيق</b><small>تثبيت مباشر على جوالك بدون متجر</small></button>') + '</div>' +
     '<div class="contact">' + (C.phone ? '<a href="tel:' + h(C.phone) + '" title="اتصال"><i class="fas fa-phone"></i></a>' : '') + (wa ? '<a href="https://wa.me/' + wa + '" target="_blank" title="واتساب"><i class="fab fa-whatsapp"></i></a>' : '') + (C.instagram ? '<a href="' + h(C.instagram) + '" target="_blank" title="إنستغرام"><i class="fab fa-instagram"></i></a>' : '') + '</div>' +
     '<footer>' + h(C.name) + '</footer>';
 }
@@ -87,7 +91,20 @@ function sheet(html) { $('#box').innerHTML = html; $('#sheet').classList.add('op
 function closeSheet() { $('#sheet').classList.remove('open'); }
 $('#sheet').addEventListener('click', e => { if (e.target.id === 'sheet' || e.target.closest('.x')) closeSheet(); });
 function localDT(d) { const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000); return z.toISOString().slice(0, 16); }
+function isStandalone() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+const IS_IOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+async function doInstall() {
+  if (deferred) { deferred.prompt(); const c = await deferred.userChoice.catch(() => ({})); deferred = null; $('#install').style.display = 'none'; if (c && c.outcome === 'accepted') closeSheet(); return true; }
+  return false;
+}
 const OPEN = {
+  async inst() {
+    if (await doInstall()) return;
+    const steps = IS_IOS
+      ? ['افتح هذه الصفحة في متصفح Safari', 'اضغط زر المشاركة <i class="fas fa-arrow-up-from-bracket"></i> أسفل الشاشة', 'اختر «إضافة إلى الشاشة الرئيسية»', 'اضغط «إضافة» — ستظهر أيقونة ' + h(C.name) + ' على جوالك']
+      : ['افتح قائمة المتصفح <i class="fas fa-ellipsis-vertical"></i> في الأعلى', 'اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية»', 'اضغط «تثبيت» — يعمل التطبيق كتطبيق مستقل'];
+    sheet('<h2>تثبيت التطبيق <button class="x">&times;</button></h2><p style="color:#cbd5e1;line-height:1.8;margin-bottom:10px">التطبيق يُثبّت مباشرة من المتصفح (PWA) — لا يحتاج متجر تطبيقات ولا مساحة كبيرة.</p><ol style="padding-right:20px;line-height:2.2">' + steps.map(x => '<li>' + x + '</li>').join('') + '</ol>');
+  },
   resv() {
     const t = new Date(Date.now() + 2 * 3600e3); t.setMinutes(0, 0, 0);
     sheet('<h2>حجز طاولة <button class="x">&times;</button></h2>' + ((C.branches || []).length > 1 ? '<label>الفرع</label><select id="rb">' + C.branches.map(b => '<option value="' + h(b.id) + '">' + h(b.name) + '</option>').join('') + '</select>' : '') +
@@ -127,8 +144,10 @@ const OPEN = {
   }
 };
 document.addEventListener('click', e => { const t = e.target.closest('[data-o]'); if (t) OPEN[t.dataset.o](); });
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+window.addEventListener('appinstalled', () => { $('#install').style.display = 'none'; const t = document.querySelector('.tile.inst'); if (t) t.remove(); });
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; if (!localStorage.getItem('appInstNo_' + R)) $('#install').style.display = 'flex'; });
-$('#instBtn').onclick = async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; $('#install').style.display = 'none'; };
+$('#instBtn').onclick = async () => { if (!(await doInstall())) OPEN.inst(); };
 $('#instNo').onclick = () => { localStorage.setItem('appInstNo_' + R, '1'); $('#install').style.display = 'none'; };
 (async () => {
   if (!R) { $('#root').innerHTML = '<div class="loading">رابط غير مكتمل</div>'; return; }
@@ -136,8 +155,7 @@ $('#instNo').onclick = () => { localStorage.setItem('appInstNo_' + R, '1'); $('#
     C = await api('getAppConfig');
     if (!C.success) { $('#root').innerHTML = '<div class="loading">' + h(C.error || 'غير متاح') + '</div>'; return; }
     setManifest(); render();
-    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.navigator.standalone;
-    if (ios && !localStorage.getItem('appInstNo_' + R)) { $('#instTxt').textContent = 'للتثبيت: اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية»'; $('#instBtn').style.display = 'none'; $('#install').style.display = 'flex'; }
+    if (IS_IOS && !isStandalone() && !localStorage.getItem('appInstNo_' + R)) { $('#instTxt').textContent = 'ثبّت التطبيق على جوالك: المشاركة ثم «إضافة إلى الشاشة الرئيسية»'; $('#instBtn').textContent = 'الطريقة'; $('#install').style.display = 'flex'; }
     if (qs.get('o') && OPEN[qs.get('o')]) OPEN[qs.get('o')]();
   } catch (e) { $('#root').innerHTML = '<div class="loading">تعذر الاتصال، حاول مجدداً</div>'; }
 })();

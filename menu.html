@@ -140,7 +140,8 @@
       .grid { grid-template-columns: repeat(3, 1fr); max-width: 860px; margin: 0 auto; }
       header, .cats, .banner-track { max-width: 860px; margin-left: auto; margin-right: auto; }
     }
-  </style>
+  .card.soldout{opacity:.6}.card.soldout .card-img{filter:grayscale(1)}.plus.so{width:auto;padding:0 12px;font-size:.85rem;background:#64748b!important;color:#fff!important;cursor:not-allowed}
+</style>
 
 <style>
 :root{--bg:#10151e;--card:#192230;--line:#ffffff16;--gold:#edc98a;--text:#f8f6f1;--muted:#aab5c5}
@@ -249,7 +250,7 @@ footer.menu-foot b{color:var(--gold);font-weight:600;letter-spacing:.8px}
     <div class="sheet-box" id="cartSheetBox"></div>
   </div>
 
-<script src="js/config.js?v=4.0"></script>
+<script src="js/config.js?v=4.2"></script>
 <script>
 
 function menuImageUrl(value) {
@@ -316,6 +317,7 @@ async function loadMenu() {
     url.searchParams.set('fn', 'getPublicMenu');
     if (publicId) url.searchParams.set('r', publicId);
     else url.searchParams.set('restaurantEmail', restaurantEmail);
+    if (params.get('b')) url.searchParams.set('b', params.get('b'));
     url.searchParams.set('_v', Date.now());
     const res = await fetch(url.toString(), { cache:'no-store', headers: { Accept: 'application/json' } });
     const data = await res.json();
@@ -401,7 +403,7 @@ function renderGrid() {
     const title=document.createElement('h2');title.className='section-title';const tt=document.createElement('span');tt.textContent=cat;const tc=document.createElement('span');tc.className='sec-count';tc.textContent=group.length;title.append(tt,tc);section.append(title);
     const cards=document.createElement('div');cards.className='section-grid';
     group.forEach(it=>{
-      const card=document.createElement('article');card.className='card';
+      const card=document.createElement('article');card.className='card'+(it.soldOut?' soldout':'');
       const photo=document.createElement('button');photo.type='button';photo.className='card-img';photo.setAttribute('aria-label','عرض '+it.name);photo.onclick=()=>openItem(it.id);
       if(it.imageUrl){const image=document.createElement('img');image.src=menuImageUrl(it.imageUrl);image.alt=it.name;image.loading='lazy';image.decoding='async';image.onerror=()=>menuImageFallback(image);photo.append(image);}
       else{photo.textContent='صورة الوجبة';photo.classList.add('no-photo');}
@@ -411,6 +413,7 @@ function renderGrid() {
       const foot=document.createElement('div');foot.className='card-foot';
       const price=document.createElement('span');price.className='price';price.textContent=((it.sizes||[]).length>1?'ابتداءً من ':'')+Number(fromPrice(it)).toFixed(2)+' '+cur();
       const add=document.createElement('button');add.type='button';add.className='plus';add.textContent='+';add.setAttribute('aria-label','إضافة '+it.name);add.onclick=()=>quickAdd(it.id);
+      if(it.soldOut){add.disabled=true;add.textContent='نفد';add.classList.add('so');add.setAttribute('aria-label',it.name+' غير متوفر حالياً');}
       foot.append(price,add);body.append(foot);card.append(photo,body);cards.append(card);
     });
     section.append(cards);grid.append(section);
@@ -422,6 +425,7 @@ function findItem(id) { return (menuData.items || []).find(x => x.id === id); }
 function quickAdd(id) {
   const it = findItem(id);
   if (!it) return;
+  if (it.soldOut) { alert('عذراً، «' + it.name + '» غير متوفر حالياً'); return; }
   if ((it.sizes||[]).length>1 || (it.extras||[]).length) {openItem(id);return;}
   const size = (it.sizes && it.sizes[0]) || { name: 'عادي', price: 0 };
   addLine(it, size, [], 1);
@@ -430,6 +434,7 @@ function quickAdd(id) {
 function openItem(id) {
   const it = findItem(id);
   if (!it) return;
+  const so = !!it.soldOut;
   const sizes = it.sizes && it.sizes.length ? it.sizes : [{ name: 'عادي', price: 0 }];
   const prev = (draft && draft.id === id) ? draft : null;
   draft = prev || { id, size: sizes[0].name, qty: 1, extras: {} };
@@ -455,7 +460,7 @@ function openItem(id) {
           <b id="draftQty">${draft.qty}</b>
           <button onclick="chgDraft(1)">+</button>
         </div>
-        <button class="addwide" onclick="confirmDraft()">أضف للطلب · <span id="draftTotal"></span></button>
+        ${so ? '<button class="addwide" disabled style="opacity:.55">غير متوفر حالياً<span id="draftTotal" hidden></span></button>' : '<button class="addwide" onclick="confirmDraft()">أضف للطلب · <span id="draftTotal"></span></button>'}
       </div>
     </div>`;
   document.getElementById('itemSheet').classList.add('open');
@@ -481,6 +486,7 @@ function paintDraftTotal() {
 }
 function confirmDraft() {
   const it = findItem(draft.id);
+  if (it.soldOut) return;
   const sizes = it.sizes && it.sizes.length ? it.sizes : [{ name: 'عادي', price: 0 }];
   const size = sizes.find(s => s.name === draft.size) || sizes[0];
   const extras = [];
@@ -571,8 +577,16 @@ async function sendOrderDirect() {
   const total = cart.reduce((s, c) => s + lineTotal(c), 0);
   const body = { fn: 'savePublicOrder', items: JSON.stringify(cart.map(c => ({ name: c.name, size: c.size, qty: c.qty, price: c.price, extras: c.extras || [] }))), total, notes: note, customerName: name, customerPhone: phone, tableNumber: menuData.ordering.tableOrdering ? tableNo : '' };
   if (publicId) body.r = publicId; else body.restaurantEmail = restaurantEmail;
+  if (params.get('b')) { body.b = params.get('b'); body.branchId = params.get('b'); }
   try {
     const r = await (await fetch(COST_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) })).json();
+    if (!r.success && r.soldOut && r.soldOut.length) {
+      const so = new Set(r.soldOut);
+      (menuData.items || []).forEach(it => { if (so.has(it.name)) it.soldOut = true; });
+      cart = cart.filter(c => !so.has(c.name)); paintCart(); renderGrid();
+      alert((r.error || 'بعض الأصناف نفدت') + '\nتمت إزالتها من سلتك، راجع الطلب ثم أرسله مجدداً.');
+      btn.disabled = false; btn.textContent = 'إرسال الطلب للمطعم'; if (cart.length) openCart(); else closeCart(); return;
+    }
     if (!r.success) throw new Error(r.error || 'تعذر إرسال الطلب');
     cart = []; paintCart();
     document.getElementById('cartSheetBox').innerHTML = `<div class="sheet-pad" style="text-align:center"><div style="font-size:3rem;color:#10b981">&#10004;</div><h2>تم استلام طلبك</h2><p class="checkout-note" style="margin:10px 0 16px">وصل طلبك إلى المطعم وسيتم تجهيزه بعد التأكيد${tableNo && menuData.ordering.tableOrdering ? ' — طاولة ' + esc(tableNo) : ''}.</p>${menuData.googleReviewUrl ? `<a class="addwide" style="display:block;text-decoration:none;text-align:center" href="${esc(menuData.googleReviewUrl)}" target="_blank" rel="noopener">قيّم تجربتك على Google</a>` : ''}<button class="addwide" style="width:100%;margin-top:8px" onclick="closeCart()">حسناً</button></div>`;
