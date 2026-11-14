@@ -47,19 +47,31 @@ input,select,textarea{width:100%;padding:12px;border-radius:12px;border:1px soli
 #install .no{background:#e2e8f0}
 .loading{text-align:center;padding:30vh 20px;color:#94a3b8}
 footer{text-align:center;color:#475569;font-size:.75rem;margin-top:20px}
+.acc-card{background:linear-gradient(135deg,var(--c),#0b0e17 140%);border-radius:22px;padding:18px;color:#0b0e17;text-align:center;margin-bottom:14px}
+.acc-card .qr{background:#fff;border-radius:16px;padding:10px;display:inline-block;margin:10px 0}.acc-card .qr img{width:210px;height:210px;display:block}
+.acc-card .code{font-family:monospace;font-weight:800;letter-spacing:2px;direction:ltr}
+.acc-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}.acc-row div{background:rgba(255,255,255,.05);border-radius:14px;padding:12px;text-align:center}.acc-row b{display:block;font-size:1.5rem;color:var(--c)}
+.acc-sec{margin-top:16px}.acc-sec h3{font-size:1rem;margin-bottom:8px;color:#cbd5e1}
+.acc-item{background:rgba(255,255,255,.05);border-radius:12px;padding:10px 12px;margin-bottom:8px;line-height:1.7;font-size:.92rem}.acc-item.new{border-inline-start:4px solid var(--c)}
+.acc-item small{color:#94a3b8}.acc-item .cp{font-family:monospace;background:#0b0e17;padding:2px 8px;border-radius:6px;direction:ltr;display:inline-block}
+.dot{display:inline-block;min-width:20px;height:20px;border-radius:10px;background:#ef4444;color:#fff;font-size:.75rem;line-height:20px;padding:0 6px;margin-inline-start:6px}
+.lnk{background:none;border:0;color:var(--c);font-family:inherit;cursor:pointer;font-size:.9rem;margin-top:12px}
 </style>
 </head>
 <body>
 <div class="wrap" id="root"><div class="loading">جاري التحميل...</div></div>
 <div class="sheet" id="sheet"><div class="box" id="box"></div></div>
 <div id="install"><b id="instTxt">ثبّت التطبيق على جوالك</b><button id="instBtn">تثبيت</button><button class="no" id="instNo">لاحقاً</button></div>
-<script src="js/config.js?v=4.2"></script>
+<script src="js/config.js?v=4.3"></script>
+<script src="js/domain.js?v=4.3"></script>
 <script>
 const qs = new URLSearchParams(location.search), R = (qs.get('r') || localStorage.getItem('appLastR') || '').trim().toLowerCase();
 if (R) try { localStorage.setItem('appLastR', R); } catch (e) {}
 const $ = s => document.querySelector(s);
 const h = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-let C = null, deferred = null;
+let C = null, deferred = null, ME = null, meT = null;
+const CT_KEY = 'appCustToken_' + R;
+const ct = () => localStorage.getItem(CT_KEY) || '';
 async function api(fn, p) { return (await fetch(COST_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ fn, r: R }, p || {})) })).json(); }
 function base() { return location.href.replace(/[^/]*(\?.*)?$/, ''); }
 function setManifest() {
@@ -77,6 +89,7 @@ function render() {
   const f = C.features || {}, wa = String(C.whatsapp || C.phone || '').replace(/\D/g, '');
   $('#root').innerHTML = '<div class="hero">' + (C.icon ? '<img class="logo" src="' + h(C.icon) + '" alt="">' : '<div class="logo"><i class="fas fa-utensils"></i></div>') + '<h1>' + h(C.name) + '</h1>' + (C.welcome ? '<p class="welcome">' + h(C.welcome) + '</p>' : '') + '</div>' +
     (C.banners && C.banners[0] ? '<img class="banner" src="' + h(C.banners[0]) + '" alt="">' : '') +
+    (f.account ? '<button class="tile big" data-o="acc" style="margin-bottom:12px"><i class="fas fa-id-card"></i><b>' + (ct() ? 'حسابي ورمز QR الخاص بي' : 'سجّل دخولك برقم جوالك') + (ME && ME.unread ? '<span class="dot">' + ME.unread + '</span>' : '') + '</b><small>' + (ME ? 'رصيدك ' + ME.points + ' نقطة · ' + ME.value + ' ' + h(C.currency || '') : 'اجمع النقاط، استلم العروض، وتابع طلباتك وحجوزاتك') + '</small></button>' : '') +
     '<div class="tiles"><a class="tile big" href="' + h(menuUrl()) + '"><i class="fas fa-book-open"></i><b>' + (f.ordering ? 'المينيو واطلب الآن' : 'تصفح المينيو') + '</b><small>' + (f.ordering ? 'اطلب مباشرة من جوالك' : 'الأصناف والأسعار') + '</small></a>' +
     (f.reservations ? '<button class="tile" data-o="resv"><i class="fas fa-calendar-check"></i><b>احجز طاولة</b><small>اختر الموعد وعدد الأشخاص</small></button>' : '') +
     (f.loyalty ? '<button class="tile" data-o="loy"><i class="fas fa-gift"></i><b>نقاطي</b><small>رصيد الولاء</small></button>' : '') +
@@ -97,7 +110,66 @@ async function doInstall() {
   if (deferred) { deferred.prompt(); const c = await deferred.userChoice.catch(() => ({})); deferred = null; $('#install').style.display = 'none'; if (c && c.outcome === 'accepted') closeSheet(); return true; }
   return false;
 }
+function qrSrc(t) { return 'https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=0&data=' + encodeURIComponent(t); }
+const ST_AR = { new: 'جديد', accepted: 'مقبول', imported: 'مقبول', rejected: 'مرفوض', done: 'مكتمل', pending: 'بانتظار التأكيد', confirmed: 'مؤكد', seated: 'تم الحضور', cancelled: 'ملغى', no_show: 'لم يحضر', paid: 'مدفوع', open: 'قيد التنفيذ', refunded: 'مسترجع', ready: 'جاهز', preparing: 'قيد التحضير', served: 'تم التسليم' };
+async function loadMe(silent) {
+  if (!ct()) return null;
+  const r = await api('custMe', { ct: ct() }).catch(() => null);
+  if (!r) return ME;
+  if (!r.success) { if (/الجلسة|غير صالحة|لا تخص|غير موجود/.test(r.error || '')) { localStorage.removeItem(CT_KEY); ME = null; } return null; }
+  const prevIds = ME ? new Set((ME.inbox || []).map(x => x.id)) : null;
+  ME = r;
+  localStorage.setItem('appPhone_' + R, r.phone || ''); localStorage.setItem('appName_' + R, r.name || '');
+  if (prevIds) (r.inbox || []).filter(x => !prevIds.has(x.id)).forEach(x => notify(x.title, x.body));
+  if (!silent) render();
+  return r;
+}
+async function notify(title, body) {
+  try {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+    if (reg && reg.showNotification) reg.showNotification(title, { body: body || '', icon: C.icon || undefined, tag: 'fc-' + Date.now(), dir: 'rtl', lang: 'ar' });
+    else new Notification(title, { body: body || '' });
+  } catch (e) { /* */ }
+}
+function startMePoll() { clearInterval(meT); if (ct()) meT = setInterval(async () => { await loadMe(true); if ($('#sheet').classList.contains('open') && $('#accBox')) drawAcc(); else render(); }, 30000); }
+function drawAcc() {
+  const m = ME, cur = h(C.currency || '');
+  const unread = (m.inbox || []).filter(x => !x.read_at).length;
+  $('#box').innerHTML = '<h2>حسابي <button class="x">&times;</button></h2><div id="accBox">' +
+    '<div class="acc-card"><b style="font-size:1.15rem">' + h(m.name) + '</b><div class="qr"><img src="' + qrSrc(m.qr) + '" alt="QR"></div><div class="code">' + h(m.qr) + '</div><small>اعرض هذا الرمز على الكاشير لتجميع النقاط أو الخصم من فاتورتك</small></div>' +
+    '<div class="acc-row">' + (m.loyalty ? '<div>رصيد النقاط<b>' + m.points + '</b><small>تعادل ' + m.value + ' ' + cur + '</small></div>' : '') + '<div>الزيارات<b>' + (m.visits || 0) + '</b><small>إجمالي ' + m.totalSpent + ' ' + cur + '</small></div></div>' +
+    (m.minRedeem && m.loyalty ? '<small style="color:#94a3b8">يمكن الاستبدال من ' + m.minRedeem + ' نقطة</small>' : '') +
+    (('Notification' in window) && Notification.permission !== 'granted' ? '<button class="btn" id="accNotif" style="background:#1e2537;color:#fff"><i class="fas fa-bell"></i> تفعيل التنبيهات على جوالي</button>' : '') +
+    '<div class="acc-sec"><h3>الرسائل والعروض' + (unread ? '<span class="dot">' + unread + '</span>' : '') + '</h3>' + ((m.inbox || []).length ? m.inbox.slice(0, 15).map(x => '<div class="acc-item' + (x.read_at ? '' : ' new') + '"><b>' + h(x.title) + '</b>' + (x.body ? '<div>' + h(x.body) + '</div>' : '') + (x.code ? '<div>كود الخصم: <span class="cp">' + h(x.code) + '</span></div>' : '') + '<small>' + new Date(x.created_at).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) + '</small></div>').join('') : '<div class="acc-item"><small>لا توجد رسائل بعد</small></div>') + '</div>' +
+    ((m.offers || []).length ? '<div class="acc-sec"><h3>العروض الحالية</h3>' + m.offers.map(o => '<div class="acc-item"><b>' + h(o.name) + '</b> — ' + (o.kind === 'percent' ? o.value + '%' : o.value + ' ' + cur) + ' <div>الكود: <span class="cp">' + h(o.code) + '</span>' + (o.min_total ? ' · حد أدنى ' + o.min_total + ' ' + cur : '') + (o.ends_at ? ' · حتى ' + String(o.ends_at).slice(0, 10) : '') + '</div></div>').join('') + '</div>' : '') +
+    ((m.giftCards || []).length ? '<div class="acc-sec"><h3>بطاقات الهدايا</h3>' + m.giftCards.map(g => '<div class="acc-item"><span class="cp">' + h(g.code) + '</span> · الرصيد <b>' + g.balance + ' ' + cur + '</b>' + (g.expires ? '<br><small>تنتهي ' + String(g.expires).slice(0, 10) + '</small>' : '') + '</div>').join('') + '</div>' : '') +
+    ((m.menuOrders || []).length || (m.orders || []).length ? '<div class="acc-sec"><h3>طلباتي</h3>' + (m.menuOrders || []).slice(0, 5).map(o => '<div class="acc-item">طلب من المينيو · ' + o.total + ' ' + cur + ' · <b>' + h(ST_AR[o.status] || o.status) + '</b><br><small>' + new Date(o.date).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) + '</small></div>').join('') + (m.orders || []).slice(0, 8).map(o => '<div class="acc-item">فاتورة #' + o.number + ' · ' + o.total + ' ' + cur + ' · <b>' + h(ST_AR[o.kitchen_status !== 'none' && o.status === 'open' ? o.kitchen_status : o.status] || o.status) + '</b><br><small>' + new Date(o.created_at).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) + '</small></div>').join('') + '</div>' : '') +
+    ((m.reservations || []).length ? '<div class="acc-sec"><h3>حجوزاتي</h3>' + m.reservations.map(x => '<div class="acc-item">' + new Date(x.reserved_at).toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' }) + ' · ' + x.party_size + ' أشخاص · <b>' + h(ST_AR[x.status] || x.status) + '</b></div>').join('') + '</div>' : '') +
+    '<div style="display:flex;justify-content:space-between"><button class="lnk" id="accPin">تغيير الرمز السري</button><button class="lnk" id="accOut">تسجيل الخروج</button></div></div>';
+  if (unread) api('custInboxRead', { ct: ct() }).then(() => { (ME.inbox || []).forEach(x => { x.read_at = x.read_at || new Date().toISOString(); }); ME.unread = 0; render(); }).catch(() => {});
+  const nb = $('#accNotif'); if (nb) nb.onclick = async () => { try { const p = await Notification.requestPermission(); if (p === 'granted') { notify('تم تفعيل التنبيهات', 'ستصلك العروض وتنبيهات طلباتك هنا'); nb.remove(); } } catch (e) { /* */ } };
+  $('#accOut').onclick = () => { localStorage.removeItem(CT_KEY); ME = null; clearInterval(meT); closeSheet(); render(); };
+  $('#accPin').onclick = async () => { const p = prompt('الرمز السري الجديد (4 إلى 6 أرقام)'); if (!p) return; const r = await api('custSetPin', { ct: ct(), pin: p }).catch(() => ({ error: 'تعذر الاتصال' })); alert(r.success ? 'تم تغيير الرمز السري' : r.error); };
+}
 const OPEN = {
+  async acc() {
+    if (ct()) { sheet('<h2>حسابي <button class="x">&times;</button></h2><div class="res">جاري التحميل...</div>'); const r = await loadMe(true); if (r) { drawAcc(); render(); return; } }
+    sheet('<h2>تسجيل الدخول <button class="x">&times;</button></h2><p style="color:#cbd5e1;line-height:1.8">سجّل برقم جوالك ليصبح لديك رمز QR خاص تجمع به النقاط وتستلم العروض مباشرة.</p>' +
+      '<label>رقم الجوال</label><input id="cp" dir="ltr" inputmode="tel" value="' + h(localStorage.getItem('appPhone_' + R) || '') + '">' +
+      '<label>الرمز السري (4 إلى 6 أرقام) — في أول دخول اختر رمزاً جديداً</label><input id="cpin" type="password" inputmode="numeric" maxlength="6" dir="ltr">' +
+      '<div id="cnW" style="display:none"><label>اسمك</label><input id="cn" value="' + h(localStorage.getItem('appName_' + R) || '') + '"></div>' +
+      '<button class="btn" id="cgo">دخول</button><div id="cr"></div>');
+    $('#cgo').onclick = async () => {
+      const b = $('#cgo'); b.disabled = true;
+      const r = await api('custLogin', { phone: $('#cp').value, pin: $('#cpin').value, name: $('#cn').value }).catch(() => ({ error: 'تعذر الاتصال' }));
+      b.disabled = false;
+      if (r.needName) { $('#cnW').style.display = ''; $('#cn').focus(); $('#cr').innerHTML = '<div class="res">' + h(r.error) + '</div>'; b.textContent = 'إنشاء حسابي'; return; }
+      if (!r.success) { $('#cr').innerHTML = '<div class="res err">' + h(r.error) + '</div>'; return; }
+      localStorage.setItem(CT_KEY, r.token); localStorage.setItem('appPhone_' + R, $('#cp').value);
+      await loadMe(true); drawAcc(); render(); startMePoll();
+    };
+  },
   async inst() {
     if (await doInstall()) return;
     const steps = IS_IOS
@@ -154,7 +226,9 @@ $('#instNo').onclick = () => { localStorage.setItem('appInstNo_' + R, '1'); $('#
   try {
     C = await api('getAppConfig');
     if (!C.success) { $('#root').innerHTML = '<div class="loading">' + h(C.error || 'غير متاح') + '</div>'; return; }
-    setManifest(); render();
+    setManifest();
+    if (ct() && (C.features || {}).account) { await loadMe(true); startMePoll(); }
+    render();
     if (IS_IOS && !isStandalone() && !localStorage.getItem('appInstNo_' + R)) { $('#instTxt').textContent = 'ثبّت التطبيق على جوالك: المشاركة ثم «إضافة إلى الشاشة الرئيسية»'; $('#instBtn').textContent = 'الطريقة'; $('#install').style.display = 'flex'; }
     if (qs.get('o') && OPEN[qs.get('o')]) OPEN[qs.get('o')]();
   } catch (e) { $('#root').innerHTML = '<div class="loading">تعذر الاتصال، حاول مجدداً</div>'; }

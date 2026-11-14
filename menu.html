@@ -250,7 +250,8 @@ footer.menu-foot b{color:var(--gold);font-weight:600;letter-spacing:.8px}
     <div class="sheet-box" id="cartSheetBox"></div>
   </div>
 
-<script src="js/config.js?v=4.2"></script>
+<script src="js/config.js?v=4.3"></script>
+<script src="js/domain.js?v=4.3"></script>
 <script>
 
 function menuImageUrl(value) {
@@ -522,7 +523,7 @@ function paintCart() {
 }
 
 function openCart() {
-  const prevName=document.getElementById('custName')?.value||sessionStorage.getItem('menuCustomerName')||'';
+  const prevName=document.getElementById('custName')?.value||sessionStorage.getItem('menuCustomerName')||localStorage.getItem('appName_'+publicId)||'';
   const prevNote=document.getElementById('custNote')?.value||sessionStorage.getItem('menuCustomerNote')||'';
   const lines=cart.map((c,i)=>`<div class="cart-line"><div><b>${esc(c.name)}</b><p>${esc(c.size||'')}</p><small>${(c.extras||[]).map(e=>esc(e.name)+' ×'+e.qty).join('، ')}</small><div class="cart-step"><button onclick="changeCartQty(${i},-1)" aria-label="تقليل الكمية">−</button><span>${c.qty}</span><button onclick="changeCartQty(${i},1)" aria-label="زيادة الكمية">+</button><button onclick="removeCartLine(${i})">حذف</button></div></div><strong>${lineTotal(c).toFixed(2)} ${esc(cur())}</strong></div>`).join('');
   const total=cart.reduce((s,c)=>s+lineTotal(c),0);
@@ -560,7 +561,7 @@ function checkoutHtml(total) {
   const wa = String((menuData.settings && menuData.settings.whatsapp) || '').replace(/\D/g, '');
   const dis = cart.length ? '' : 'disabled';
   if (!orderingOn()) return `<p class="checkout-note">سيتم فتح واتساب لمراجعة الرسالة وإرسالها. لا يُعد الطلب مؤكداً حتى يرد المطعم.</p><button class="addwide" ${dis} style="width:100%" onclick="sendWhatsApp()">متابعة إلى واتساب · ${total.toFixed(2)} ${esc(cur())}</button>`;
-  const ord = menuData.ordering, prevPhone = sessionStorage.getItem('menuCustomerPhone') || '';
+  const ord = menuData.ordering, prevPhone = sessionStorage.getItem('menuCustomerPhone') || localStorage.getItem('appPhone_' + publicId) || '';
   const tbl = tableNo && ord.tableOrdering ? `<div class="checkout-note" style="font-weight:700">الطلب على طاولة رقم: ${esc(tableNo)}</div>` : '';
   return `<label for="custPhone">رقم الجوال ${ord.requirePhone ? '(مطلوب)' : '(اختياري)'}</label><input id="custPhone" dir="ltr" inputmode="tel" value="${esc(prevPhone)}" placeholder="05xxxxxxxx" oninput="sessionStorage.setItem('menuCustomerPhone',this.value)">${tbl}
     <p class="checkout-note">يصل طلبك مباشرة إلى المطعم، ويتم تأكيده من الكاشير.</p>

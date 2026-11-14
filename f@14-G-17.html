@@ -523,6 +523,34 @@
             .sub-title { font-size: 1.5rem; }
             .sub-card { padding: 1.6rem 1rem; }
         }
+
+        /* ===== الباقات ===== */
+        .plans-sec{width:92%;max-width:1100px;margin:10px auto 30px;position:relative;z-index:2}
+        .plans-sec h2{text-align:center;font-family:'Alexandria',sans-serif;color:var(--gold-light);font-size:1.5rem;margin-bottom:6px}
+        .plans-sec .ps-sub{text-align:center;color:#9aa6bd;margin-bottom:22px}
+        .pl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+        .pl{background:rgba(15,20,30,.85);border:1px solid rgba(184,134,11,.2);border-radius:24px;padding:24px 20px;display:flex;flex-direction:column;position:relative}
+        .pl.pop{border:2px solid var(--gold);box-shadow:0 10px 40px rgba(184,134,11,.18)}
+        .pl .tagp{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:#0a0d14;font-weight:800;font-size:.78rem;padding:4px 14px;border-radius:50px}
+        .pl h3{font-family:'Alexandria',sans-serif;font-size:1.3rem;color:#fff}
+        .pl .tg{color:#9aa6bd;font-size:.86rem;margin:4px 0 12px;min-height:2.6em}
+        .pl .pr{font-size:2.3rem;font-weight:900;color:var(--gold-light)}
+        .pl .pr small{font-size:.9rem;color:#9aa6bd;font-weight:500}
+        .pl .br{color:#cbd5e1;font-size:.84rem;margin-bottom:12px}
+        .pl ul{list-style:none;padding:0;margin:0 0 16px;flex:1}
+        .pl li{padding:5px 0;font-size:.9rem;color:#dbe3f0;display:flex;gap:8px;align-items:flex-start}
+        .pl li i{color:var(--gold);margin-top:4px;font-size:.8rem}
+        .pl li.inh{color:var(--gold-light);font-weight:700}
+        .pl .pb{display:flex;gap:8px}
+        .pl .pb button,.pl .pb a{flex:1;text-align:center;padding:11px;border-radius:14px;font-family:inherit;font-weight:800;cursor:pointer;text-decoration:none;font-size:.92rem;border:1px solid var(--gold);background:transparent;color:var(--gold-light)}
+        .pl .pb .pay{background:var(--gold);color:#0a0d14}
+        .plan-pick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+        .plan-pick label{border:1px solid rgba(184,134,11,.3);border-radius:12px;padding:8px 4px;text-align:center;cursor:pointer;font-size:.85rem;color:#cbd5e1;margin:0}
+        .plan-pick input{display:none}
+        .plan-pick label b{display:block;color:#fff;font-size:.95rem}
+        .plan-pick input:checked+span{color:var(--gold-light)}
+        .plan-pick label:has(input:checked){border-color:var(--gold);background:rgba(184,134,11,.15)}
+        @media(max-width:860px){.pl-grid{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
@@ -540,7 +568,7 @@
         </div>
 
         <h1 class="sub-title">منصة التكلفة وهندسة قائمة الطعام</h1>
-        <p class="sub-desc">اختر أحد الخيارين للبدء</p>
+        <p class="sub-desc">ثلاث باقات سنوية: الأساسية 99$ · الإنطلاقة 299$ · المتقدمة 499$ — <a href="#plans" style="color:var(--gold-light)">قارن الباقات</a></p>
 
         <div class="action-buttons">
             <button class="action-btn primary" id="openRegisterModalBtn">
@@ -558,6 +586,12 @@
         </div>
     </div>
 
+
+    <section class="plans-sec" id="plans">
+        <h2>اختر الباقة المناسبة لنشاطك</h2>
+        <p class="ps-sub">اشتراك سنوي · ادفع عبر رابط الدفع ثم أدخل رقم العملية لتفعيل الباقة فوراً</p>
+        <div class="pl-grid" id="plGrid"></div>
+    </section>
     <div class="mini-footer">
         جميع الحقوق محفوظة © 2026 <span>FAROUK GRUP</span> &mdash; إسطنبول، تركيا
     </div>
@@ -567,6 +601,19 @@
         <div class="modal-box">
             <h3><i class="fas fa-user-plus"></i> اشتراك جديد</h3>
             <form id="registerForm">
+                <div class="field-group">
+                    <label>الباقة</label>
+                    <div class="plan-pick" id="regPlanPick">
+                        <label><input type="radio" name="regPlan" value="basic"><span><b>الأساسية</b>99$ / سنة</span></label>
+                        <label><input type="radio" name="regPlan" value="pro" checked><span><b>الإنطلاقة</b>299$ / سنة</span></label>
+                        <label><input type="radio" name="regPlan" value="premium"><span><b>المتقدمة</b>499$ / سنة</span></label>
+                    </div>
+                </div>
+                <div class="field-group" id="regTxGroup">
+                    <label>معرّف عملية الدفع</label>
+                    <input type="text" id="regTxId" placeholder="رقم العملية بعد الدفع (8 أرقام على الأقل)" inputmode="numeric">
+                    <div class="tx-id-hint"><i class="fas fa-info-circle"></i> مطلوب لباقتي الإنطلاقة والمتقدمة — <a href="#" id="regPayLink" style="color:var(--gold-light)">ادفع الآن</a></div>
+                </div>
                 <div class="field-group">
                     <label>الاسم الكامل (اختياري)</label>
                     <input type="text" id="regFullName" placeholder="الاسم الكامل">
@@ -602,6 +649,14 @@
             <h3><i class="fas fa-sync-alt"></i> تجديد الاشتراك</h3>
             <form id="renewForm">
                 <div class="field-group">
+                    <label>الباقة</label>
+                    <div class="plan-pick" id="renewPlanPick">
+                        <label><input type="radio" name="renewPlan" value="basic"><span><b>الأساسية</b>99$ / سنة</span></label>
+                        <label><input type="radio" name="renewPlan" value="pro" checked><span><b>الإنطلاقة</b>299$ / سنة</span></label>
+                        <label><input type="radio" name="renewPlan" value="premium"><span><b>المتقدمة</b>499$ / سنة</span></label>
+                    </div>
+                </div>
+                <div class="field-group">
                     <label>معرّف العملية (رقم الدفع)</label>
                     <input type="text" id="renewTxId" placeholder="أدخل 8 أرقام على الأقل" required minlength="8">
                     <div class="tx-id-hint"><i class="fas fa-info-circle"></i> يجب أن يكون 8 أرقام أو أكثر</div>
@@ -629,7 +684,8 @@
     </div>
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="js/config.js?v=3.1"></script>
+    <script src="js/config.js?v=4.3"></script>
+    <script src="js/plans-data.js?v=4.3"></script>
     <script>
     // ---- كود الحماية ومنع الوصول لأدوات المطور ----
     document.addEventListener('keydown', function(e) {
@@ -801,7 +857,7 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري إنشاء الحساب...';
 
             try {
-                const params = { fn: 'register', email, password, fullName: fullName || '' };
+                const params = { fn: 'register', email, password, fullName: fullName || '', plan: pickedPlan('reg'), txId: (document.getElementById('regTxId').value || '').trim() };
                 const resp = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=UTF-8', 'Accept': 'application/json' },
@@ -878,7 +934,8 @@
                     fn: 'renewSubscription',
                     email: email,
                     password: password,
-                    txId: txId
+                    txId: txId,
+                    plan: pickedPlan('renew')
                 };
                 const renewResp = await fetch(API_URL, {
                     method: 'POST',
@@ -894,7 +951,7 @@
                         ? '<br><small>صالح حتى: ' + renewData.newExpiry + '</small>'
                         : '';
                     msgBox.className = 'msg-box success';
-                    msgBox.innerHTML = '<i class="fas fa-check-circle"></i> ✅ تم تجديد اشتراكك بنجاح' + expiryText +
+                    msgBox.innerHTML = '<i class="fas fa-check-circle"></i> تم تجديد اشتراكك بنجاح' + expiryText +
                         '<br><a href="index.html" target="_blank" class="login-link">اذهب إلى تسجيل الدخول</a>';
                     document.getElementById('renewForm').reset();
                 } else {
@@ -911,6 +968,70 @@
                 btn.innerHTML = '<i class="fas fa-sync-alt"></i> تجديد الاشتراك';
             }
         });
+
+        // ===== الباقات =====
+        function pickedPlan(pre) { const r = document.querySelector('input[name="' + pre + 'Plan"]:checked'); return r ? r.value : 'basic'; }
+        function setPlan(pre, k) { const r = document.querySelector('input[name="' + pre + 'Plan"][value="' + k + '"]'); if (r) r.checked = true; syncReg(); }
+        function payUrl(k) { return (typeof PAYMENT_LINKS !== 'undefined' && PAYMENT_LINKS[k]) || ''; }
+        function openPayPopup(k, u) {
+            const p = (typeof FC_PLANS !== 'undefined' ? FC_PLANS : []).find(x => x.key === k) || { name: k, price: '' };
+            let ov = document.getElementById('payPopup');
+            if (!ov) {
+                ov = document.createElement('div'); ov.id = 'payPopup';
+                ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px';
+                ov.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:820px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4)">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:linear-gradient(135deg,#1f2433,#b48554);color:#fff"><h3 id="payPopupT" style="margin:0;font-size:17px"></h3><button type="button" id="payPopupX" style="background:none;border:0;color:#fff;font-size:26px;cursor:pointer;line-height:1">&times;</button></div>' +
+                    '<iframe id="payPopupF" allow="payment" allowfullscreen style="width:100%;height:70vh;border:0;display:block;background:#fff"></iframe>' +
+                    '<div style="padding:12px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;color:#333;font-size:13px"><span>بعد إتمام الدفع أدخل رقم العملية في نموذج التسجيل أو التجديد لتفعيل الباقة.</span><a id="payPopupO" target="_blank" rel="noopener" style="color:#b48554">فتح في نافذة جديدة</a></div></div>';
+                document.body.appendChild(ov);
+                const close = () => { ov.style.display = 'none'; document.getElementById('payPopupF').src = 'about:blank'; };
+                ov.addEventListener('click', e => { if (e.target === ov || e.target.id === 'payPopupX') close(); });
+                document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+            }
+            document.getElementById('payPopupT').innerHTML = '<i class="fas fa-lock"></i> الاشتراك في باقة ' + p.name + (p.price ? ' — ' + p.price + '$ سنوياً' : '');
+            document.getElementById('payPopupF').src = u;
+            document.getElementById('payPopupO').href = u;
+            ov.style.display = 'flex';
+        }
+        function payPlan(k) {
+            const u = payUrl(k);
+            if (u) { openPayPopup(k, u); return; }
+            const p = (typeof FC_PLANS !== 'undefined' ? FC_PLANS : []).find(x => x.key === k) || { name: k, price: '' };
+            const wa = (typeof SUPPORT_WHATSAPP !== 'undefined' && SUPPORT_WHATSAPP) || '';
+            const msg = 'مرحباً، أرغب في الاشتراك في باقة ' + p.name + ' (' + p.price + '$ سنوياً)';
+            if (wa) window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(msg), '_blank');
+            else alert('رابط الدفع لهذه الباقة غير مضبوط بعد. تواصل معنا لإتمام الاشتراك.');
+        }
+        function syncReg() {
+            const k = pickedPlan('reg'), g = document.getElementById('regTxGroup');
+            if (g) g.style.display = k === 'basic' ? 'none' : '';
+            const l = document.getElementById('regPayLink'); if (l) l.onclick = e => { e.preventDefault(); payPlan(k); };
+        }
+        document.querySelectorAll('input[name="regPlan"]').forEach(r => r.addEventListener('change', syncReg));
+        (function renderPlans() {
+            const g = document.getElementById('plGrid'); if (!g || typeof FC_PLANS === 'undefined') return;
+            const pk = { basic: 1, pro: 2, premium: 3 };
+            g.innerHTML = FC_PLANS.map((p, i) => {
+                const prev = FC_PLANS[i - 1];
+                const own = FC_PLAN_ROWS.filter(r => r[pk[p.key]] && (!prev || !r[pk[prev.key]] || (typeof r[pk[p.key]] === 'string' && r[pk[p.key]] !== r[pk[prev.key]])));
+                const li = (prev ? '<li class="inh"><i class="fas fa-plus"></i> كل ما في ' + prev.name + '، بالإضافة إلى:</li>' : '') +
+                    own.map(r => '<li><i class="fas fa-check"></i> ' + r[0] + (typeof r[pk[p.key]] === 'string' ? ' · ' + r[pk[p.key]] : '') + '</li>').join('');
+                return '<div class="pl' + (p.popular ? ' pop' : '') + '">' + (p.popular ? '<span class="tagp">الأكثر طلباً</span>' : '') + '<h3>' + p.name + '</h3><div class="tg">' + p.tag + '</div><div class="pr">' + p.price + '$ <small>/ سنوياً</small></div><div class="br">' + p.branches + '</div><ul>' + li + '</ul>' +
+                    '<div class="pb"><button type="button" class="pay" data-pay="' + p.key + '">ادفع</button><button type="button" data-reg="' + p.key + '">اشترك</button><button type="button" data-ren="' + p.key + '">جدّد / رقِّ</button></div></div>';
+            }).join('');
+            g.addEventListener('click', e => {
+                const a = e.target.closest('[data-pay]'), r = e.target.closest('[data-reg]'), n = e.target.closest('[data-ren]');
+                if (a) payPlan(a.dataset.pay);
+                if (r) { openRegisterModal(); setPlan('reg', r.dataset.reg); }
+                if (n) { openRenewModal(); setPlan('renew', n.dataset.ren); }
+            });
+        })();
+        (function preselect() {
+            const q = new URLSearchParams(location.search), k = q.get('plan'), em = q.get('email');
+            if (k && /^(basic|pro|premium)$/.test(k)) { setPlan('reg', k); setPlan('renew', k); }
+            if (em) { openRenewModal(); if (k) setPlan('renew', k); document.getElementById('renewEmail').value = em; }
+            syncReg();
+        })();
     </script>
 </body>
 </html>

@@ -69,7 +69,7 @@ li .nt{color:#fbbf24}
   </header>
   <div id="grid"></div>
 </div>
-<script src="js/config.js?v=4.2"></script>
+<script src="js/config.js?v=4.3"></script>
 <script>
 const $ = s => document.querySelector(s);
 const h = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -92,10 +92,21 @@ $('#lb').onclick = async () => {
   start();
 };
 $('#lp').addEventListener('keydown', e => { if (e.key === 'Enter') $('#lb').click(); });
+let AC = null, alarmT = null;
+function ac() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } } if (AC.state === 'suspended') AC.resume().catch(() => {}); return AC; }
 function beep() {
   if (!sound) return;
-  try { const c = new (window.AudioContext || window.webkitAudioContext)(); [0, .25].forEach(t => { const o = c.createOscillator(), g = c.createGain(); o.frequency.value = 880; o.connect(g); g.connect(c.destination); g.gain.setValueAtTime(.25, c.currentTime + t); g.gain.exponentialRampToValueAtTime(.001, c.currentTime + t + .2); o.start(c.currentTime + t); o.stop(c.currentTime + t + .22); }); } catch (e) { }
+  const c = ac(); if (!c) return;
+  [[880, 0], [1175, .22], [880, .44], [1175, .66]].forEach(([f, t]) => { const o = c.createOscillator(), g = c.createGain(); o.type = 'square'; o.frequency.value = f; o.connect(g); g.connect(c.destination); g.gain.setValueAtTime(.0001, c.currentTime + t); g.gain.exponentialRampToValueAtTime(.4, c.currentTime + t + .02); g.gain.exponentialRampToValueAtTime(.0001, c.currentTime + t + .2); o.start(c.currentTime + t); o.stop(c.currentTime + t + .25); });
 }
+// تنبيه مستمر طالما يوجد طلب جديد لم يبدأ تحضيره
+function setAlarm(on) {
+  if (on && !alarmT) { beep(); alarmT = setInterval(beep, 3000); }
+  if (!on && alarmT) { clearInterval(alarmT); alarmT = null; }
+  const u = document.getElementById('sndUnlock');
+  if (u) u.style.display = on && sound && (!AC || AC.state !== 'running') ? 'flex' : 'none';
+}
+document.addEventListener('click', () => { const c = ac(); if (c && c.state === 'running') { const u = document.getElementById('sndUnlock'); if (u) u.style.display = 'none'; } });
 function mins(o) { const t = new Date(o.kitchen_at || o.created_at).getTime(); return Math.max(0, Math.floor((Date.now() + skew - t) / 1000)); }
 function fmt(s) { const m = Math.floor(s / 60), x = s % 60; return (m < 10 ? '0' : '') + m + ':' + (x < 10 ? '0' : '') + x; }
 function draw() {
@@ -131,7 +142,7 @@ async function load() {
     skew = new Date(r.serverTime).getTime() - Date.now();
     $('#brName').textContent = r.branchName ? '· ' + r.branchName : '';
     const ids = r.orders.filter(o => o.kitchen_status === 'new').map(o => o.id);
-    if (known && ids.some(id => !known.has(id))) beep();
+    setAlarm(ids.length > 0);
     known = new Set(r.orders.map(o => o.id));
     orders = r.orders; draw();
   } catch (e) { $('#conn').classList.add('off'); }
@@ -154,10 +165,11 @@ function start() {
     $('#clock').textContent = new Date().toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
     document.querySelectorAll('[data-t]').forEach(el => { const o = orders.find(x => x.id === el.dataset.t); if (o) el.textContent = fmt(mins(o)); });
   }, 1000);
-  clearInterval(poll); poll = setInterval(load, 6000);
+  clearInterval(poll); poll = setInterval(load, 4000);
 }
 const qs = new URLSearchParams(location.search); if (qs.get('b')) { branch = qs.get('b'); localStorage.setItem('fcBranch', branch); }
 token && email ? start() : showLogin();
 </script>
+<div id="sndUnlock" onclick="ac();this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.75);color:#fff;align-items:center;justify-content:center;flex-direction:column;gap:14px;font-size:22px;font-weight:700;cursor:pointer;text-align:center"><i class="fas fa-volume-up" style="font-size:54px"></i>يوجد طلب جديد — اضغط في أي مكان لتفعيل صوت التنبيه</div>
 </body>
 </html>
