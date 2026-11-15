@@ -138,6 +138,7 @@ function initCurrencySearch() {
 
 
 function openPaymentModal() {
+    if (typeof bizOpenPayment === 'function' && typeof FC_PLANS !== 'undefined' && typeof B !== 'undefined' && B.acc) { bizOpenPayment(B.acc.plan); return; }
     const modal = document.getElementById('paymentModal');
     const iframe = document.getElementById('paymentIframe');
     if (iframe && (!iframe.src || iframe.src === '' || iframe.src === window.location.href)) {

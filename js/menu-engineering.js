@@ -13,6 +13,8 @@ function loadMenuDataFromStorage() {
             menuData[r.name].price = r.sellingPrice;
         }
     });
+    // ترحيل v4.3: فصل سعر التحليل عن سعر الطبق (مرة واحدة)
+    if (!localStorage.getItem('fcPriceSrcInit_' + currentUserEmail)) { localStorage.setItem('fcPriceSrcInit_' + currentUserEmail, '1'); applyPriceSrc(); return; }
     saveMenuDataToStorage();
 }
 
@@ -20,28 +22,67 @@ function saveMenuDataToStorage() {
     localStorage.setItem('menuEngineeringData_' + currentUserEmail, JSON.stringify(menuData));
 }
 
+// ---------- مصدر سعر التحليل (لا يغيّر سعر الطبق في قائمة الأطباق) ----------
+function getPriceSrc() { return localStorage.getItem('fcPriceSrc_' + currentUserEmail) === 'sales' ? 'sales' : 'list'; }
+function setPriceSrc(v) { localStorage.setItem('fcPriceSrc_' + currentUserEmail, v === 'sales' ? 'sales' : 'list'); }
+function listPriceOf(r) { return (r.sellingPrice && r.sellingPrice > 0) ? +r.sellingPrice : (+r.suggestedPrice || 0); }
+// تطبيق المصدر المختار على أسعار التحليل
+function applyPriceSrc() {
+    const src = getPriceSrc();
+    allRecipes.forEach(r => {
+        const d = menuData[r.name] = menuData[r.name] || { price: 0, units: 0, selected: true };
+        d.price = (src === 'sales' && d.salesPrice > 0) ? d.salesPrice : listPriceOf(r);
+    });
+    (window.ME_EXTRA || []).forEach(x => { x.price = (src === 'sales' && x.salesPrice > 0) ? x.salesPrice : (x.listPrice || x.salesPrice || 0); });
+    (window.BE_EXTRA || []).forEach(x => { x.price = (src === 'sales' && x.salesPrice > 0) ? x.salesPrice : (x.listPrice || x.salesPrice || 0); });
+    saveMenuDataToStorage();
+}
+function filterRows(container, q) {
+    q = String(q || '').trim().toLowerCase();
+    container.querySelectorAll('[data-rowname]').forEach(el => { el.style.display = !q || el.dataset.rowname.toLowerCase().indexOf(q) >= 0 ? '' : 'none'; });
+}
+
 function renderMenuInputForm() {
     const container = document.getElementById('menuInputFields');
-    if (!allRecipes.length) { container.innerHTML = '<p style="color:var(--text-muted);">لا توجد أطباق.</p>'; return; }
-    let html = '<div style="display:grid; grid-template-columns: 30px 1fr 100px 100px auto; gap:10px; align-items:center; font-weight:bold; color:var(--accent-soft); margin-bottom:10px;"><span></span><span>الطبق</span><span>سعر البيع</span><span>المبيعات</span><span>التكلفة</span></div>';
+    if (!allRecipes.length && !(window.ME_EXTRA || []).length) { container.innerHTML = '<p style="color:var(--text-muted);">لا توجد أطباق.</p>'; return; }
+    const src = getPriceSrc(), q = container.dataset.q || '';
+    const G = 'display:grid; grid-template-columns: 30px minmax(120px,1fr) 90px 100px 90px 80px; gap:10px; align-items:center;';
+    let html = '<div class="tbl-search"><input type="search" id="meSearch" class="biz-search" placeholder="ابحث عن طبق..." value="' + escapeHtml(q) + '"><span class="muted" style="font-size:12px">سعر التحليل حالياً: <b>' + (src === 'sales' ? 'من المبيعات الفعلية' : 'من قائمة الأطباق (السعر الحالي)') + '</b> — تعديله هنا لا يغيّر سعر الطبق في قائمة الأطباق</span></div>';
+    html += `<div style="${G} font-weight:bold; color:var(--accent-soft); margin-bottom:10px; font-size:13px;"><span></span><span>الطبق</span><span>سعر القائمة</span><span>سعر التحليل</span><span>المبيعات</span><span>التكلفة</span></div>`;
     allRecipes.forEach((r, i) => {
-        const d = menuData[r.name] || { price: r.suggestedPrice || 0, units: 0, selected: true };
-        html += `<div style="display:grid; grid-template-columns: 30px 1fr 100px 100px auto; gap:10px; align-items:center; margin-bottom:8px;"><input type="checkbox" id="menu_select_${i}" ${d.selected!==false ? 'checked' : ''} onchange="menuData['${escapeHtml(r.name)}'].selected = this.checked; saveMenuDataToStorage();" style="accent-color:var(--accent);"><span style="color:var(--text);">${escapeHtml(r.name)}</span><input type="number" id="menu_price_${i}" value="${d.price}" step="0.01" style="width:100%;"><input type="number" id="menu_units_${i}" value="${d.units}" step="1" style="width:100%;"><span style="color:var(--text-muted);">${(r.costPrice||0).toFixed(2)}</span></div>`;
+        const d = menuData[r.name] || { price: listPriceOf(r), units: 0, selected: true };
+        const sp = d.salesPrice > 0 && Math.abs(d.salesPrice - listPriceOf(r)) > 0.009 ? `<small class="muted" style="display:block;font-size:11px">بيع فعلي: ${(+d.salesPrice).toFixed(2)}</small>` : '';
+        html += `<div data-rowname="${escapeHtml(r.name)}" style="${G} margin-bottom:8px;"><input type="checkbox" id="menu_select_${i}" ${d.selected!==false ? 'checked' : ''} onchange="(menuData['${escapeHtml(r.name)}']||{}).selected = this.checked; saveMenuDataToStorage();" style="accent-color:var(--accent);"><span style="color:var(--text);">${escapeHtml(r.name)}</span><span style="color:var(--text-muted);">${listPriceOf(r).toFixed(2)}${sp}</span><input type="number" id="menu_price_${i}" value="${(+d.price || 0)}" step="0.01" style="width:100%;"><input type="number" id="menu_units_${i}" value="${d.units}" step="1" style="width:100%;"><span style="color:var(--text-muted);">${(r.costPrice||0).toFixed(2)}</span></div>`;
     });
+    const ex = window.ME_EXTRA || [];
+    if (ex.length) {
+        html += '<div style="margin:14px 0 8px;font-weight:bold;color:var(--accent-soft)">أصناف مبيعة غير مربوطة بوصفة <small class="muted" style="font-weight:normal">— محسوبة من المبيعات، أدخل تكلفتها لتدخل التحليل بدقة (أو اربطها بطبق من: المنتجات ← الوصفة المرتبطة)</small></div>';
+        ex.forEach((x, j) => {
+            html += `<div data-rowname="${escapeHtml(x.name)}" style="${G} margin-bottom:8px;"><input type="checkbox" id="mex_sel_${j}" ${x.selected!==false ? 'checked' : ''} style="accent-color:var(--accent);"><span style="color:var(--text);">${escapeHtml(x.name)} <span class="src-tag">غير مربوط</span></span><span style="color:var(--text-muted);">${(x.listPrice||0).toFixed(2)}</span><input type="number" id="mex_price_${j}" value="${+x.price||0}" step="0.01" style="width:100%;"><input type="number" id="mex_units_${j}" value="${x.units||0}" step="1" style="width:100%;"><input type="number" id="mex_cost_${j}" value="${+x.cost||0}" step="0.01" title="التكلفة" style="width:100%;"></div>`;
+        });
+    }
     container.innerHTML = html;
+    const s = container.querySelector('#meSearch');
+    s.addEventListener('input', () => { container.dataset.q = s.value; filterRows(container, s.value); });
+    if (q) filterRows(container, q);
 }
 
 function saveMenuInputs() {
+    // يحفظ أسعار وكميات التحليل فقط — سعر الطبق في قائمة الأطباق لا يتغير من هنا
     allRecipes.forEach((r, i) => {
-        const p = document.getElementById(`menu_price_${i}`), u = document.getElementById(`menu_units_${i}`);
+        const p = document.getElementById(`menu_price_${i}`), u = document.getElementById(`menu_units_${i}`), sel = document.getElementById(`menu_select_${i}`);
         if (p && u) {
-            const price = parseFloat(p.value) || 0;
-            menuData[r.name] = { price, units: parseInt(u.value) || 0, selected: menuData[r.name]?.selected !== false };
-            r.sellingPrice = price;
+            const old = menuData[r.name] || {};
+            menuData[r.name] = Object.assign({}, old, { price: parseFloat(p.value) || 0, units: parseInt(u.value) || 0, selected: sel ? sel.checked : old.selected !== false });
         }
     });
+    (window.ME_EXTRA || []).forEach((x, j) => {
+        const p = document.getElementById(`mex_price_${j}`); if (!p) return;
+        x.price = parseFloat(p.value) || 0; x.units = parseInt(document.getElementById(`mex_units_${j}`).value) || 0;
+        x.cost = parseFloat(document.getElementById(`mex_cost_${j}`).value) || 0; x.selected = document.getElementById(`mex_sel_${j}`).checked;
+    });
     saveMenuDataToStorage();
-    showToast('تم حفظ البيانات');
+    showToast('تم حفظ بيانات التحليل');
 }
 
 function analyzeMenuEngineering() {
@@ -54,7 +95,8 @@ function analyzeMenuEngineering() {
             price: menuData[r.name]?.price || 0,
             units: menuData[r.name]?.units || 0
         }))
-        .filter(d => d.price > 0 && d.units >= 0);
+        .filter(d => d.price > 0 && d.units >= 0)
+        .concat((window.ME_EXTRA || []).filter(x => x.selected !== false && x.price > 0).map(x => ({ name: x.name + ' (غير مربوط)', cost: +x.cost || 0, price: +x.price, units: +x.units || 0 })));
 
     if (selected.length < 2) { showToast('اختر طبقين على الأقل', true); return; }
 

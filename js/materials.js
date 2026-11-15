@@ -5,7 +5,22 @@
 function renderMaterialsTable() {
         const tbody = document.getElementById('materialsBody');
         if (!allMaterials.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">لا توجد مواد.</div></td></tr>'; return; }
-        tbody.innerHTML = allMaterials.map((m, i) => `<tr><td>${i+1}</td><td><strong>${escapeHtml(m.name)}</strong></td><td>${escapeHtml(m.unit)}</td><td><span class="badge badge-success">${(m.price||0).toFixed(2)}</span></td><td>${m.wastePercent||0}%</td><td>${m.portionWeight ? m.portionWeight+' '+m.unit : '—'}</td><td><button class="btn btn-sm btn-outline" onclick="editMaterial('${m.id}')"><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-danger" onclick="confirmDeleteMaterial('${m.id}', '${escapeHtml(m.name)}')"><i class="fas fa-trash-alt"></i></button></td></tr>`).join('');
+        const tbl = tbody.closest('table');
+        if (tbl && !document.getElementById('materialsSearch')) {
+            const box = document.createElement('div'); box.className = 'tbl-search';
+            box.innerHTML = '<input type="search" id="materialsSearch" class="biz-search" placeholder="ابحث عن مادة أولية بالاسم أو الوحدة..."><span class="muted" id="materialsSearchN" style="font-size:12px"></span>';
+            (tbl.closest('.table-container') || tbl).insertAdjacentElement('beforebegin', box);
+            box.querySelector('input').addEventListener('input', filterMaterialsTable);
+        }
+        tbody.innerHTML = allMaterials.map((m, i) => `<tr data-rowname="${escapeHtml((m.name||'') + ' ' + (m.unit||''))}"><td>${i+1}</td><td><strong>${escapeHtml(m.name)}</strong></td><td>${escapeHtml(m.unit)}</td><td><span class="badge badge-success">${(m.price||0).toFixed(2)}</span></td><td>${m.wastePercent||0}%</td><td>${m.portionWeight ? m.portionWeight+' '+m.unit : '—'}</td><td><button class="btn btn-sm btn-outline" onclick="editMaterial('${m.id}')"><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-danger" onclick="confirmDeleteMaterial('${m.id}', '${escapeHtml(m.name)}')"><i class="fas fa-trash-alt"></i></button></td></tr>`).join('');
+        filterMaterialsTable();
+    }
+
+function filterMaterialsTable() {
+        const inp = document.getElementById('materialsSearch'), q = (inp ? inp.value : '').trim().toLowerCase();
+        let n = 0;
+        document.querySelectorAll('#materialsBody tr[data-rowname]').forEach(tr => { const ok = !q || tr.dataset.rowname.toLowerCase().indexOf(q) >= 0; tr.style.display = ok ? '' : 'none'; if (ok) n++; });
+        const c = document.getElementById('materialsSearchN'); if (c) c.textContent = q ? n + ' نتيجة' : '';
     }
 
 function updateMatCostPreview() {

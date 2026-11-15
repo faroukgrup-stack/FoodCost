@@ -503,6 +503,7 @@ async function exportFullReportExcel() {
                 }
             }
 
+            try { if (typeof bizFullExcelAppend === 'function') { document.getElementById('exportLoadingMsg').textContent = 'إضافة بيانات الكاشير والمخزون والمالية...'; await bizFullExcelAppend(workbook); } } catch (e) { console.error(e); }
             const buffer = await workbook.xlsx.writeBuffer();
             saveAs(new Blob([buffer]), `التقرير_الشامل_${data.restaurantName}_${new Date().toISOString().slice(0, 10)}.xlsx`);
             showToast('✅ تم تصدير التقرير الشامل Excel');
@@ -544,7 +545,7 @@ async function exportFullReportWord() {
                 });
                 menuSection = `
                 <div class="page-break"></div>
-                <h2>📊 هندسة المنيو (BCG)</h2>
+                <h2>هندسة المنيو (BCG)</h2>
                 <table>
                     <thead><tr><th>#</th><th>الطبق</th><th>التكلفة</th><th>سعر البيع</th><th>المبيعات</th><th>هامش الربح</th><th>نسبة %</th><th>التصنيف</th><th>التوصية</th></tr></thead>
                     <tbody>${menuRows}</tbody>
@@ -560,7 +561,7 @@ async function exportFullReportWord() {
                 });
                 beSection = `
                 <div class="page-break"></div>
-                <h2>⚖️ نقطة التعادل</h2>
+                <h2>نقطة التعادل</h2>
                 <p class="meta">التكاليف الثابتة: <strong>${data.breakeven.fixedCosts}</strong> |
                 إيرادات التعادل: <strong>${Math.round(data.breakeven.beRevenue)}</strong> |
                 وحدات التعادل: <strong>${Math.ceil(data.breakeven.beTotalUnits)}</strong></p>
@@ -583,7 +584,7 @@ async function exportFullReportWord() {
                 const overall = (sumAvg / data.reviews.length).toFixed(1);
                 reviewsSection = `
                 <div class="page-break"></div>
-                <h2>⭐ تقييمات العملاء</h2>
+                <h2>تقييمات العملاء</h2>
                 <p class="meta">عدد التقييمات: <strong>${data.reviews.length}</strong> | المتوسط العام: <strong>${overall}/5</strong></p>
                 <table class="compact">
                     <thead><tr><th>#</th><th>التاريخ</th><th>الاسم</th><th>الهاتف</th><th>الزيارة</th><th>طعام</th><th>خدمة</th><th>نظافة</th><th>أسعار</th><th>متوسط</th><th>تصنيف</th><th>توصية</th></tr></thead>
@@ -592,6 +593,8 @@ async function exportFullReportWord() {
                 ${chartImg(charts.reviews, 'رسم التقييمات')}`;
             }
 
+            let bizHtml = '';
+            try { if (typeof bizFullWordHtml === 'function') { document.getElementById('exportLoadingMsg').textContent = 'إضافة بيانات الكاشير والمخزون والمالية...'; bizHtml = await bizFullWordHtml(); } } catch (e) { console.error(e); }
             const html = `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
@@ -627,7 +630,7 @@ async function exportFullReportWord() {
     <div class="sub">مجموعة فاروق | FAROUK GRUP</div>
     <div class="sub">المطعم: <strong>${esc(data.restaurantName)}</strong></div>
     <div class="sub">${esc(data.dateStr)}</div>
-    <div class="badge">الإصدار 2.2</div>
+    <div class="badge">الإصدار 4.4</div>
   </div>
 
   <div class="summary-grid">
@@ -638,7 +641,7 @@ async function exportFullReportWord() {
   </div>
   <p class="meta">نسبة الهدر العامة: <strong>${data.settings.wastePercent}%</strong></p>
 
-  <h2>📋 الأطباق والتكلفة</h2>
+  <h2>الأطباق والتكلفة</h2>
   <table>
     <thead><tr><th>#</th><th>اسم الطبق</th><th>التكلفة الفعلية</th><th>سعر البيع المقترح</th><th>هامش المساهمة</th><th>هامش %</th></tr></thead>
     <tbody>${recipesRows || '<tr><td colspan="6">لا توجد أطباق</td></tr>'}</tbody>
@@ -646,7 +649,7 @@ async function exportFullReportWord() {
   ${chartImg(charts.margins, 'رسم هوامش الأطباق')}
 
   <div class="page-break"></div>
-  <h2>📦 المواد الأولية</h2>
+  <h2>المواد الأولية</h2>
   <table>
     <thead><tr><th>#</th><th>اسم المادة</th><th>الوحدة</th><th>السعر الفعلي</th><th>الهدر %</th><th>وزن الحصة</th></tr></thead>
     <tbody>${materialsRows || '<tr><td colspan="6">لا توجد مواد</td></tr>'}</tbody>
@@ -655,6 +658,8 @@ async function exportFullReportWord() {
   ${menuSection}
   ${beSection}
   ${reviewsSection}
+
+  ${bizHtml}
 
   <div class="footer">
     © ${new Date().getFullYear()} FAROUK GRUP — جميع الحقوق محفوظة<br>

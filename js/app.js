@@ -65,8 +65,8 @@ function switchTab(n) {
 function renderCurrentTab(n) {
     if (n === 0) renderRecipesTable();
     else if (n === 1) renderMaterialsTable();
-    else if (n === 2) { loadMenuDataFromStorage(); renderMenuInputForm(); }
-    else if (n === 3) renderBreakevenInputs();
+    else if (n === 2) { loadMenuDataFromStorage(); renderMenuInputForm(); if (typeof injectSalesBars === 'function') injectSalesBars(); }
+    else if (n === 3) { renderBreakevenInputs(); if (typeof injectSalesBars === 'function') injectSalesBars(); }
     else if (n === 4) { loadReviews(); generateQRCode(); }
     else if (n === 5) { if (typeof initDigitalMenuTab === 'function') initDigitalMenuTab(); }
 }

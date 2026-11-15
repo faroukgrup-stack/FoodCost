@@ -2,22 +2,48 @@
 // breakeven.js - نقطة التعادل (مصحّحة)
 // ============================================================
 
+function bePriceOf(r) {
+    const bs = (window.BE_SALES || {})[r.name];
+    const src = typeof getPriceSrc === 'function' ? getPriceSrc() : 'list';
+    if (src === 'sales' && bs && bs.price > 0) return +bs.price;
+    return (r.sellingPrice && r.sellingPrice > 0) ? +r.sellingPrice : (+r.suggestedPrice || 0);
+}
 function renderBreakevenInputs() {
     const container = document.getElementById('breakevenProductsContainer');
-    if (!allRecipes.length) {
+    const ex = window.BE_EXTRA || [];
+    if (!allRecipes.length && !ex.length) {
         container.innerHTML = '<p style="color:var(--text-muted);">لا توجد أطباق.</p>';
         return;
     }
-    let html = '<h4 style="color:var(--accent-soft); margin-top:15px;">المبيعات الشهرية لكل طبق</h4>';
+    const src = typeof getPriceSrc === 'function' ? getPriceSrc() : 'list', q = container.dataset.q || '';
+    let html = '<h4 style="color:var(--accent-soft); margin-top:15px;">المبيعات الشهرية لكل طبق</h4>' +
+        '<div class="tbl-search"><input type="search" id="beSearch" class="biz-search" placeholder="ابحث عن طبق..." value="' + escapeHtml(q) + '"><span class="muted" style="font-size:12px">السعر المستخدم: <b>' + (src === 'sales' ? 'من المبيعات الفعلية' : 'من قائمة الأطباق (الحالي)') + '</b></span></div>';
     allRecipes.forEach((r, i) => {
-        const price = (menuData[r.name]?.price || r.suggestedPrice || 0).toFixed(2);
-        html += `<div style="display:flex; gap:10px; align-items:center; margin:8px 0; flex-wrap:wrap;">
+        const bs = (window.BE_SALES || {})[r.name];
+        const price = bePriceOf(r).toFixed(2);
+        const alt = bs && bs.price > 0 && Math.abs(bs.price - ((r.sellingPrice > 0 ? r.sellingPrice : r.suggestedPrice) || 0)) > 0.009
+            ? ` <small>(${src === 'sales' ? 'سعر القائمة ' + (+(r.sellingPrice || r.suggestedPrice || 0)).toFixed(2) : 'بيع فعلي ' + (+bs.price).toFixed(2)})</small>` : '';
+        html += `<div data-rowname="${escapeHtml(r.name)}" style="display:flex; gap:10px; align-items:center; margin:8px 0; flex-wrap:wrap;">
             <span style="min-width:150px; color:var(--text);">${escapeHtml(r.name)}</span>
-            <input type="number" id="be_units_${i}" placeholder="الوحدات" value="0" step="1" min="0" style="width:120px;">
-            <span style="color:var(--text-muted);">التكلفة: ${(r.costPrice || 0).toFixed(2)} | السعر: ${price}</span>
+            <input type="number" id="be_units_${i}" placeholder="الوحدات" value="${bs ? bs.units : 0}" step="1" min="0" style="width:120px;">
+            <span style="color:var(--text-muted);">التكلفة: ${(r.costPrice || 0).toFixed(2)} | السعر: ${price}${alt}</span>
         </div>`;
     });
+    if (ex.length) {
+        html += '<h4 style="color:var(--accent-soft); margin-top:15px;">أصناف مبيعة غير مربوطة بوصفة <small class="muted" style="font-weight:normal">— أدخل التكلفة لتُحسب بدقة</small></h4>';
+        ex.forEach((x, j) => {
+            html += `<div data-rowname="${escapeHtml(x.name)}" style="display:flex; gap:10px; align-items:center; margin:8px 0; flex-wrap:wrap;">
+            <span style="min-width:150px; color:var(--text);">${escapeHtml(x.name)} <span class="src-tag">غير مربوط</span></span>
+            <input type="number" id="bex_units_${j}" placeholder="الوحدات" value="${x.units || 0}" step="1" min="0" style="width:100px;">
+            <label class="muted">السعر</label><input type="number" id="bex_price_${j}" value="${(+x.price || 0)}" step="0.01" style="width:90px;">
+            <label class="muted">التكلفة</label><input type="number" id="bex_cost_${j}" value="${(+x.cost || 0)}" step="0.01" style="width:90px;">
+        </div>`;
+        });
+    }
     container.innerHTML = html;
+    const sb = container.querySelector('#beSearch');
+    sb.addEventListener('input', () => { container.dataset.q = sb.value; filterRows(container, sb.value); });
+    if (q) filterRows(container, q);
 }
 
 /**
@@ -38,7 +64,7 @@ function calculateBreakeven() {
     allRecipes.forEach((r, i) => {
         const units = parseInt(document.getElementById(`be_units_${i}`)?.value) || 0;
         if (units > 0) {
-            const price = menuData[r.name]?.price || r.suggestedPrice || 0;
+            const price = bePriceOf(r);
             const varCost = r.costPrice || 0;
             allProducts.push({
                 name: r.name,
@@ -48,6 +74,14 @@ function calculateBreakeven() {
                 cm: price - varCost
             });
         }
+    });
+
+    (window.BE_EXTRA || []).forEach((x, j) => {
+        const units = parseInt(document.getElementById(`bex_units_${j}`)?.value) || 0;
+        const price = parseFloat(document.getElementById(`bex_price_${j}`)?.value) || 0;
+        const varCost = parseFloat(document.getElementById(`bex_cost_${j}`)?.value) || 0;
+        x.units = units; x.price = price; x.cost = varCost;
+        if (units > 0 && price > 0) allProducts.push({ name: x.name + ' (غير مربوط)', price, varCost, units, cm: price - varCost });
     });
 
     if (!allProducts.length) {

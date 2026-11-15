@@ -4,9 +4,9 @@
 
 function getRecipeRealPrice(r) {
     if (typeof getRealPrice === 'function') return getRealPrice(r);
+    if (r.sellingPrice && r.sellingPrice > 0) return r.sellingPrice;
     const fromMenu = menuData[r.name]?.price;
     if (fromMenu && fromMenu > 0) return fromMenu;
-    if (r.sellingPrice && r.sellingPrice > 0) return r.sellingPrice;
     return r.suggestedPrice || 0;
 }
 
@@ -16,6 +16,13 @@ function renderRecipesTable() {
         tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">لا توجد أطباق.</div></td></tr>';
         return;
     }
+    const tbl = tbody.closest('table');
+    if (tbl && !document.getElementById('recipesSearch')) {
+        const box = document.createElement('div'); box.className = 'tbl-search';
+        box.innerHTML = '<input type="search" id="recipesSearch" class="biz-search" placeholder="ابحث عن طبق بالاسم..."><span class="muted" id="recipesSearchN" style="font-size:12px"></span>';
+        (tbl.closest('.table-container') || tbl).insertAdjacentElement('beforebegin', box);
+        box.querySelector('input').addEventListener('input', filterRecipesTable);
+    }
     tbody.innerHTML = allRecipes.map((r, i) => {
         const cost = r.costPrice || 0;
         const suggested = r.suggestedPrice || 0;
@@ -23,7 +30,7 @@ function renderRecipesTable() {
         const marginPercent = realPrice > 0 ? ((realPrice - cost) / realPrice * 100) : 0;
         const marginColor = realPrice <= 0 ? 'badge-info' : marginPercent < 0 ? 'badge-dog' : marginPercent < 30 ? 'badge-warning' : 'badge-success';
         const safeName = escapeHtml(r.name).replace(/'/g, "\\'");
-        return `<tr>
+        return `<tr data-rowname="${escapeHtml(r.name)}">
             <td>${i + 1}</td>
             <td><strong>${escapeHtml(r.name)}</strong></td>
             <td><span class="badge badge-success">${cost.toFixed(2)}</span></td>
@@ -42,6 +49,14 @@ function renderRecipesTable() {
             </td>
         </tr>`;
     }).join('');
+    filterRecipesTable();
+}
+
+function filterRecipesTable() {
+    const inp = document.getElementById('recipesSearch'), q = (inp ? inp.value : '').trim().toLowerCase();
+    let n = 0;
+    document.querySelectorAll('#recipesBody tr[data-rowname]').forEach(tr => { const ok = !q || tr.dataset.rowname.toLowerCase().indexOf(q) >= 0; tr.style.display = ok ? '' : 'none'; if (ok) n++; });
+    const c = document.getElementById('recipesSearchN'); if (c) c.textContent = q ? n + ' نتيجة' : '';
 }
 
 async function saveSellingPrice(recipeName, value) {
@@ -53,7 +68,7 @@ async function saveSellingPrice(recipeName, value) {
 
     // حفظ في menuData (هندسة المنيو)
     if (!menuData[recipeName]) menuData[recipeName] = { price: 0, units: 0, selected: true };
-    menuData[recipeName].price = price;
+    if (typeof getPriceSrc !== 'function' || getPriceSrc() === 'list') menuData[recipeName].price = price;
     if (typeof saveMenuDataToStorage === 'function') saveMenuDataToStorage();
 
     // حفظ في السيرفر

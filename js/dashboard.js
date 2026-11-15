@@ -6,10 +6,10 @@ let dashChartFoodCost = null;
 let dashChartMargins = null;
 
 function getRealPrice(recipe) {
-    // الأولوية: السعر الحقيقي من هندسة المنيو → سعر البيع المحفوظ → السعر المقترح
+    // سعر الطبق = سعر البيع المحفوظ في قائمة الأطباق (لا يتأثر بأسعار التحليل أو المبيعات)
+    if (recipe.sellingPrice && recipe.sellingPrice > 0) return recipe.sellingPrice;
     const fromMenu = menuData[recipe.name]?.price;
     if (fromMenu && fromMenu > 0) return fromMenu;
-    if (recipe.sellingPrice && recipe.sellingPrice > 0) return recipe.sellingPrice;
     if (recipe.actualPrice && recipe.actualPrice > 0) return recipe.actualPrice;
     return recipe.suggestedPrice || 0;
 }
