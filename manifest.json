@@ -1,23 +1,18 @@
 {
+  "id": "./",
   "name": "نظام إدارة التكلفة وهندسة المنيو",
   "short_name": "FoodCost",
-  "start_url": ".",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
+  "dir": "rtl",
+  "lang": "ar",
   "background_color": "#0b0e17",
-  "theme_color": "#b48554",
-  "orientation": "portrait",
+  "theme_color": "#0b0e17",
+  "orientation": "any",
   "icons": [
-    {
-      "src": "assets/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "assets/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

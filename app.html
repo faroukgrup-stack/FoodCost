@@ -62,8 +62,8 @@ footer{text-align:center;color:#475569;font-size:.75rem;margin-top:20px}
 <div class="wrap" id="root"><div class="loading">جاري التحميل...</div></div>
 <div class="sheet" id="sheet"><div class="box" id="box"></div></div>
 <div id="install"><b id="instTxt">ثبّت التطبيق على جوالك</b><button id="instBtn">تثبيت</button><button class="no" id="instNo">لاحقاً</button></div>
-<script src="js/config.js?v=4.3"></script>
-<script src="js/domain.js?v=4.3"></script>
+<script src="js/config.js?v=4.4"></script>
+<script src="js/domain.js?v=4.4"></script>
 <script>
 const qs = new URLSearchParams(location.search), R = (qs.get('r') || localStorage.getItem('appLastR') || '').trim().toLowerCase();
 if (R) try { localStorage.setItem('appLastR', R); } catch (e) {}
@@ -80,14 +80,14 @@ function setManifest() {
     icons: [{ src: icon, sizes: '192x192', purpose: 'any' }, { src: icon, sizes: '512x512', purpose: 'any maskable' }] };
   const l = document.createElement('link'); l.rel = 'manifest'; l.href = COST_API_URL + '?fn=appManifest&r=' + encodeURIComponent(R) + '&base=' + encodeURIComponent(base()) + '&api=' + encodeURIComponent(COST_API_URL); document.head.appendChild(l);
   void m;
-  $('#appleIcon').href = icon; $('#favIcon').href = icon; $('#themeColor').content = C.bg || '#0b0e17';
+  $('#appleIcon').href = C.icon || (base() + 'assets/apple-touch-icon.png'); $('#favIcon').href = C.icon || (base() + 'assets/favicon-64.png'); $('#themeColor').content = C.bg || '#0b0e17';
 }
 function menuUrl() { return base() + 'menu.html?r=' + encodeURIComponent(R); }
 function render() {
   document.documentElement.style.setProperty('--c', C.color || '#b48554'); document.documentElement.style.setProperty('--bg', C.bg || '#0b0e17');
   document.title = C.name;
   const f = C.features || {}, wa = String(C.whatsapp || C.phone || '').replace(/\D/g, '');
-  $('#root').innerHTML = '<div class="hero">' + (C.icon ? '<img class="logo" src="' + h(C.icon) + '" alt="">' : '<div class="logo"><i class="fas fa-utensils"></i></div>') + '<h1>' + h(C.name) + '</h1>' + (C.welcome ? '<p class="welcome">' + h(C.welcome) + '</p>' : '') + '</div>' +
+  $('#root').innerHTML = '<div class="hero">' + '<img class="logo" src="' + h(C.icon || (base() + 'assets/icon-512.png')) + '" alt="">' + '<h1>' + h(C.name) + '</h1>' + (C.welcome ? '<p class="welcome">' + h(C.welcome) + '</p>' : '') + '</div>' +
     (C.banners && C.banners[0] ? '<img class="banner" src="' + h(C.banners[0]) + '" alt="">' : '') +
     (f.account ? '<button class="tile big" data-o="acc" style="margin-bottom:12px"><i class="fas fa-id-card"></i><b>' + (ct() ? 'حسابي ورمز QR الخاص بي' : 'سجّل دخولك برقم جوالك') + (ME && ME.unread ? '<span class="dot">' + ME.unread + '</span>' : '') + '</b><small>' + (ME ? 'رصيدك ' + ME.points + ' نقطة · ' + ME.value + ' ' + h(C.currency || '') : 'اجمع النقاط، استلم العروض، وتابع طلباتك وحجوزاتك') + '</small></button>' : '') +
     '<div class="tiles"><a class="tile big" href="' + h(menuUrl()) + '"><i class="fas fa-book-open"></i><b>' + (f.ordering ? 'المينيو واطلب الآن' : 'تصفح المينيو') + '</b><small>' + (f.ordering ? 'اطلب مباشرة من جوالك' : 'الأصناف والأسعار') + '</small></a>' +

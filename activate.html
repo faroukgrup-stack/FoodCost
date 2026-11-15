@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<title>تفعيل الاشتراك | FoodCost</title>
+<link rel="icon" href="assets/favicon-64.png">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root{--gold:#b8860b;--gold2:#d4b15a;--bg:#0b0e15;--card:#151a24;--line:#2a3140;--txt:#eef2f8;--mut:#9aa5b8;--ok:#2fb36d;--bad:#e5534b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Tajawal',sans-serif;background:radial-gradient(circle at 70% 20%,#1a1f2b,#0a0d14);color:var(--txt);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.box{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.logo{display:flex;align-items:center;gap:12px;margin-bottom:18px}.logo img{width:48px;height:48px;border-radius:12px}
+.logo b{font-size:20px}.logo small{display:block;color:var(--mut);font-size:13px}
+.plan{background:linear-gradient(135deg,rgba(184,134,11,.18),rgba(184,134,11,.04));border:1px solid rgba(212,177,90,.4);border-radius:14px;padding:14px 16px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.plan b{font-size:18px;color:var(--gold2)}.plan span{font-size:22px;font-weight:900}
+.tabs{display:flex;gap:6px;background:#0f131b;border-radius:12px;padding:4px;margin-bottom:16px}
+.tabs button{flex:1;border:0;background:none;color:var(--mut);padding:10px;border-radius:9px;font:inherit;font-weight:700;cursor:pointer}
+.tabs button.on{background:var(--gold);color:#fff}
+label{display:block;font-size:13px;color:var(--mut);margin:12px 0 6px}
+input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:#0f131b;color:var(--txt);font:inherit;font-size:15px}
+input:focus{outline:none;border-color:var(--gold2)}
+.btn{width:100%;margin-top:18px;padding:13px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;font:inherit;font-weight:900;font-size:16px;cursor:pointer}
+.btn:disabled{opacity:.6;cursor:wait}
+.note{font-size:12.5px;color:var(--mut);line-height:1.8;margin-top:14px}
+.msg{border-radius:12px;padding:14px 16px;line-height:1.9;margin-top:14px;font-size:14.5px}
+.msg.ok{background:rgba(47,179,109,.12);border:1px solid rgba(47,179,109,.4)}
+.msg.bad{background:rgba(229,83,75,.12);border:1px solid rgba(229,83,75,.4)}
+.msg.wait{background:rgba(212,177,90,.1);border:1px solid rgba(212,177,90,.35)}
+.center{text-align:center}.center i.big{font-size:46px;margin-bottom:12px;display:block}
+a{color:var(--gold2)}
+.hide{display:none}
+.who{font-size:13px;color:var(--mut);margin-top:6px}
+</style>
+</head>
+<body>
+<div class="box" id="box">
+  <div class="logo"><img src="assets/icon-192.png" alt=""><div><b>تفعيل الاشتراك</b><small>FoodCost — نظام إدارة المطاعم</small></div></div>
+  <div id="state" class="center"><i class="fas fa-spinner fa-pulse big" style="color:var(--gold2)"></i><p>جارٍ التحقق من عملية الدفع...</p></div>
+
+  <div id="main" class="hide">
+    <div class="plan"><div><small style="color:var(--mut)">الباقة المدفوعة</small><br><b id="pName"></b></div><span id="pPrice"></span></div>
+    <div class="tabs"><button type="button" data-t="new" class="on">حساب جديد</button><button type="button" data-t="old">لدي حساب (تجديد / ترقية)</button></div>
+
+    <form id="fNew" autocomplete="on">
+      <label>اسم المطعم / النشاط</label><input id="nName" required maxlength="80">
+      <label>البريد الإلكتروني (نفس البريد المستخدم في الدفع)</label><input id="nEmail" type="email" dir="ltr" required autocomplete="email">
+      <label>كلمة المرور (6 أحرف على الأقل)</label><input id="nPass" type="password" minlength="6" required autocomplete="new-password">
+      <label>تأكيد كلمة المرور</label><input id="nPass2" type="password" minlength="6" required autocomplete="new-password">
+      <button class="btn" id="bNew" type="submit"><i class="fas fa-user-check"></i> إنشاء الحساب وتفعيل الباقة</button>
+    </form>
+
+    <form id="fOld" class="hide" autocomplete="on">
+      <label>البريد الإلكتروني للحساب</label><input id="oEmail" type="email" dir="ltr" required autocomplete="username">
+      <label>كلمة المرور</label><input id="oPass" type="password" required autocomplete="current-password">
+      <p class="who" id="oWho"></p>
+      <button class="btn" id="bOld" type="submit"><i class="fas fa-arrow-up"></i> تفعيل الباقة على حسابي</button>
+      <p class="note">نفس الباقة: تُضاف سنة كاملة على تاريخ الانتهاء الحالي. باقة مختلفة: تبدأ سنة كاملة من اليوم ويُحوَّل ما تبقّى من اشتراكك السابق إلى أيام إضافية حسب قيمته.</p>
+    </form>
+    <div id="out"></div>
+    <p class="note"><i class="fas fa-shield-halved"></i> هذه الصفحة صالحة لمرة واحدة ولمدة ساعتين فقط بعد الدفع، ولا يمكن فتحها مباشرة من المتصفح.</p>
+  </div>
+</div>
+<script src="js/config.js?v=4.4"></script>
+<script>
+(function () {
+  'use strict';
+  // الخروج من الإطار إن فُتحت الصفحة داخل نافذة الدفع المنبثقة
+  if (window.top !== window.self) { try { window.top.location.href = location.href; return; } catch (e) { /* */ } }
+  const $ = (id) => document.getElementById(id);
+  const SK = 'fcActTicket';
+  const api = async (fn, body) => {
+    const r = await fetch(COST_API_URL, { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(Object.assign({ fn: fn }, body || {})) });
+    return r.json();
+  };
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  function deny(text) {
+    $('main').classList.add('hide');
+    $('state').innerHTML = '<i class="fas fa-lock big" style="color:var(--bad)"></i><p style="line-height:1.9">' + esc(text || 'لا يمكن الوصول لهذه الصفحة مباشرة.') + '</p>' +
+      '<p class="note">إن كنت أتممت الدفع ولم تصل لصفحة التفعيل، تواصل مع الدعم مع إيصال الدفع.</p>' +
+      '<a class="btn" style="display:block;text-decoration:none;text-align:center" href="index.html">الصفحة الرئيسية</a>' +
+      (typeof SUPPORT_WHATSAPP !== 'undefined' ? '<a class="btn" style="display:block;text-decoration:none;text-align:center;background:#25d366" target="_blank" rel="noopener" href="https://wa.me/' + SUPPORT_WHATSAPP + '?text=' + encodeURIComponent('مرحباً، دفعت الاشتراك ولم أتمكن من التفعيل') + '"><i class="fab fa-whatsapp"></i> الدعم عبر واتساب</a>' : '');
+  }
+  function done(r) {
+    const pending = !!r.pending;
+    $('main').classList.add('hide');
+    $('state').innerHTML = '<i class="fas ' + (pending ? 'fa-hourglass-half' : 'fa-circle-check') + ' big" style="color:' + (pending ? 'var(--gold2)' : 'var(--ok)') + '"></i>' +
+      '<p style="line-height:2;font-size:16px">' + esc(r.message) + '</p><a class="btn" style="display:block;text-decoration:none;text-align:center" href="index.html">الدخول إلى النظام</a>';
+    try { sessionStorage.removeItem(SK); } catch (e) { /* */ }
+  }
+  function show(info) {
+    $('pName').textContent = 'باقة ' + info.plan.name;
+    $('pPrice').textContent = info.plan.price + '$ / سنوياً';
+    $('state').innerHTML = ''; $('main').classList.remove('hide');
+    const em = localStorage.getItem('foodUserEmail') || '';
+    if (em && localStorage.getItem('foodUserToken')) { $('oEmail').value = em; $('oWho').textContent = 'أنت مسجّل الدخول بالحساب: ' + em; tab('old'); }
+  }
+  function tab(t) {
+    document.querySelectorAll('.tabs button').forEach((b) => b.classList.toggle('on', b.dataset.t === t));
+    $('fNew').classList.toggle('hide', t !== 'new'); $('fOld').classList.toggle('hide', t !== 'old'); $('out').innerHTML = '';
+  }
+  document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => tab(b.dataset.t)));
+  function err(text) { $('out').innerHTML = '<div class="msg bad">' + esc(text) + '</div>'; }
+  let ticket = '';
+  $('fNew').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if ($('nPass').value !== $('nPass2').value) return err('كلمتا المرور غير متطابقتين');
+    const b = $('bNew'); b.disabled = true;
+    try {
+      const r = await api('activationRegister', { ticket, email: $('nEmail').value.trim(), password: $('nPass').value, fullName: $('nName').value.trim() });
+      if (r.success) done(r); else { err(r.error || 'تعذر التفعيل'); if (r.exists) { $('oEmail').value = $('nEmail').value; setTimeout(() => tab('old'), 1500); } }
+    } catch (x) { err('تعذر الاتصال بالخادم'); }
+    b.disabled = false;
+  });
+  $('fOld').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const b = $('bOld'); b.disabled = true;
+    try {
+      const r = await api('activationApply', { ticket, email: $('oEmail').value.trim(), password: $('oPass').value });
+      if (r.success) done(r); else err(r.error || 'تعذر التفعيل');
+    } catch (x) { err('تعذر الاتصال بالخادم'); }
+    b.disabled = false;
+  });
+  (async function init() {
+    const q = new URLSearchParams(location.search);
+    const k = q.get('k'), plan = q.get('plan');
+    // حذف المفتاح من شريط العنوان والسجل فوراً
+    if (k || plan) history.replaceState(null, '', location.pathname);
+    try {
+      if (k && plan) {
+        const r = await api('activationTicket', { plan, k, ref: [...q.entries()].filter(([a]) => a !== 'k').map(([a, v]) => a + '=' + v).join('&') });
+        if (!r.success) return deny(r.error);
+        ticket = r.ticket; try { sessionStorage.setItem(SK, ticket); } catch (e) { /* */ }
+        return show(r);
+      }
+      ticket = sessionStorage.getItem(SK) || '';
+      if (!ticket) return deny('لا يمكن الوصول لصفحة التفعيل مباشرة. أكمل الدفع أولاً وسيتم تحويلك تلقائياً لهذه الصفحة.');
+      const r = await api('activationInfo', { ticket });
+      if (!r.success) { sessionStorage.removeItem(SK); return deny(r.error); }
+      if (r.used) { sessionStorage.removeItem(SK); return deny('تم استخدام صفحة التفعيل هذه مسبقاً للحساب ' + r.usedBy + '. سجّل الدخول من الصفحة الرئيسية.'); }
+      show(r);
+    } catch (e) { deny('تعذر الاتصال بالخادم — أعد تحميل الصفحة'); }
+  })();
+})();
+</script>
+</body>
+</html>
