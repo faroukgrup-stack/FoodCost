@@ -1,0 +1,151 @@
+/* Mataami Pro v4.6 — إعادة تأهيل عرض الجوال (يُحمَّل أخيراً) */
+
+/* ===== الشريط العلوي ===== */
+@media (max-width: 768px) {
+  .app-header {
+    flex-wrap: wrap !important; gap: 6px 8px !important; padding: 8px 10px !important;
+    border-radius: 18px !important; align-items: center !important; justify-content: flex-start !important;
+    position: sticky !important; top: 6px; z-index: 900 !important;
+  }
+  .app-header .hamburger-btn { order: 1; width: 40px; height: 40px; flex: 0 0 40px; }
+  .app-header .logo { order: 2; flex: 1 1 auto !important; min-width: 0 !important; overflow: hidden; gap: 6px; }
+  .app-header .logo span { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .app-header .biz-header-extras { display: contents !important; }
+  .app-header .plan-chip { order: 3; font-size: .7rem !important; padding: 4px 9px !important; white-space: nowrap; flex: 0 0 auto; }
+  .app-header .biz-bell { order: 4; width: 38px !important; height: 38px !important; flex: 0 0 38px; }
+  .app-header .restaurant-dropdown-wrap { order: 5; flex: 0 1 auto; min-width: 0; max-width: 42vw; }
+  .app-header .restaurant-trigger {
+    max-width: 100% !important; min-width: 0; padding: 7px 10px !important; gap: 6px !important;
+    overflow: hidden; font-size: .78rem !important;
+  }
+  .app-header .restaurant-trigger #restaurantNameText {
+    display: inline-block; max-width: 100% !important; min-width: 0; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;
+  }
+  .app-header .restaurant-trigger .fa-chevron-down { font-size: .65rem; flex: 0 0 auto; }
+  .app-header .restaurant-dropdown { left: 0 !important; right: auto !important; }
+  /* الصف الثاني: الفرع */
+  .app-header .biz-branch-sel, .app-header .branch-chip {
+    order: 10; flex: 1 1 100% !important; width: 100% !important; max-width: 100% !important;
+    min-width: 0; height: 36px; padding: 4px 12px !important; font-size: .78rem !important;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-radius: 12px !important;
+  }
+  .app-header .staff-chip:not(.branch-chip) { display: none !important; }
+  .app-header .branch-chip { display: flex !important; align-items: center; gap: 6px; height: 30px; }
+}
+@media (max-width: 480px) {
+  .app-header .logo span { display: none !important; }
+  .app-header .logo { flex: 0 0 auto !important; }
+  .app-header .restaurant-dropdown-wrap { margin-inline-start: auto; max-width: 36vw; }
+  .app-header { gap: 6px !important; }
+  .app-header .restaurant-trigger .fa-store { display: none; }
+}
+@media (max-width: 360px) {
+  .app-header .plan-chip { display: none !important; }
+}
+
+/* ===== القائمة الجانبية فوق كل شيء ===== */
+@media (max-width: 768px) {
+  body.menu-open .app-header { z-index: 1 !important; }
+  body.menu-open { overflow: hidden; }
+  .app-sidebar { z-index: 10050 !important; top: 0 !important; height: 100dvh !important; padding-top: 0 !important; }
+  .app-sidebar .sidebar-mobile-header { display: flex !important; position: sticky; top: 0; z-index: 3; }
+  .app-sidebar .nav-btn, .app-sidebar .biz-nav { min-height: 44px !important; font-size: .88rem !important; }
+  .app-sidebar .biz-group-title { font-size: .72rem !important; margin: 12px 6px 4px !important; }
+}
+
+/* ===== لوحة التحكم ===== */
+@media (max-width: 768px) {
+  #tabDashboard .biz-dash-title { font-size: .95rem !important; margin: 4px 2px 8px !important; }
+  #bizDashboard .biz-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 6px !important; }
+  #bizDashboard .biz-kpis .dash-card { padding: 8px 4px !important; border-radius: 12px !important; min-width: 0; min-height: 0 !important; }
+  #bizDashboard .biz-kpis .dash-card .label { font-size: .64rem !important; margin-bottom: 2px !important; line-height: 1.25; }
+  #bizDashboard .biz-kpis .dash-card .value { font-size: .88rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  #bizDashboard .biz-kpis .dash-card .sub { font-size: .58rem !important; margin-top: 1px !important; }
+  .biz-quick-actions { display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 6px !important; margin: 10px 0 !important; }
+  .biz-quick-actions .btn { padding: 8px 4px !important; font-size: .74rem !important; justify-content: center; min-height: 38px; white-space: nowrap; }
+  #dashboardAlerts > div { padding: 9px 12px !important; font-size: .8rem !important; border-radius: 12px !important; gap: 8px !important; }
+  #dashboardAlerts i { font-size: 1rem !important; }
+  #dashboardCards { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 6px !important; margin: 10px 0 !important; }
+  #dashboardCards .dash-card { padding: 8px 4px !important; min-height: 0 !important; border-radius: 12px !important; }
+  #dashboardCards .dash-card .label { font-size: .62rem !important; margin-bottom: 2px !important; line-height: 1.25; }
+  #dashboardCards .dash-card .value { font-size: .95rem !important; }
+  #dashboardCards .dash-card .sub { font-size: .58rem !important; }
+  #dashboardInsights { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 6px !important; margin-bottom: 12px !important; }
+  #dashboardInsights .dash-card { padding: 10px !important; min-height: 0 !important; align-items: flex-start !important; }
+  #dashboardInsights .dash-card .label { font-size: .68rem !important; }
+  #dashboardInsights .dash-card .value { font-size: .9rem !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+  #dashboardInsights .dash-card .sub { font-size: .62rem !important; line-height: 1.35; }
+  #dashboardCharts { grid-template-columns: 1fr !important; gap: 10px !important; margin-bottom: 12px !important; }
+  #dashboardCharts .table-container { padding: 12px !important; }
+  #dashboardCharts h4 { font-size: .85rem !important; margin-bottom: 8px !important; }
+  #dashboardCharts div[style*="height:220px"] { height: 170px !important; }
+  #dashboardGrid { gap: 10px !important; }
+  #dashboardGrid .table-container { padding: 12px !important; }
+  #dashboardGrid h4 { font-size: .85rem !important; }
+  #dashboardGrid p { font-size: .8rem; margin: 4px 0; }
+}
+@media (max-width: 360px) {
+  #dashboardCards { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  #bizDashboard .biz-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+
+/* ===== التكلفة: جداول على شكل بطاقات ===== */
+@media (max-width: 768px) {
+  .tab-actions { gap: 6px !important; padding: 8px !important; }
+  .tab-actions .btn, .tab-actions .export-excel-btn { flex: 1 1 calc(50% - 3px) !important; font-size: .76rem !important; padding: 8px 6px !important; min-height: 38px; }
+  table.m-cards { min-width: 0 !important; width: 100% !important; border-collapse: separate; }
+  table.m-cards thead { display: none !important; }
+  table.m-cards, table.m-cards tbody { display: block !important; }
+  table.m-cards tbody tr[style*="display: none"] { display: none !important; }
+  table.m-cards tbody tr:not([style*="display: none"]) {
+    display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 10px;
+    background: rgba(255,255,255,.03); border: 1px solid var(--border); border-radius: 14px;
+    padding: 10px 12px; margin-bottom: 8px;
+  }
+  table.m-cards tbody td {
+    display: flex !important; justify-content: space-between; align-items: center; gap: 6px;
+    padding: 3px 0 !important; border: 0 !important; white-space: normal !important; font-size: .76rem; min-width: 0;
+  }
+  table.m-cards tbody td::before { content: attr(data-label); color: var(--text-muted); font-size: .66rem; flex: 0 0 auto; }
+  table.m-cards tbody td.m-title { grid-column: 1 / -1; font-size: .92rem; font-weight: 800; color: var(--text-main, #e2e8f0); border-bottom: 1px dashed var(--border) !important; padding-bottom: 6px !important; margin-bottom: 4px; }
+  table.m-cards tbody td.m-title::before { display: none; }
+  table.m-cards tbody td.m-idx { display: none !important; }
+  table.m-cards tbody td.m-actions { grid-column: 1 / -1; justify-content: flex-end; gap: 6px; padding-top: 6px !important; border-top: 1px dashed var(--border) !important; margin-top: 4px; }
+  table.m-cards tbody td.m-actions::before { display: none; }
+  table.m-cards tbody td.m-actions .btn, table.m-cards tbody td.m-actions button { padding: 6px 10px !important; font-size: .74rem !important; min-height: 32px; }
+  table.m-cards tbody td[colspan] { grid-column: 1 / -1; justify-content: center; }
+  table.m-cards tbody td[colspan]::before { display: none; }
+  .table-container:has(table.m-cards) { overflow-x: visible !important; padding: 6px !important; background: transparent; border: 0; }
+  #tab2 .table-container table, #tab3 .table-container table { min-width: 560px; font-size: .7rem; }
+  #tab2 .table-container, #tab3 .table-container { overflow-x: auto; }
+  #tab2 h3, #tab3 h3, #tab2 h4, #tab3 h4 { font-size: .92rem !important; }
+}
+
+/* ===== المينيو الإلكتروني (إدارة) ===== */
+@media (max-width: 768px) {
+  .dm-sort-group > h4 { font-size: .9rem !important; margin: 10px 2px 6px !important; }
+  #dmItemsList .dm-item-card {
+    display: grid !important; grid-template-columns: 30px 46px minmax(0, 1fr) auto !important;
+    grid-template-areas: none !important; align-items: center !important;
+    gap: 8px !important; padding: 8px !important; margin-bottom: 6px !important; border-radius: 12px !important;
+  }
+  #dmItemsList .dm-item-card > * { grid-area: auto !important; }
+  #dmItemsList .dm-grip { width: 30px !important; height: 38px !important; min-height: 0 !important; padding: 0 !important; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+  #dmItemsList .dm-item-order { display: none !important; }
+  #dmItemsList .dm-thumb { width: 46px !important; height: 46px !important; border-radius: 10px !important; font-size: .9rem; }
+  #dmItemsList .dm-item-info strong { font-size: .86rem !important; margin-bottom: 2px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #dmItemsList .dm-meta { gap: 3px !important; margin-bottom: 2px !important; }
+  #dmItemsList .dm-meta .badge { font-size: .6rem !important; padding: 1px 6px !important; }
+  #dmItemsList .dm-sizes { font-size: .7rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #dmItemsList .dm-item-actions { display: flex !important; flex-direction: column !important; gap: 4px !important; }
+  #dmItemsList .dm-item-actions .btn { flex: 0 0 auto !important; width: 34px !important; height: 30px !important; min-height: 0 !important; padding: 0 !important; font-size: .75rem !important; }
+  .dm-cat-row { gap: 6px !important; padding: 6px 0 !important; }
+  .dm-cat-row .dm-grip { width: 30px; height: 32px; padding: 0 !important; min-height: 0; }
+  .dm-cat-row .btn { padding: 4px 10px !important; font-size: .72rem !important; }
+  .dm-cat-row .dm-cat-name { flex: 1; min-width: 0; font-size: .82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #tab5 .table-container, #tab5 .dm-side > div { padding: 12px !important; }
+  #tab5 label { font-size: .78rem !important; }
+  #tab5 h3, #tab5 h4 { font-size: .92rem !important; }
+  .qr-section .qr-box img { width: 120px !important; height: 120px !important; }
+}
