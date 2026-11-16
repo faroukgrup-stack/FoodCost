@@ -220,7 +220,27 @@ header.menu-head .head-line{width:90px;height:3px;border-radius:3px;margin:14px 
 .empty,.loading{border:1px dashed var(--frame);border-radius:20px;margin:12px 0;font-family:var(--display)}
 footer.menu-foot{text-align:center;padding:18px 16px calc(96px + env(safe-area-inset-bottom));border-top:1px solid var(--frame-soft);color:var(--muted);font-size:.72rem;letter-spacing:.3px;background:#0d121a}
 footer.menu-foot b{color:var(--gold);font-weight:600;letter-spacing:.8px}
+/* v4.5 عرض مضغوط ومريح على الجوال */
+@media(max-width:600px){
+header.menu-head{margin:10px auto 4px;padding:14px 14px 12px;border-radius:18px;width:calc(100% - 24px)}
+header.menu-head .head-mark{font-size:.7rem}header.menu-head .head-mark::before,header.menu-head .head-mark::after{width:28px}
+header.menu-head h1{font-size:1.45rem;margin:6px 0 2px}header.menu-head p{font-size:.85rem}header.menu-head .head-line{margin-top:8px;width:60px}
+.banner-wrap{padding:8px 0 4px}.menu-tools{padding:4px 12px 8px}.menu-tools label{font-size:.8rem}.menu-tools input{padding:9px 12px;font-size:.88rem;border-radius:12px}
+.cats{width:calc(100% - 24px);padding:6px 8px;border-radius:14px;margin:4px auto 6px}.cat{font-size:.82rem;padding:6px 12px}
+.grid{padding:4px 10px 18px}.menu-section{margin:10px 0 14px;padding:10px 8px 10px;border-radius:16px}
+.section-title{font-size:1.1rem;margin-bottom:8px}.section-grid{gap:8px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.card{border-radius:14px}.card-body{padding:6px 8px 8px;gap:4px}.card-name{font-size:.88rem}.card-desc{font-size:.72rem}.card-foot{padding-top:6px}.price{font-size:.8rem}
+.plus{width:30px;height:30px;font-size:1rem}
+.sheet-pad{padding:14px 14px 18px}.sheet-pad h2{font-size:1.15rem}.cart-line{padding:9px;margin:6px 0;border-radius:12px}.order-total{padding:10px 12px;margin:10px 0;border-radius:12px}
+.sheet-pad input,.sheet-pad select,.sheet-pad textarea{padding:9px 10px;font-size:.9rem}.addwide{padding:11px;font-size:.92rem}
+.cartbar{font-size:.92rem}
+}
 @media(min-width:700px){.menu-section{padding:22px 20px 20px}.section-grid{gap:16px}}
+.otype{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:4px 0 10px;padding:4px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--frame-soft)}
+.otype button{border:0;border-radius:10px;padding:9px 6px;font:inherit;font-weight:700;font-size:.85rem;background:transparent;color:inherit;cursor:pointer}
+.otype button.on{background:var(--gold);color:#1a120c}
+.daddr{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px dashed var(--gold);border-radius:14px;margin-bottom:6px;cursor:pointer;font-size:.85rem;line-height:1.5}
+.daddr i{font-style:normal;color:var(--gold)}.daddr div{flex:1}.daddr small{color:var(--muted)}.daddr span{color:var(--gold);font-weight:700;font-size:.78rem}
 </style>
 </head>
 <body>
@@ -250,8 +270,9 @@ footer.menu-foot b{color:var(--gold);font-weight:600;letter-spacing:.8px}
     <div class="sheet-box" id="cartSheetBox"></div>
   </div>
 
-<script src="js/config.js?v=4.4"></script>
-<script src="js/domain.js?v=4.4"></script>
+<script src="js/config.js?v=4.5"></script>
+<script src="js/domain.js?v=4.5"></script>
+<script src="js/cust-delivery.js?v=4.5"></script>
 <script>
 
 function menuImageUrl(value) {
@@ -324,6 +345,7 @@ async function loadMenu() {
     const data = await res.json();
     if (!data.success) throw new Error(data.error || 'فشل التحميل');
     menuData = data;
+    if (window.FCDel) FCDel.setup({ r: publicId, color: (data.settings && data.settings.color) || '#e6c27a' });
     const rName = data.settings.name || 'المطعم';
     document.getElementById('restName').textContent = rName;
     document.title = rName + ' | ' + (data.settings.subtitle || 'قائمة الطعام');
@@ -567,11 +589,27 @@ function checkoutHtml(total) {
   const brHtml = brs.length > 1 ? (fixedB ? `<div class="checkout-note" style="font-weight:700">الفرع: ${esc(fixedB.name)}</div>`
     : `<label for="custBranch">الفرع (مطلوب)</label><select id="custBranch" onchange="localStorage.setItem('menuBranch_' + (publicId || restaurantEmail), this.value)" style="width:100%"><option value="">— اختر الفرع —</option>${brs.map(x => `<option value="${esc(x.id)}" ${x.id === savedB ? 'selected' : ''}>${esc(x.name)}${x.address ? ' — ' + esc(x.address) : ''}</option>`).join('')}</select>`) : '';
   const tbl = tableNo && ord.tableOrdering ? `<div class="checkout-note" style="font-weight:700">الطلب على طاولة رقم: ${esc(tableNo)}</div>` : '';
-  return `<label for="custPhone">رقم الجوال ${ord.requirePhone ? '(مطلوب)' : '(اختياري)'}</label><input id="custPhone" dir="ltr" inputmode="tel" value="${esc(prevPhone)}" placeholder="05xxxxxxxx" oninput="sessionStorage.setItem('menuCustomerPhone',this.value)">${brHtml}${tbl}
-    <p class="checkout-note">يصل طلبك مباشرة إلى المطعم، ويتم تأكيده من الكاشير.</p>
+  const dv = deliveryOn(), isD = dv && orderType() === 'delivery', fee = isD ? +(ord.delivery.fee || 0) : 0;
+  const typeHtml = dv ? `<div class="otype"><button class="${isD ? '' : 'on'}" onclick="setOrderType('pickup')">استلام من المطعم</button><button class="${isD ? 'on' : ''}" onclick="setOrderType('delivery')">توصيل</button></div>` : '';
+  const addrHtml = isD ? `<div class="daddr" id="dAddr" onclick="pickDeliveryAddress()"><i>&#9673;</i><div id="dAddrTxt">${FCDel.token() ? 'جاري تحميل عنوانك...' : 'سجّل الدخول واختر عنوان التوصيل'}</div><span>تغيير</span></div>
+    <div class="checkout-note">رسوم التوصيل: <b>${fee.toFixed(2)} ${esc(cur())}</b>${ord.delivery.minOrder ? ' · الحد الأدنى للطلب ' + (+ord.delivery.minOrder).toFixed(2) : ''}${ord.delivery.maxMinutes ? ' · يصلك خلال ' + ord.delivery.maxMinutes + ' دقيقة تقريباً' : ''}</div>` : '';
+  if (isD) setTimeout(refreshDeliveryAddr, 0);
+  total = total + fee;
+  return `${typeHtml}${addrHtml}<label for="custPhone">رقم الجوال ${ord.requirePhone ? '(مطلوب)' : '(اختياري)'}</label><input id="custPhone" dir="ltr" inputmode="tel" value="${esc(prevPhone)}" placeholder="05xxxxxxxx" oninput="sessionStorage.setItem('menuCustomerPhone',this.value)">${brHtml}${tbl}
+    <p class="checkout-note">${isD ? 'يصل طلبك للمطعم، وعند تجهيزه يستلمه السائق ويوصله إلى عنوانك.' : 'يصل طلبك مباشرة إلى المطعم، ويتم تأكيده من الكاشير.'}</p>
     <button class="addwide" id="sendOrderBtn" ${dis} style="width:100%" onclick="sendOrderDirect()">إرسال الطلب للمطعم · ${total.toFixed(2)} ${esc(cur())}</button>
     ${wa ? `<button class="addwide" ${dis} style="width:100%;margin-top:8px;background:transparent;border:1px solid currentColor;color:inherit" onclick="sendWhatsApp()">أو أرسل عبر واتساب</button>` : ''}`;
 }
+function deliveryOn() { return !!(menuData.ordering && menuData.ordering.delivery && menuData.ordering.delivery.enabled && publicId && !(tableNo && menuData.ordering.tableOrdering)); }
+function orderType() { return deliveryOn() && sessionStorage.getItem('menuOrderType_' + publicId) === 'delivery' ? 'delivery' : 'pickup'; }
+function setOrderType(t) { sessionStorage.setItem('menuOrderType_' + publicId, t); openCart(); if (t === 'delivery' && !FCDel.token()) pickDeliveryAddress(); }
+async function refreshDeliveryAddr() {
+  const el = document.getElementById('dAddrTxt'); if (!el) return;
+  const a = await FCDel.selected();
+  if (!document.getElementById('dAddrTxt')) return;
+  el.innerHTML = a ? `<b>${esc(a.label || 'عنوان التوصيل')}</b><br><small>${esc(FCDel.line(a))}</small>` : (FCDel.token() ? 'أضف عنوان التوصيل' : 'سجّل الدخول واختر عنوان التوصيل');
+}
+async function pickDeliveryAddress() { await FCDel.pick(); refreshDeliveryAddr(); }
 async function sendOrderDirect() {
   if (!cart.length) return;
   const name = (document.getElementById('custName').value || '').trim();
@@ -580,10 +618,19 @@ async function sendOrderDirect() {
   if (menuData.ordering.requirePhone && phone.replace(/\D/g, '').length < 7) { alert('يرجى إدخال رقم جوال صحيح'); return; }
   const brSel = document.getElementById('custBranch');
   if (brSel && !brSel.value) { alert('يرجى اختيار الفرع الذي تريد الطلب منه'); brSel.focus(); return; }
+  const isD = orderType() === 'delivery';
+  let dAddr = null;
+  if (isD) {
+    dAddr = await FCDel.selected();
+    if (!dAddr) { dAddr = await FCDel.pick(); refreshDeliveryAddr(); if (!dAddr) return; }
+    const mo = +(menuData.ordering.delivery.minOrder || 0), sub = cart.reduce((s, c) => s + lineTotal(c), 0);
+    if (mo && sub < mo) { alert('الحد الأدنى لطلبات التوصيل ' + mo.toFixed(2) + ' ' + cur()); return; }
+  }
   const btn = document.getElementById('sendOrderBtn'); btn.disabled = true; btn.textContent = 'جاري الإرسال...';
   const total = cart.reduce((s, c) => s + lineTotal(c), 0);
   const body = { fn: 'savePublicOrder', items: JSON.stringify(cart.map(c => ({ name: c.name, size: c.size, qty: c.qty, price: c.price, extras: c.extras || [] }))), total, notes: note, customerName: name, customerPhone: phone, tableNumber: menuData.ordering.tableOrdering ? tableNo : '' };
   if (publicId) body.r = publicId; else body.restaurantEmail = restaurantEmail;
+  if (isD) { body.orderType = 'delivery'; body.ct = FCDel.token(); body.addressId = dAddr.id; }
   if (params.get('b')) { body.b = params.get('b'); body.branchId = params.get('b'); }
   else if (brSel && brSel.value) { body.b = brSel.value; body.branchId = brSel.value; }
   try {
@@ -595,9 +642,14 @@ async function sendOrderDirect() {
       alert((r.error || 'بعض الأصناف نفدت') + '\nتمت إزالتها من سلتك، راجع الطلب ثم أرسله مجدداً.');
       btn.disabled = false; btn.textContent = 'إرسال الطلب للمطعم'; if (cart.length) openCart(); else closeCart(); return;
     }
+    if (!r.success && (r.needLogin || r.needAddress)) {
+      btn.disabled = false; btn.textContent = 'إرسال الطلب للمطعم';
+      if (r.needLogin) { try { localStorage.removeItem('appCustToken_' + publicId); } catch (e) {} FCDel.clear(); }
+      alert(r.error || 'يرجى اختيار عنوان التوصيل'); await pickDeliveryAddress(); return;
+    }
     if (!r.success) throw new Error(r.error || 'تعذر إرسال الطلب');
     cart = []; paintCart();
-    document.getElementById('cartSheetBox').innerHTML = `<div class="sheet-pad" style="text-align:center"><div style="font-size:3rem;color:#10b981">&#10004;</div><h2>تم استلام طلبك</h2><p class="checkout-note" style="margin:10px 0 16px">وصل طلبك إلى المطعم وسيتم تجهيزه بعد التأكيد${tableNo && menuData.ordering.tableOrdering ? ' — طاولة ' + esc(tableNo) : ''}.</p>${menuData.googleReviewUrl ? `<a class="addwide" style="display:block;text-decoration:none;text-align:center" href="${esc(menuData.googleReviewUrl)}" target="_blank" rel="noopener">قيّم تجربتك على Google</a>` : ''}<button class="addwide" style="width:100%;margin-top:8px" onclick="closeCart()">حسناً</button></div>`;
+    document.getElementById('cartSheetBox').innerHTML = `<div class="sheet-pad" style="text-align:center"><div style="font-size:3rem;color:#10b981">&#10004;</div><h2>تم استلام طلبك</h2><p class="checkout-note" style="margin:10px 0 16px">${isD ? 'وصل طلبك إلى المطعم، وسيُرسل مع السائق إلى عنوانك فور تجهيزه' + (r.deliveryFee ? ' (رسوم التوصيل ' + (+r.deliveryFee).toFixed(2) + ')' : '') + '. تابع حالته من تطبيق المطعم.' : 'وصل طلبك إلى المطعم وسيتم تجهيزه بعد التأكيد'}${tableNo && menuData.ordering.tableOrdering ? ' — طاولة ' + esc(tableNo) : ''}.</p>${menuData.googleReviewUrl ? `<a class="addwide" style="display:block;text-decoration:none;text-align:center" href="${esc(menuData.googleReviewUrl)}" target="_blank" rel="noopener">قيّم تجربتك على Google</a>` : ''}<button class="addwide" style="width:100%;margin-top:8px" onclick="closeCart()">حسناً</button></div>`;
   } catch (e) { alert(e.message); btn.disabled = false; btn.textContent = 'إرسال الطلب للمطعم'; }
 }
 function renderGoogleCard() {

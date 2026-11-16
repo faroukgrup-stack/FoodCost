@@ -15,7 +15,7 @@
 body{font-family:Tajawal,system-ui,sans-serif;background:var(--bg);color:#f1f5f9;min-height:100vh;padding-bottom:84px}
 .wrap{max-width:560px;margin:0 auto;padding:0 16px}
 .hero{padding:34px 0 22px;text-align:center}
-.logo{width:96px;height:96px;border-radius:26px;object-fit:cover;background:#1e2537;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:2.4rem;color:var(--c);border:3px solid var(--c)}
+.logo{width:76px;height:76px;object-fit:contain;background:transparent;margin:0 auto 10px;display:block;filter:drop-shadow(0 4px 10px rgba(0,0,0,.35))}
 h1{font-size:1.6rem}.welcome{color:#cbd5e1;margin-top:6px;line-height:1.7}
 .banner{width:100%;border-radius:18px;margin:6px 0 16px;aspect-ratio:16/7;object-fit:cover}
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -56,14 +56,27 @@ footer{text-align:center;color:#475569;font-size:.75rem;margin-top:20px}
 .acc-item small{color:#94a3b8}.acc-item .cp{font-family:monospace;background:#0b0e17;padding:2px 8px;border-radius:6px;direction:ltr;display:inline-block}
 .dot{display:inline-block;min-width:20px;height:20px;border-radius:10px;background:#ef4444;color:#fff;font-size:.75rem;line-height:20px;padding:0 6px;margin-inline-start:6px}
 .lnk{background:none;border:0;color:var(--c);font-family:inherit;cursor:pointer;font-size:.9rem;margin-top:12px}
+/* v4.5 عرض مضغوط ومريح على الجوال */
+@media(max-width:600px){
+body{font-size:14px}.wrap{padding:0 12px}.hero{padding:20px 0 12px}.logo{width:62px;height:62px;margin-bottom:8px}
+h1{font-size:1.2rem}.welcome{font-size:.85rem;margin-top:4px}.banner{border-radius:14px;margin:4px 0 10px}
+.tiles{gap:8px}.tile{padding:12px 10px;border-radius:14px;font-size:.88rem}.tile i{font-size:1.25rem;margin-bottom:5px}.tile small{font-size:.72rem}
+.contact{gap:10px;margin:14px 0}.contact a{width:42px;height:42px;font-size:1.05rem}
+.box{padding:16px 14px 22px;border-radius:18px 18px 0 0}.box h2{font-size:1.05rem;margin-bottom:10px}
+label{font-size:.8rem;margin:8px 0 4px}input,select,textarea{padding:10px;border-radius:10px;font-size:.95rem}.btn{padding:11px;border-radius:12px;font-size:.92rem;margin-top:12px}
+.acc-card{padding:14px;border-radius:18px}.acc-card .qr img{width:170px;height:170px}.acc-row b{font-size:1.2rem}.acc-item{font-size:.84rem;padding:8px 10px}
+.pts{font-size:2rem}.steps div i{width:32px;height:32px}
+}
+.acc-item.dlv{border-inline-start-color:#22c55e;background:rgba(34,197,94,.08)}.acc-item.dlv i{color:#22c55e}
 </style>
 </head>
 <body>
 <div class="wrap" id="root"><div class="loading">جاري التحميل...</div></div>
 <div class="sheet" id="sheet"><div class="box" id="box"></div></div>
 <div id="install"><b id="instTxt">ثبّت التطبيق على جوالك</b><button id="instBtn">تثبيت</button><button class="no" id="instNo">لاحقاً</button></div>
-<script src="js/config.js?v=4.4"></script>
-<script src="js/domain.js?v=4.4"></script>
+<script src="js/config.js?v=4.5"></script>
+<script src="js/domain.js?v=4.5"></script>
+<script src="js/cust-delivery.js?v=4.5"></script>
 <script>
 const qs = new URLSearchParams(location.search), R = (qs.get('r') || localStorage.getItem('appLastR') || '').trim().toLowerCase();
 if (R) try { localStorage.setItem('appLastR', R); } catch (e) {}
@@ -133,22 +146,34 @@ async function notify(title, body) {
   } catch (e) { /* */ }
 }
 function startMePoll() { clearInterval(meT); if (ct()) meT = setInterval(async () => { await loadMe(true); if ($('#sheet').classList.contains('open') && $('#accBox')) drawAcc(); else render(); }, 30000); }
+const DS_AR = { waiting: 'قيد التجهيز للتوصيل', ready: 'جاهز — بانتظار السائق', on_way: 'في الطريق إليك', delivered: 'تم التسليم', cancelled: 'ملغي' };
+function delHtml(m) {
+  const act = (m.orders || []).filter(o => ['waiting', 'ready', 'on_way'].includes(o.delivery_status));
+  const live = act.map(o => '<div class="acc-item new dlv"><b><i class="fas fa-motorcycle"></i> طلب #' + o.number + ' — ' + h(DS_AR[o.delivery_status]) + '</b>' +
+    (o.delivery_status === 'on_way' && o.driver_name ? '<div>السائق: ' + h(o.driver_name) + '</div>' : '') +
+    (o.delivery_due_at && o.delivery_status === 'on_way' ? '<small>الوصول المتوقع قبل ' + new Date(o.delivery_due_at).toLocaleTimeString('ar-EG', { timeStyle: 'short' }) + '</small>' : '') + '</div>').join('');
+  const adr = C.features && C.features.delivery ? '<div class="acc-sec"><h3>عناويني للتوصيل</h3>' + ((m.addresses || []).length ? m.addresses.map(a => '<div class="acc-item"><b>' + h(a.label || 'عنوان') + '</b><br><small>' + h(FCDel.line(a)) + '</small></div>').join('') : '<div class="acc-item"><small>لم تضف عنواناً بعد</small></div>') + '<button class="btn" id="accAddr" style="background:#1e2537;color:#fff;margin-top:6px"><i class="fas fa-location-dot"></i> إدارة عناويني</button></div>' : '';
+  return { live, adr };
+}
 function drawAcc() {
   const m = ME, cur = h(C.currency || '');
+  const DL = delHtml(m);
   const unread = (m.inbox || []).filter(x => !x.read_at).length;
   $('#box').innerHTML = '<h2>حسابي <button class="x">&times;</button></h2><div id="accBox">' +
     '<div class="acc-card"><b style="font-size:1.15rem">' + h(m.name) + '</b><div class="qr"><img src="' + qrSrc(m.qr) + '" alt="QR"></div><div class="code">' + h(m.qr) + '</div><small>اعرض هذا الرمز على الكاشير لتجميع النقاط أو الخصم من فاتورتك</small></div>' +
-    '<div class="acc-row">' + (m.loyalty ? '<div>رصيد النقاط<b>' + m.points + '</b><small>تعادل ' + m.value + ' ' + cur + '</small></div>' : '') + '<div>الزيارات<b>' + (m.visits || 0) + '</b><small>إجمالي ' + m.totalSpent + ' ' + cur + '</small></div></div>' +
+    DL.live + '<div class="acc-row">' + (m.loyalty ? '<div>رصيد النقاط<b>' + m.points + '</b><small>تعادل ' + m.value + ' ' + cur + '</small></div>' : '') + '<div>الزيارات<b>' + (m.visits || 0) + '</b><small>إجمالي ' + m.totalSpent + ' ' + cur + '</small></div></div>' +
     (m.minRedeem && m.loyalty ? '<small style="color:#94a3b8">يمكن الاستبدال من ' + m.minRedeem + ' نقطة</small>' : '') +
     (('Notification' in window) && Notification.permission !== 'granted' ? '<button class="btn" id="accNotif" style="background:#1e2537;color:#fff"><i class="fas fa-bell"></i> تفعيل التنبيهات على جوالي</button>' : '') +
     '<div class="acc-sec"><h3>الرسائل والعروض' + (unread ? '<span class="dot">' + unread + '</span>' : '') + '</h3>' + ((m.inbox || []).length ? m.inbox.slice(0, 15).map(x => '<div class="acc-item' + (x.read_at ? '' : ' new') + '"><b>' + h(x.title) + '</b>' + (x.body ? '<div>' + h(x.body) + '</div>' : '') + (x.code ? '<div>كود الخصم: <span class="cp">' + h(x.code) + '</span></div>' : '') + '<small>' + new Date(x.created_at).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) + '</small></div>').join('') : '<div class="acc-item"><small>لا توجد رسائل بعد</small></div>') + '</div>' +
     ((m.offers || []).length ? '<div class="acc-sec"><h3>العروض الحالية</h3>' + m.offers.map(o => '<div class="acc-item"><b>' + h(o.name) + '</b> — ' + (o.kind === 'percent' ? o.value + '%' : o.value + ' ' + cur) + ' <div>الكود: <span class="cp">' + h(o.code) + '</span>' + (o.min_total ? ' · حد أدنى ' + o.min_total + ' ' + cur : '') + (o.ends_at ? ' · حتى ' + String(o.ends_at).slice(0, 10) : '') + '</div></div>').join('') + '</div>' : '') +
     ((m.giftCards || []).length ? '<div class="acc-sec"><h3>بطاقات الهدايا</h3>' + m.giftCards.map(g => '<div class="acc-item"><span class="cp">' + h(g.code) + '</span> · الرصيد <b>' + g.balance + ' ' + cur + '</b>' + (g.expires ? '<br><small>تنتهي ' + String(g.expires).slice(0, 10) + '</small>' : '') + '</div>').join('') + '</div>' : '') +
-    ((m.menuOrders || []).length || (m.orders || []).length ? '<div class="acc-sec"><h3>طلباتي</h3>' + (m.menuOrders || []).slice(0, 5).map(o => '<div class="acc-item">طلب من المينيو · ' + o.total + ' ' + cur + ' · <b>' + h(ST_AR[o.status] || o.status) + '</b><br><small>' + new Date(o.date).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) + '</small></div>').join('') + (m.orders || []).slice(0, 8).map(o => '<div class="acc-item">فاتورة #' + o.number + ' · ' + o.total + ' ' + cur + ' · <b>' + h(ST_AR[o.kitchen_status !== 'none' && o.status === 'open' ? o.kitchen_status : o.status] || o.status) + '</b><br><small>' + new Date(o.created_at).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) + '</small></div>').join('') + '</div>' : '') +
+    ((m.menuOrders || []).length || (m.orders || []).length ? '<div class="acc-sec"><h3>طلباتي</h3>' + (m.menuOrders || []).slice(0, 5).map(o => '<div class="acc-item">طلب من المينيو · ' + o.total + ' ' + cur + ' · <b>' + h(ST_AR[o.status] || o.status) + '</b><br><small>' + new Date(o.date).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) + '</small></div>').join('') + (m.orders || []).slice(0, 8).map(o => '<div class="acc-item">فاتورة #' + o.number + ' · ' + o.total + ' ' + cur + ' · <b>' + h(o.delivery_status && DS_AR[o.delivery_status] ? DS_AR[o.delivery_status] : (ST_AR[o.kitchen_status !== 'none' && o.status === 'open' ? o.kitchen_status : o.status] || o.status)) + '</b><br><small>' + new Date(o.created_at).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) + '</small></div>').join('') + '</div>' : '') +
+    DL.adr +
     ((m.reservations || []).length ? '<div class="acc-sec"><h3>حجوزاتي</h3>' + m.reservations.map(x => '<div class="acc-item">' + new Date(x.reserved_at).toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' }) + ' · ' + x.party_size + ' أشخاص · <b>' + h(ST_AR[x.status] || x.status) + '</b></div>').join('') + '</div>' : '') +
     '<div style="display:flex;justify-content:space-between"><button class="lnk" id="accPin">تغيير الرمز السري</button><button class="lnk" id="accOut">تسجيل الخروج</button></div></div>';
   if (unread) api('custInboxRead', { ct: ct() }).then(() => { (ME.inbox || []).forEach(x => { x.read_at = x.read_at || new Date().toISOString(); }); ME.unread = 0; render(); }).catch(() => {});
   const nb = $('#accNotif'); if (nb) nb.onclick = async () => { try { const p = await Notification.requestPermission(); if (p === 'granted') { notify('تم تفعيل التنبيهات', 'ستصلك العروض وتنبيهات طلباتك هنا'); nb.remove(); } } catch (e) { /* */ } };
+  const ab = $('#accAddr'); if (ab) ab.onclick = async () => { FCDel.setup({ r: R, color: C.color || '#b48554' }); FCDel.clear(); await FCDel.manage(); };
   $('#accOut').onclick = () => { localStorage.removeItem(CT_KEY); ME = null; clearInterval(meT); closeSheet(); render(); };
   $('#accPin').onclick = async () => { const p = prompt('الرمز السري الجديد (4 إلى 6 أرقام)'); if (!p) return; const r = await api('custSetPin', { ct: ct(), pin: p }).catch(() => ({ error: 'تعذر الاتصال' })); alert(r.success ? 'تم تغيير الرمز السري' : r.error); };
 }
