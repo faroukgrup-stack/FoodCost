@@ -4,7 +4,12 @@
 var POS = { boot: null, cat: '', q: '', o: null, root: null, shift: null };
 function posNewOrder() {
   const def = (POS.boot && POS.boot.settings.pos.defaultOrderType) || 'takeaway';
-  return { id: '', number: '', orderType: def, tableId: '', tableName: '', customerId: '', customerName: '', customerPhone: '', customerPoints: 0, items: [], discount: null, discountLabel: '', notes: '' };
+  return { id: '', number: '', orderType: def, tableId: '', tableName: '', customerId: '', customerName: '', customerPhone: '', customerPoints: 0, items: [], discount: null, discountLabel: '', notes: '', deliveryAddress: null, deliveryFee: null };
+}
+function posDeliveryOn() { return !!(POS.boot && POS.boot.settings.delivery && hasF('delivery')); }
+function posDeliveryFee() {
+  const o = POS.o; if (!o || o.orderType !== 'delivery' || !posDeliveryOn()) return 0;
+  return Math.max(0, +(o.deliveryFee !== null && o.deliveryFee !== undefined ? o.deliveryFee : POS.boot.settings.delivery.fee) || 0);
 }
 function posLid() { return Math.random().toString(36).slice(2, 10); }
 function posFromServer(o) {
@@ -16,7 +21,7 @@ function posFromServer(o) {
     }),
     discount: o.discount_info && o.discount_info.discountId ? { discountId: o.discount_info.discountId } : (o.discount_info && o.discount_info.manual ? { kind: o.discount_info.kind, value: o.discount_info.value } : null),
     discountLabel: o.discount_info && (o.discount_info.name || (o.discount_info.manual ? ('خصم ' + o.discount_info.value + (o.discount_info.kind === 'percent' ? '%' : '')) : '')) || '',
-    notes: o.notes || '', total: o.total
+    notes: o.notes || '', total: o.total, deliveryAddress: o.delivery_address || null, deliveryFee: o.delivery_fee !== undefined && o.delivery_fee !== null ? +o.delivery_fee : null, deliveryStatus: o.delivery_status || ''
   };
 }
 function posPayload() {
@@ -24,13 +29,17 @@ function posPayload() {
   return {
     id: o.id || undefined, orderType: o.orderType, tableId: o.orderType === 'dine_in' ? o.tableId : '', customerId: o.customerId, customerName: o.customerName, customerPhone: o.customerPhone,
     items: o.items.map(function (l) { return { lid: l.lid, productId: l.productId || undefined, name: l.name, variant: l.variant, extras: l.extras.map(function (e) { return { name: e.name, qty: e.qty, price: e.price }; }), qty: l.qty, note: l.note, unitPrice: l.base }; }),
-    discount: o.discount || {}, notes: o.notes
+    discount: o.discount || {}, notes: o.notes,
+    deliveryAddress: o.orderType === 'delivery' && o.deliveryAddress ? o.deliveryAddress : undefined, deliveryFee: o.orderType === 'delivery' && o.deliveryFee !== null && o.deliveryFee !== undefined ? o.deliveryFee : undefined
   };
 }
 // حساب تقديري مطابق لمنطق السيرفر (الإجمالي النهائي يحسبه السيرفر)
 function posTotals() {
   const s = POS.boot.settings, tax = s.tax || {}, o = POS.o;
-  const lines = o.items.map(function (l) {
+  const its = o.items.filter(function (l) { return !(!l.productId && l.name === 'رسوم التوصيل'); });
+  const dfee = posDeliveryFee();
+  if (dfee > 0) its.push({ productId: '', name: 'رسوم التوصيل', base: dfee, extras: [], qty: 1 });
+  const lines = its.map(function (l) {
     const p = l.productId ? POS.boot.products.find(function (x) { return x.id === l.productId; }) : null;
     const unit = l.base + l.extras.reduce(function (a, e) { return a + e.price * e.qty; }, 0);
     return { gross: unit * l.qty, rate: tax.enabled ? (p && p.tax_rate !== null && p.tax_rate !== undefined ? +p.tax_rate : +tax.rate || 0) : 0, cat: p ? p.category : '', pid: l.productId, disc: 0 };
@@ -239,17 +248,19 @@ function posRenderCart() {
     '<div class="pos-types">' + types.map(function (x) { return '<button class="' + (o.orderType === x[0] ? 'active' : '') + '" data-t="' + x[0] + '"><i class="fas fa-' + x[2] + '"></i> ' + x[1] + '</button>'; }).join('') + '</div>' +
     '<div class="pos-meta">' +
       (o.orderType === 'dine_in' && hasF('tables') ? '<button data-a="table"><i class="fas fa-chair"></i> ' + (o.tableName ? h(o.tableName) : 'اختر طاولة') + '</button>' : '') +
+      (o.orderType === 'delivery' && posDeliveryOn() ? '<button data-a="addr" class="' + (o.deliveryAddress ? '' : 'warn') + '"><i class="fas fa-map-marker-alt"></i> ' + (o.deliveryAddress ? h(dlAddrLine(o.deliveryAddress).slice(0, 26) || 'العنوان') : 'عنوان التوصيل') + '</button>' : '') +
       (hasF('customers') ? '<button data-a="cust"><i class="fas fa-user"></i> ' + (o.customerName ? h(o.customerName) + (o.customerPoints ? ' · ' + o.customerPoints + ' نقطة' : '') : 'العميل') + '</button>' : '') +
       (hasF('discounts') || b.canManage ? '<button data-a="disc"><i class="fas fa-tag"></i> ' + (o.discountLabel ? h(o.discountLabel) : 'خصم / عرض') + '</button>' : '') +
       '<button data-a="note"><i class="fas fa-sticky-note"></i> ' + (o.notes ? h(o.notes.slice(0, 18)) : 'ملاحظة') + '</button>' +
     '</div>' +
     '<div class="pos-lines">' + (o.items.length ? o.items.map(function (l, i) {
       const unit = l.base + l.extras.reduce(function (a, e) { return a + e.price * e.qty; }, 0);
+      if (!l.productId && l.name === 'رسوم التوصيل') return '';
       return '<div class="pos-line' + (l.sent ? ' sent' : '') + '"><div class="ln" data-edit="' + i + '">' + h(l.name) + (l.variant ? ' (' + h(l.variant) + ')' : '') +
         (l.extras.length || l.note ? '<small>' + l.extras.map(function (e) { return '+ ' + h(e.name); }).join(' ') + (l.note ? ' · ' + h(l.note) : '') + '</small>' : '') + '</div>' +
         '<div class="qty"><button data-m="' + i + '">−</button><span>' + nf(l.qty, l.qty % 1 ? 2 : 0) + '</span><button data-p="' + i + '">+</button></div><div class="lt">' + money(unit * l.qty) + '</div></div>';
     }).join('') : '<div class="empty-state" style="padding:30px 0">اختر الأصناف من القائمة</div>') + '</div>' +
-    '<div class="pos-tot"><div><span>المجموع</span><span>' + money(t.sub) + '</span></div>' + (t.disc > 0.001 ? '<div style="color:#6ee7b7"><span>الخصم</span><span>-' + money(t.disc) + '</span></div>' : '') +
+    '<div class="pos-tot"><div><span>المجموع</span><span>' + money(t.sub) + '</span></div>' + (posDeliveryFee() > 0 ? '<div class="muted"><span><i class="fas fa-motorcycle"></i> رسوم التوصيل</span><span>' + money(posDeliveryFee()) + '</span></div>' : '') + (t.disc > 0.001 ? '<div style="color:#6ee7b7"><span>الخصم</span><span>-' + money(t.disc) + '</span></div>' : '') +
     (b.settings.tax.enabled ? '<div class="muted"><span>' + h(b.settings.tax.name || 'الضريبة') + ' ' + (b.settings.tax.inclusive ? '(مشمولة)' : '') + '</span><span>' + money(t.tax) + '</span></div>' : '') +
     '<div class="big"><span>الإجمالي</span><span>' + money(t.total) + '</span></div></div>' +
     '<div class="pos-actions">' +
@@ -265,7 +276,7 @@ function posRenderCart() {
     const pl = e.target.closest('[data-p]'); if (pl) { o.items[+pl.dataset.p].qty++; posRenderCart(); return; }
     const mi = e.target.closest('[data-m]'); if (mi) { const l = o.items[+mi.dataset.m]; if (l.sent && !b.canManage) { showToast('الصنف أُرسل للمطبخ — يتطلب صلاحية إدارة الطلبات', true); return; } l.qty--; if (l.qty <= 0) o.items.splice(+mi.dataset.m, 1); posRenderCart(); return; }
     const a = e.target.closest('[data-a]'); if (!a || a.disabled) return;
-    const fn = { new: function () { POS.o = posNewOrder(); posRenderCart(); }, clear: function () { POS.o = posNewOrder(); posRenderCart(); }, table: posPickTable, cust: posPickCustomer, disc: posPickDiscount,
+    const fn = { new: function () { POS.o = posNewOrder(); posRenderCart(); }, clear: function () { POS.o = posNewOrder(); posRenderCart(); }, table: posPickTable, cust: posPickCustomer, addr: posPickAddress, disc: posPickDiscount,
       note: function () { bPrompt('ملاحظة الطلب', [{ k: 'notes', label: 'ملاحظة', type: 'textarea', full: true }], { notes: o.notes }, function (d) { o.notes = d.notes; posRenderCart(); }); },
       hold: function () { posSave(false); }, kitchen: function () { posSave(true); }, cancel: posCancel, pay: posPay, kot: function () { posPrintKot(o); } }[a.dataset.a];
     if (fn) fn();
@@ -352,6 +363,24 @@ function posPickCustomer() {
   m.$('#pcQ').addEventListener('input', function () { clearTimeout(tm); tm = setTimeout(load, 300); });
   load();
 }
+// v4.5: عنوان التوصيل لطلب الكاشير (من عناوين العميل المحفوظة أو يدوياً + رابط الموقع)
+async function posPickAddress() {
+  const o = POS.o, a = o.deliveryAddress || {};
+  let saved = [];
+  if (o.customerId) { try { const r = await bzOk('customerProfile', { id: o.customerId }); saved = (r.customer && r.customer.addresses) || []; if (!a.text && !saved.length && r.customer && r.customer.address) a.text = r.customer.address; } catch (e) { /* */ } }
+  const F = [{ k: 'text', label: 'العنوان (الحي / الشارع)', full: true }, { k: 'complex', label: 'المجمع' }, { k: 'building', label: 'المبنى' }, { k: 'floor', label: 'الطابق' }, { k: 'apartment', label: 'الشقة' },
+    { k: 'notes', label: 'تفاصيل إضافية / علامة مميزة', full: true }, { k: 'map', label: 'رابط الموقع (Google Maps) أو الإحداثيات', ltr: true, full: true, ph: '41.0082, 28.9784' },
+    { k: 'fee', label: 'رسوم التوصيل', type: 'number', def: POS.boot.settings.delivery.fee }];
+  const v = Object.assign({}, a, { map: a.lat ? a.lat + ', ' + a.lng : '', fee: o.deliveryFee !== null && o.deliveryFee !== undefined ? o.deliveryFee : POS.boot.settings.delivery.fee });
+  const chips = saved.length ? '<div class="biz-sec">عناوين العميل المحفوظة</div><div class="opt-chips" style="margin-bottom:10px">' + saved.map(function (x, i) { return '<button class="opt-chip" data-act="useAddr" data-i="' + i + '"><i class="fas fa-map-marker-alt"></i> ' + h(x.label || dlAddrLine(x).slice(0, 30)) + '</button>'; }).join('') + '</div>' : '';
+  bPrompt('عنوان التوصيل', [{ type: 'html', html: chips }].concat(F), v, function (d) {
+    const ll = dlParseLatLng(d.map);
+    o.deliveryAddress = { text: d.text, complex: d.complex, building: d.building, floor: d.floor, apartment: d.apartment, notes: d.notes, lat: ll ? ll[0] : (a.lat || null), lng: ll ? ll[1] : (a.lng || null), label: a.label || '' };
+    if (!d.map) { o.deliveryAddress.lat = null; o.deliveryAddress.lng = null; }
+    o.deliveryFee = d.fee === '' ? null : +d.fee;
+    posRenderCart();
+  }, { icon: 'map-marker-alt', wide: true, actions: { useAddr: function (m, el) { const x = saved[+el.dataset.i]; ['text', 'complex', 'building', 'floor', 'apartment', 'notes'].forEach(function (k) { const i = m.$('[data-k=' + k + ']'); if (i) i.value = x[k] || (k === 'text' ? [x.district, x.street].filter(Boolean).join('، ') : ''); }); m.$('[data-k=map]').value = x.lat ? x.lat + ', ' + x.lng : ''; } } });
+}
 function posPickDiscount() {
   const o = POS.o, ds = POS.boot.discounts || [];
   bModal({ title: 'الخصومات والعروض', icon: 'tag', wide: true,
@@ -396,11 +425,11 @@ async function posPay(preGift) {
   if (hasF('loyalty') && b.settings.loyalty.enabled && hasF('customers')) methods.push(['points', 'نقاط الولاء', 'star']);
   if (hasF('ledger') && POS.o.customerId) methods.push(['credit', 'آجل', 'book']);
   const m = bModal({ title: 'الدفع — طلب #' + saved.order.number, icon: 'money-bill-wave', wide: true,
-    body: '<div class="pay-due" id="pyDue"></div><div class="pay-methods">' + methods.map(function (x) { return '<button data-act="m" data-m="' + x[0] + '"><i class="fas fa-' + x[2] + '"></i><br>' + x[1] + '</button>'; }).join('') + '</div>' +
+    body: '<div class="pay-grid"><div class="pay-l"><div class="pay-due" id="pyDue"></div><div class="pay-methods">' + methods.map(function (x) { return '<button data-act="m" data-m="' + x[0] + '"><i class="fas fa-' + x[2] + '"></i><br>' + x[1] + '</button>'; }).join('') + '</div>' +
       (hasF('customers') ? '<div class="pay-cust" id="pyCust"></div>' : '') +
-      '<div class="pay-list" id="pyList"></div><div class="biz-toolbar" style="margin-top:8px"><label class="muted">المبلغ:</label><input class="biz-search grow" id="pyAmt" type="number" step="any" dir="ltr"></div>' +
+      '<div class="pay-list" id="pyList"></div></div><div class="pay-r"><div class="biz-toolbar" style="margin-top:0"><label class="muted">المبلغ:</label><input class="biz-search grow" id="pyAmt" type="number" step="any" dir="ltr"></div>' +
       '<div class="numpad" id="pyPad">' + [7, 8, 9, 4, 5, 6, 1, 2, 3, '.', 0, '⌫'].map(function (k) { return '<button data-k="' + k + '">' + k + '</button>'; }).join('') + '</div>' +
-      '<label class="biz-check" style="margin-top:10px"><input type="checkbox" id="pyPrint" ' + (localStorage.getItem('fcAutoPrint') === '0' ? '' : 'checked') + '> <span>طباعة الفاتورة بعد الدفع</span></label>',
+      '<label class="biz-check" style="margin-top:10px"><input type="checkbox" id="pyPrint" ' + (localStorage.getItem('fcAutoPrint') === '0' ? '' : 'checked') + '> <span>طباعة الفاتورة بعد الدفع</span></label></div></div>',
     foot: '<button class="btn btn-cancel" data-x>رجوع</button><button class="btn btn-success" data-act="done" id="pyDone"><i class="fas fa-check"></i> إتمام الدفع</button>',
     actions: {
       m: function (mm, el) {
@@ -507,6 +536,7 @@ async function posPay(preGift) {
     }
     m.$('#pyList').innerHTML = pays.map(function (p, i) { return '<div class="pl"><span>' + h(PAY_NAMES[p.method]) + (p.ref ? ' · <span dir="ltr">' + h(p.ref) + '</span>' : '') + (p.method === 'gift' && p.balance !== undefined ? '<span class="pay-gift-info">رصيد البطاقة ' + money(p.balance) + ' · المتبقي بالبطاقة بعد الدفع ' + money(p.left) + '</span>' : '') + '</span><span>' + money(p.amount) + ' <button class="ico-btn danger" data-act="rm" data-i="' + i + '"><i class="fas fa-times"></i></button></span></div>'; }).join('');
   }
+  m.el.classList.add('pay-fit');
   draw();
   if (preGift) useGift(preGift, 0);
   if (prePoints > 0) pointsAsk(prePoints);
@@ -526,8 +556,9 @@ async function posMenuOrders() {
   const list = r.orders || [];
   bModal({ title: 'طلبات المينيو الإلكتروني', icon: 'qrcode', xwide: true, sub: 'طلبات العملاء من المينيو (QR) بانتظار القبول',
     body: list.length ? list.map(function (o) {
-      return '<div class="biz-card"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><b>' + (o.tableNumber ? 'طاولة ' + h(o.tableNumber) : 'سفري') + ' · ' + h(o.customerName || '') + ' <span dir="ltr">' + h(o.customerPhone || '') + '</span></b><span class="muted">' + h(o.date) + '</span></div>' +
+      return '<div class="biz-card"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><b>' + (o.orderType === 'delivery' ? '<span class="badge badge-info"><i class="fas fa-motorcycle"></i> توصيل</span>' : o.tableNumber ? 'طاولة ' + h(o.tableNumber) : 'سفري') + ' · ' + h(o.customerName || '') + ' <span dir="ltr">' + h(o.customerPhone || '') + '</span></b><span class="muted">' + h(o.date) + '</span></div>' +
         '<div style="margin:8px 0;line-height:1.9">' + o.items.map(function (i) { return nf(i.qty, 0) + ' × ' + h(i.name) + (i.size ? ' (' + h(i.size) + ')' : '') + (i.extras && i.extras.length ? ' + ' + i.extras.map(function (e) { return h(e.name); }).join('، ') : ''); }).join('<br>') + '</div>' +
+        (o.orderType === 'delivery' && o.address ? '<div class="muted" style="line-height:1.8"><i class="fas fa-map-marker-alt"></i> ' + h(o.addressLine || '') + (o.address.notes ? ' — ' + h(o.address.notes) : '') + ' <a target="_blank" rel="noopener" href="' + h(dlMapUrl(o.address)) + '">الخريطة</a>' + (o.deliveryFee ? ' · رسوم التوصيل ' + money(o.deliveryFee) : '') + '</div>' : '') +
         (o.notes ? '<div class="muted">' + h(o.notes) + '</div>' : '') + '<div style="display:flex;gap:6px;justify-content:space-between;align-items:center;margin-top:8px"><b>' + money(o.total) + '</b><span><button class="btn btn-danger btn-sm" data-act="rej" data-id="' + h(o.id) + '">رفض</button> <button class="btn btn-success btn-sm" data-act="acc" data-id="' + h(o.id) + '"><i class="fas fa-check"></i> قبول وتحويل للكاشير</button></span></div></div>';
     }).join('') : '<div class="empty-state">لا توجد طلبات جديدة</div>',
     actions: {

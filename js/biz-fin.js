@@ -164,7 +164,7 @@ function activityView(el) {
 }
 
 // ---------- الفريق والفروع ----------
-const PERM_NAMES = { pos: 'الكاشير وأخذ الطلبات', pos_pay: 'استلام الدفع والتحصيل', orders_manage: 'إدارة الطلبات (خصم/إلغاء/استرجاع)', tables: 'الطاولات والحجوزات', kitchen: 'شاشة المطبخ', inventory: 'المخزون والمنتجات', purchasing: 'المشتريات والموردون', customers: 'العملاء والولاء', finance: 'الحسابات والمصروفات', reports: 'التقارير', team: 'الموظفون والورديات', costing: 'حساب التكلفة وهندسة المنيو', digital_menu: 'المينيو الإلكتروني', reviews: 'التقييمات', marketing: 'العروض والتسويق', settings: 'إعدادات النشاط' };
+const PERM_NAMES = { pos: 'الكاشير وأخذ الطلبات', pos_pay: 'استلام الدفع والتحصيل', orders_manage: 'إدارة الطلبات (خصم/إلغاء/استرجاع)', tables: 'الطاولات والحجوزات', kitchen: 'شاشة المطبخ', inventory: 'المخزون والمنتجات', purchasing: 'المشتريات والموردون', customers: 'العملاء والولاء', finance: 'الحسابات والمصروفات', reports: 'التقارير', team: 'الموظفون والورديات', costing: 'حساب التكلفة وهندسة المنيو', digital_menu: 'المينيو الإلكتروني', reviews: 'التقييمات', marketing: 'العروض والتسويق', settings: 'إعدادات النشاط', delivery: 'تطبيق السائق (التوصيل)', dispatch: 'متابعة التوصيل وإسناد السائقين' };
 bizPage('team', { group: 'admin', title: 'الموظفون والفروع', icon: 'user-tie', feature: 'team', perms: ['team'], plan: 'pro',
   pitch: 'حسابات موظفين غير محدودة بصلاحيات دقيقة ودخول برمز PIN، الورديات، وإدارة الفروع (فرع واحد في الإنطلاقة، عدة فروع في المتقدمة).',
   render: async function (body) {
@@ -244,25 +244,57 @@ function appView(el) {
   bizLogoUploader(el, 'icon', 'يظهر الشعار كأيقونة التطبيق عند التثبيت على الجوال وفي صفحة التطبيق. إن لم ترفع شعاراً يظهر الشعار الأساسي للمنصة.');
 }
 // رفع الشعار: يُحوَّل تلقائياً إلى صورة مربعة 512×512 PNG (مطلوبة لأيقونة التثبيت)
+// إزالة الخلفية: تعبئة من الحواف للون الخلفية المتجانس (أبيض أو أي لون موحّد) وجعلها شفافة
+function bizRemoveBg(c, tol) {
+  const g = c.getContext('2d'), W = c.width, H = c.height, im = g.getImageData(0, 0, W, H), d = im.data;
+  const px = function (x, y) { const i = (y * W + x) * 4; return [d[i], d[i + 1], d[i + 2], d[i + 3]]; };
+  const corners = [px(1, 1), px(W - 2, 1), px(1, H - 2), px(W - 2, H - 2)].filter(function (q) { return q[3] > 200; });
+  if (!corners.length) return false;
+  const ref = corners[0]; tol = tol || 38;
+  const near = function (i) { return d[i + 3] > 0 && Math.abs(d[i] - ref[0]) + Math.abs(d[i + 1] - ref[1]) + Math.abs(d[i + 2] - ref[2]) <= tol * 3; };
+  const seen = new Uint8Array(W * H), st = [];
+  for (let x = 0; x < W; x++) { st.push(x, (H - 1) * W + x); }
+  for (let y = 0; y < H; y++) { st.push(y * W, y * W + W - 1); }
+  let n = 0;
+  while (st.length) {
+    const p = st.pop(); if (seen[p]) continue; seen[p] = 1;
+    const i = p * 4; if (!near(i)) continue;
+    d[i + 3] = 0; n++;
+    const x = p % W, y = (p - x) / W;
+    if (x > 0) st.push(p - 1); if (x < W - 1) st.push(p + 1); if (y > 0) st.push(p - W); if (y < H - 1) st.push(p + W);
+  }
+  g.putImageData(im, 0, 0); return n > 0;
+}
 function bizLogoUploader(el, key, hint) {
   const inp = el.querySelector('#bf_' + key); if (!inp) return;
   const box = document.createElement('div'); box.className = 'logo-up';
-  box.innerHTML = '<img class="logo-prev" alt="">' + '<label class="btn btn-outline btn-sm"><i class="fas fa-upload"></i> رفع الشعار<input type="file" accept="image/*" hidden></label>' + '<span class="muted" style="font-size:.8rem">' + h(hint || '') + '</span>';
+  box.innerHTML = '<img class="logo-prev" alt="">' +
+    '<div class="logo-acts"><label class="btn btn-outline btn-sm"><i class="fas fa-upload"></i> رفع الشعار (PNG شفاف)<input type="file" accept="image/png,image/webp,image/svg+xml,image/*" hidden></label>' +
+    '<label class="logo-rb"><input type="checkbox" class="rmbg"> إزالة الخلفية تلقائياً (للشعار ذي الخلفية البيضاء/الموحّدة)</label></div>' +
+    '<span class="muted" style="font-size:.8rem">' + h(hint || '') + ' يُحفظ الشعار بخلفية شفافة تماماً كما هو (PNG).</span>';
   inp.insertAdjacentElement('afterend', box);
   const prev = box.querySelector('img'); const sync = function () { prev.src = inp.value || 'assets/icon-192.png'; }; inp.addEventListener('input', sync); sync();
-  box.querySelector('input').onchange = async function (e) {
+  box.querySelector('input[type=file]').onchange = async function (e) {
     const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return;
     try {
       const url = await new Promise(function (res, rej) { const r = new FileReader(); r.onerror = function () { rej(new Error('تعذرت قراءة الصورة')); }; r.onload = function () { res(r.result); }; r.readAsDataURL(f); });
       const img = await new Promise(function (res, rej) { const i = new Image(); i.onload = function () { res(i); }; i.onerror = function () { rej(new Error('صورة غير صالحة')); }; i.src = url; });
+      const iw = img.naturalWidth || img.width || 512, ih = img.naturalHeight || img.height || 512;
+      // لوحة شفافة بالكامل — بدون أي تعبئة للخلفية
       const c = document.createElement('canvas'); c.width = c.height = 512; const g = c.getContext('2d');
-      const bg = (B.acc.biz && B.acc.biz.app && B.acc.biz.app.bg) || '#0b0e17'; g.fillStyle = bg; g.fillRect(0, 0, 512, 512);
-      const sc = Math.min(512 * 0.86 / img.width, 512 * 0.86 / img.height), w = img.width * sc, hh = img.height * sc;
+      g.clearRect(0, 0, 512, 512);
+      const sc = Math.min(512 * 0.92 / iw, 512 * 0.92 / ih), w = iw * sc, hh = ih * sc;
+      g.imageSmoothingQuality = 'high';
       g.drawImage(img, (512 - w) / 2, (512 - hh) / 2, w, hh);
+      if (box.querySelector('.rmbg').checked) {
+        const t = document.createElement('canvas'); t.width = Math.round(w); t.height = Math.round(hh);
+        t.getContext('2d').drawImage(img, 0, 0, t.width, t.height);
+        if (bizRemoveBg(t)) { g.clearRect(0, 0, 512, 512); g.drawImage(t, (512 - w) / 2, (512 - hh) / 2); }
+      }
       showToast('جاري رفع الشعار...');
       const up = await uploadMenuImagePost(c.toDataURL('image/png'), 'logo');
       if (!up || !up.success || !up.url) throw new Error((up && up.error) || 'فشل الرفع');
-      inp.value = up.url; sync(); showToast('تم رفع الشعار — اضغط حفظ');
+      inp.value = up.url; sync(); showToast('تم رفع الشعار بخلفية شفافة — اضغط حفظ');
     } catch (er) { showToast(er.message, true); }
   };
 }

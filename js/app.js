@@ -128,4 +128,4 @@ window.addEventListener('DOMContentLoaded', function() {
     setInterval(updateDateTime, 1000);
 });
 
-console.log('✅ نظام FoodCost 2.0 جاهز - النسخة المعيارية (Modular)');
+console.log('✅ Mataami Pro جاهز - النسخة المعيارية (Modular)');

@@ -75,7 +75,7 @@ function rptCover(o, b) {
   return '<div class="cover">' + (b.logo ? '<div class="logo"><img src="' + h(b.logo) + '"></div>' : '') + '<div class="rname">' + h(b.name) + '</div>' + (b.address || b.phone ? '<div class="rsub">' + h([b.address, b.phone].filter(Boolean).join(' · ')) + '</div>' : '') +
     '<div class="title">' + h(o.title) + '</div>' + (o.subtitle ? '<div class="csub">' + h(o.subtitle) + '</div>' : '') + '<div class="bar"></div>' +
     '<table class="meta">' + meta.map(function (m) { return '<tr><td>' + m[0] + '</td><td>' + m[1] + '</td></tr>'; }).join('') + '</table>' +
-    '<div class="brand">تقرير صادر من نظام FoodCost لإدارة المطاعم · ' + h(b.name) + '</div></div>';
+    '<div class="brand">تقرير صادر من منصة Mataami Pro | مطعمي برو · ' + h(b.name) + '</div></div>';
 }
 function rptHead(b) {
   return '<div class="dhead"><div>' + (b.logo ? '<img src="' + h(b.logo) + '">' : '') + '<b>' + h(b.name) + '</b>' + (b.branch ? ' <span class="muted">· ' + h(b.branch) + '</span>' : '') + '</div><div class="l">' + h(rptNow()) + '</div></div>';
@@ -87,7 +87,7 @@ function rptDocHtml(o) {
     ((o.subtitle && !o.cover) || o.period ? '<div class="dsub">' + h([o.cover ? '' : o.subtitle, o.period ? 'الفترة: ' + o.period : ''].filter(Boolean).join(' · ')) + '</div>' : '') +
     rptKpis(o.kpis) + (o.sections || []).map(rptSection).join('') + (o.bodyHtml || '') +
     (o.signature ? '<table class="sign"><tr><td>المحاسب</td><td>المدير</td><td>الختم</td></tr></table>' : '') +
-    '<div class="dfoot">' + h(b.name) + ' · ' + h(o.title) + ' · طُبع في ' + h(rptNow()) + ' · FoodCost</div>';
+    '<div class="dfoot">' + h(b.name) + ' · ' + h(o.title) + ' · طُبع في ' + h(rptNow()) + ' · Mataami Pro</div>';
   return '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>' + h(o.title) + '</title><style>' + RPT_CSS + '</style></head><body>' + body + '</body></html>';
 }
 function rptFileName(o, ext) { return (o.file || o.title || 'تقرير').replace(/[\\/:*?"<>|]/g, '-') + '_' + isoLocal() + '.' + ext; }
@@ -178,7 +178,7 @@ async function rptXTableSheet(wb, s, period) {
 }
 async function rptExcel(o) {
   if (typeof ExcelJS === 'undefined') { showToast('مكتبة Excel غير محملة', true); return; }
-  const wb = new ExcelJS.Workbook(); wb.creator = 'FoodCost'; wb.created = new Date();
+  const wb = new ExcelJS.Workbook(); wb.creator = 'Mataami Pro'; wb.created = new Date();
   await rptXCover(wb, o);
   for (const s of (o.sections || [])) if (s.table || s.kpis) await rptXTableSheet(wb, s, o.period);
   const buf = await wb.xlsx.writeBuffer();
@@ -206,7 +206,7 @@ async function rptXCover(wb, o) {
   }
   const charts = (o.sections || []).filter(function (s) { return s.chart && s.coverChart; });
   for (const s of charts) await rptXImage(wb, ws, s.chart, ws.rowCount + 1, 620, 300) && ws.addRows(new Array(16).fill([]));
-  ws.addRow([]); const f = ws.addRow(['تقرير صادر من نظام FoodCost · ' + rptNow()]); ws.mergeCells(f.number, 1, f.number, 4); f.getCell(1).font = { size: 9, color: { argb: 'FF999999' } }; f.getCell(1).alignment = { horizontal: 'center' };
+  ws.addRow([]); const f = ws.addRow(['تقرير صادر من منصة Mataami Pro · ' + rptNow()]); ws.mergeCells(f.number, 1, f.number, 4); f.getCell(1).font = { size: 9, color: { argb: 'FF999999' } }; f.getCell(1).alignment = { horizontal: 'center' };
   return ws;
 }
 // قائمة أزرار التصدير الموحدة

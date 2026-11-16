@@ -291,15 +291,72 @@ function purchasesView(el) {
   }
   load();
 }
+// ---------- حاسبة تحويل وحدات القياس (v4.5) ----------
+const UC_UNITS = {
+  mass: { name: 'الوزن', u: [['kg', 'كيلوغرام', 1000], ['g', 'غرام', 1], ['mg', 'مليغرام', 0.001], ['t', 'طن', 1e6], ['lb', 'رطل (باوند)', 453.59237], ['oz', 'أونصة', 28.349523]] },
+  vol: { name: 'الحجم', u: [['l', 'لتر', 1000], ['ml', 'مليلتر', 1], ['gal', 'غالون', 3785.41], ['cup', 'كوب', 240], ['tbsp', 'ملعقة كبيرة', 15], ['tsp', 'ملعقة صغيرة', 5], ['floz', 'أونصة سائلة', 29.5735]] },
+  cnt: { name: 'العدد', u: [['pcs', 'حبة / قطعة', 1], ['dz', 'دزينة (12)', 12], ['hdz', 'نصف دزينة (6)', 6], ['tray', 'طبق بيض (30)', 30]] }
+};
+function ucGuess(unit) {
+  const u = String(unit || '').trim().toLowerCase();
+  const map = [[/^(كغ|كجم|كيلو|كيلوغرام|كيلوجرام|kg|kilo)/, 'mass', 'kg'], [/^(غ|غم|جم|جرام|غرام|g|gr|gram)$/, 'mass', 'g'], [/^(ملغ|mg)/, 'mass', 'mg'], [/^(طن|ton|t)$/, 'mass', 't'], [/^(رطل|باوند|lb)/, 'mass', 'lb'], [/^(أونصة|اونصة|oz)$/, 'mass', 'oz'],
+    [/^(لتر|ل|l|lt|liter|litre)$/, 'vol', 'l'], [/^(مل|ملل|مليلتر|ml)$/, 'vol', 'ml'], [/^(غالون|gal)/, 'vol', 'gal'], [/^(كوب|cup)/, 'vol', 'cup'],
+    [/^(حبة|حبه|قطعة|قطعه|عدد|pcs|pc|piece|unit)/, 'cnt', 'pcs'], [/^(دزينة|درزن|dozen)/, 'cnt', 'dz']];
+  for (const x of map) if (x[0].test(u)) return { cat: x[1], unit: x[2] };
+  return null;
+}
+function unitConverter(box, lnBox, getLines) {
+  let cat = 'mass';
+  function opts(sel) { return UC_UNITS[cat].u.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === sel ? ' selected' : '') + '>' + x[1] + '</option>'; }).join(''); }
+  function draw(from, to) {
+    const us = UC_UNITS[cat].u;
+    box.innerHTML = '<div class="uc"><div class="uc-h"><i class="fas fa-calculator"></i> حاسبة تحويل الوحدات</div>' +
+      '<div class="uc-cats">' + Object.keys(UC_UNITS).map(function (k) { return '<button type="button" data-uc="' + k + '" class="' + (k === cat ? 'on' : '') + '">' + UC_UNITS[k].name + '</button>'; }).join('') + '</div>' +
+      '<div class="uc-row"><input type="number" step="any" id="ucV" value="1" dir="ltr"><select id="ucF">' + opts(from || us[0][0]) + '</select></div>' +
+      '<button type="button" class="uc-sw" id="ucSw" title="عكس"><i class="fas fa-arrow-right-arrow-left"></i></button>' +
+      '<div class="uc-row"><output id="ucR" dir="ltr">0</output><select id="ucT">' + opts(to || us[1][0]) + '</select></div>' +
+      '<div class="uc-ins"><select id="ucL"></select><button type="button" class="btn btn-primary btn-sm" id="ucIns"><i class="fas fa-arrow-down"></i> إدراج في الكمية</button></div>' +
+      '<div class="muted uc-tip">مثال: اشتريت 2.5 كغ والمادة بوحدة الغرام ← تصبح 2500</div></div>';
+    calc(); fillLines();
+  }
+  function f(id) { return box.querySelector(id); }
+  function factor(k) { const x = UC_UNITS[cat].u.find(function (y) { return y[0] === k; }); return x ? x[2] : 1; }
+  function calc() { const v = parseFloat(f('#ucV').value) || 0, r = v * factor(f('#ucF').value) / factor(f('#ucT').value); f('#ucR').value = String(Math.round(r * 10000) / 10000); return r; }
+  function fillLines() {
+    const ls = getLines(), sel = f('#ucL'), prev = sel.value;
+    sel.innerHTML = ls.length ? ls.map(function (l, i) { return '<option value="' + i + '">' + h(l.name) + (l.unit ? ' (' + h(l.unit) + ')' : '') + '</option>'; }).join('') : '<option value="">— أضف صنفاً أولاً —</option>';
+    if (prev !== '' && +prev < ls.length) sel.value = prev; else if (ls.length) sel.value = String(ls.length - 1);
+  }
+  function guessTo() {
+    const ls = getLines(), l = ls[+f('#ucL').value]; if (!l) return;
+    const g = ucGuess(l.unit); if (!g) return;
+    if (g.cat !== cat) { cat = g.cat; const fr = UC_UNITS[cat].u.find(function (x) { return x[0] !== g.unit; })[0]; draw(fr, g.unit); f('#ucL').value = String(ls.indexOf(l)); return; }
+    f('#ucT').value = g.unit; calc();
+  }
+  box.addEventListener('input', function (e) { if (e.target.id === 'ucV') calc(); });
+  box.addEventListener('change', function (e) { if (e.target.id === 'ucF' || e.target.id === 'ucT') calc(); if (e.target.id === 'ucL') guessTo(); });
+  box.addEventListener('click', function (e) {
+    const c = e.target.closest('[data-uc]'); if (c) { cat = c.dataset.uc; draw(); return; }
+    if (e.target.closest('#ucSw')) { const a = f('#ucF').value, b = f('#ucT').value; f('#ucF').value = b; f('#ucT').value = a; calc(); return; }
+    if (e.target.closest('#ucIns')) {
+      const i = f('#ucL').value; if (i === '') { showToast('أضف صنفاً للفاتورة أولاً', true); return; }
+      const inp = lnBox.querySelector('input[data-q="' + i + '"]'); if (!inp) return;
+      inp.value = String(Math.round(calc() * 10000) / 10000); inp.dispatchEvent(new Event('change', { bubbles: true }));
+      showToast('تم إدراج الكمية');
+    }
+  });
+  new MutationObserver(function () { if (box.isConnected) { const before = f('#ucL').options.length; fillLines(); if (f('#ucL').options.length !== before) guessTo(); } }).observe(lnBox, { childList: true });
+  draw();
+}
 async function purchaseNew(after) {
   const [st, sups] = await Promise.all([stockItems(), entList('suppliers')]);
   let lines;
   bModal({ title: 'فاتورة شراء جديدة', icon: 'file-invoice-dollar', xwide: true,
     body: bForm([{ k: 'supplierId', label: 'المورّد', type: 'select', options: [['', '— بدون مورد / نقدي —']].concat(sups.map(function (s) { return [s.id, s.name]; })) }, { k: 'refNo', label: 'رقم فاتورة المورد', ltr: true },
       { k: 'date', label: 'التاريخ', type: 'date', def: isoLocal() }, { k: 'tax', label: 'الضريبة (مبلغ)', type: 'number', def: 0 }, { k: 'paid', label: 'المدفوع الآن', type: 'number', def: 0, hint: 'الباقي يُسجّل ديناً للمورد' },
-      { k: 'updateCosts', label: 'تحديث تكلفة المواد/المنتجات بأسعار هذه الفاتورة', type: 'checkbox', def: true }, { k: 'notes', label: 'ملاحظات', full: true }]) + '<div id="lnBox" style="margin-top:12px"></div>',
+      { k: 'updateCosts', label: 'تحديث تكلفة المواد/المنتجات بأسعار هذه الفاتورة', type: 'checkbox', def: true }, { k: 'notes', label: 'ملاحظات', full: true }]) + '<div class="pi-wrap"><div id="lnBox"></div><div id="ucBox"></div></div>',
     foot: '<button class="btn btn-cancel" data-x>إلغاء</button><button class="btn btn-primary" data-act="ok"><i class="fas fa-check"></i> ترحيل الفاتورة</button>',
-    onOpen: function (m) { lines = linesEditor(m, st.items, true); },
+    onOpen: function (m) { lines = linesEditor(m, st.items, true); unitConverter(m.$('#ucBox'), m.$('#lnBox'), function () { return lines; }); },
     actions: { ok: async function (m, btn) {
       const d = readForm(m.el, [{ k: 'supplierId' }, { k: 'refNo' }, { k: 'date' }, { k: 'tax', type: 'number' }, { k: 'paid', type: 'number' }, { k: 'updateCosts', type: 'checkbox' }, { k: 'notes' }]);
       d.items = lines; btn.disabled = true;

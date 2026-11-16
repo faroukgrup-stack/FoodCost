@@ -156,7 +156,7 @@ async function backupData(silent = false) {
                 if (!handle) {
                     handle = await window.showSaveFilePicker({
                         suggestedName: fileName,
-                        types: [{ description: 'نسخة احتياطية - FoodCost', accept: { 'application/json': ['.json'] } }]
+                        types: [{ description: 'نسخة احتياطية - Mataami Pro', accept: { 'application/json': ['.json'] } }]
                     });
                     await storeBackupHandle(handle);
                 }
@@ -232,7 +232,7 @@ function restoreData() {
                 throw new Error('الملف ليس نسخة احتياطية صالحة (ينقصه materials أو recipes)');
             }
             if (data.app && data.app !== 'FoodCost') {
-                throw new Error('هذا الملف ليس من نظام FoodCost');
+                throw new Error('هذا الملف ليس من منصة Mataami Pro');
             }
 
             if (data.complete === false || (data.warnings && data.warnings.length)) {

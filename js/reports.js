@@ -7,7 +7,7 @@ async function exportToExcel() {
         showLoading();
         try {
             const workbook = new ExcelJS.Workbook();
-            workbook.creator = 'FoodCost - FAROUK GRUP';
+            workbook.creator = 'Mataami Pro - FAROUK GRUP';
             const ws1 = workbook.addWorksheet('الأطباق', { views: [{ rightToLeft: true }] });
             ws1.columns = [{ header: '#', width: 5 }, { header: 'اسم الطبق', width: 30 }, { header: 'التكلفة الفعلية', width: 18 }, { header: 'سعر البيع المقترح', width: 20 }, { header: 'هامش المساهمة %', width: 18 }];
             ws1.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
@@ -19,7 +19,7 @@ async function exportToExcel() {
             ws2.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB48554' } };
             allMaterials.forEach((m, i) => ws2.addRow([i + 1, m.name, m.unit, m.price, m.wastePercent || 0, m.portionWeight ? `${m.portionWeight} ${m.unit}` : '—']));
             const buffer = await workbook.xlsx.writeBuffer();
-            saveAs(new Blob([buffer]), `تقرير_FoodCost_${new Date().toISOString().slice(0,10)}.xlsx`);
+            saveAs(new Blob([buffer]), `تقرير_MataamiPro_${new Date().toISOString().slice(0,10)}.xlsx`);
             showToast('✅ تم التصدير بنجاح');
         } catch (e) { showToast('فشل التصدير', true); } finally { hideLoading(); }
     }
@@ -265,7 +265,7 @@ async function exportFullReportExcel() {
             document.getElementById('exportLoadingMsg').textContent = 'إنشاء الرسوم البيانية...';
             const charts = await buildReportCharts(data);
             const workbook = new ExcelJS.Workbook();
-            workbook.creator = 'FoodCost - FAROUK GRUP';
+            workbook.creator = 'Mataami Pro - FAROUK GRUP';
             workbook.created = new Date();
             const G = 'FFB48554';
 
@@ -283,13 +283,13 @@ async function exportFullReportExcel() {
 
             // عنوان رئيسي
             wsSum.mergeCells('A1:D1');
-            wsSum.getCell('A1').value = 'التقرير الشامل — نظام إدارة التكلفة وهندسة المنيو';
+            wsSum.getCell('A1').value = 'التقرير الشامل — Mataami Pro | مطعمي برو';
             wsSum.getCell('A1').font = { bold: true, size: 18, color: { argb: G } };
             wsSum.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
             wsSum.getRow(1).height = 32;
 
             wsSum.mergeCells('A2:D2');
-            wsSum.getCell('A2').value = 'FoodCost | FAROUK GRUP';
+            wsSum.getCell('A2').value = 'Mataami Pro | FAROUK GRUP';
             wsSum.getCell('A2').font = { size: 12, color: { argb: 'FF8B7355' } };
             wsSum.getCell('A2').alignment = { horizontal: 'center' };
 
@@ -350,7 +350,7 @@ async function exportFullReportExcel() {
             wsSum.addRow([]);
             wsSum.addRow([]);
             wsSum.mergeCells('A16:D16');
-            wsSum.getCell('A16').value = 'هذا التقرير سري — للاستخدام الداخلي فقط | تم إنشاؤه بواسطة نظام FoodCost';
+            wsSum.getCell('A16').value = 'هذا التقرير سري — للاستخدام الداخلي فقط | تم إنشاؤه بواسطة منصة Mataami Pro';
             wsSum.getCell('A16').font = { size: 9, italic: true, color: { argb: 'FF888888' } };
             wsSum.getCell('A16').alignment = { horizontal: 'center' };
 
@@ -626,11 +626,11 @@ async function exportFullReportWord() {
 </head>
 <body>
   <div class="cover">
-    <h1>نظام FoodCost — التقرير الشامل</h1>
+    <h1>Mataami Pro — التقرير الشامل</h1>
     <div class="sub">مجموعة فاروق | FAROUK GRUP</div>
     <div class="sub">المطعم: <strong>${esc(data.restaurantName)}</strong></div>
     <div class="sub">${esc(data.dateStr)}</div>
-    <div class="badge">الإصدار 4.4</div>
+    <div class="badge">الإصدار 4.5</div>
   </div>
 
   <div class="summary-grid">
@@ -663,7 +663,7 @@ async function exportFullReportWord() {
 
   <div class="footer">
     © ${new Date().getFullYear()} FAROUK GRUP — جميع الحقوق محفوظة<br>
-    تم إنشاء هذا التقرير تلقائياً من نظام FoodCost
+    تم إنشاء هذا التقرير تلقائياً من منصة Mataami Pro
   </div>
 </body>
 </html>`;

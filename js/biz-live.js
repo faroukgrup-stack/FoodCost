@@ -45,7 +45,7 @@
     let html = '';
     if (pending && !L.unlocked) html += '<button class="live-sound" data-l="sound"><i class="fas fa-volume-up"></i> اضغط لتفعيل صوت التنبيه</button>';
     (d.menuNew || []).slice(0, 4).forEach(function (o) {
-      html += '<div class="live-card"><b><i class="fas fa-qrcode"></i> طلب جديد من المينيو' + (o.table ? ' · طاولة ' + h(o.table) : '') + '</b><div class="muted">' + h(o.customer || 'عميل') + ' · ' + money(o.total) + ' · ' + fmtT(o.date) + '</div>' +
+      html += '<div class="live-card"><b>' + (o.delivery ? '<i class="fas fa-motorcycle"></i> طلب توصيل جديد' : '<i class="fas fa-qrcode"></i> طلب جديد من المينيو') + (o.table ? ' · طاولة ' + h(o.table) : '') + '</b><div class="muted">' + h(o.customer || 'عميل') + ' · ' + money(o.total) + ' · ' + fmtT(o.date) + '</div>' +
         '<div class="acts"><button class="btn btn-success" data-l="mAcc" data-id="' + h(o.id) + '"><i class="fas fa-check"></i> قبول</button><button class="btn btn-danger" data-l="mRej" data-id="' + h(o.id) + '"><i class="fas fa-times"></i> رفض</button><button class="btn btn-outline" data-l="mView"><i class="fas fa-eye"></i> التفاصيل</button></div></div>';
     });
     if ((d.menuNew || []).length > 4) html += '<div class="live-card"><b>+' + (d.menuNew.length - 4) + ' طلبات أخرى بانتظار القبول</b><div class="acts"><button class="btn btn-outline" data-l="mView">عرض الكل</button></div></div>';
@@ -55,7 +55,14 @@
     });
     (d.ready || []).filter(function (o) { return !L.dismissed[o.id]; }).slice(0, 4).forEach(function (o) {
       html += '<div class="live-card ready"><b><i class="fas fa-bell"></i> الطلب #' + o.number + ' جاهز</b><div class="muted">' + h(o.table_name ? 'طاولة ' + o.table_name : (o.customer_name || '')) + ' · ' + fmtT(o.ready_at) + '</div>' +
-        '<div class="acts"><button class="btn btn-success" data-l="served" data-id="' + h(o.id) + '"><i class="fas fa-check-double"></i> تم التسليم</button><button class="btn btn-outline" data-l="hide" data-id="' + h(o.id) + '">إخفاء</button></div></div>';
+        '<div class="acts">' + (o.order_type === 'delivery' ? '<button class="btn btn-primary" data-l="dBoard"><i class="fas fa-motorcycle"></i> بانتظار السائق</button>' : '<button class="btn btn-success" data-l="served" data-id="' + h(o.id) + '"><i class="fas fa-check-double"></i> تم التسليم</button>') + '<button class="btn btn-outline" data-l="hide" data-id="' + h(o.id) + '">إخفاء</button></div></div>';
+    });
+    const dl = d.delivery || {};
+    (dl.unassigned || []).slice(0, 3).forEach(function (o) {
+      html += '<div class="live-card"><b><i class="fas fa-motorcycle"></i> طلب التوصيل #' + o.number + ' بانتظار سائق</b><div class="muted">لم يقبله أي سائق منذ ' + fmtT(o.since) + '</div><div class="acts"><button class="btn btn-primary" data-l="dBoard"><i class="fas fa-route"></i> إسناد سائق</button></div></div>';
+    });
+    (dl.late || []).filter(function (o) { return !L.dismissed['late' + o.id]; }).slice(0, 3).forEach(function (o) {
+      html += '<div class="live-card resv"><b><i class="fas fa-clock"></i> تأخر توصيل الطلب #' + o.number + '</b><div class="muted">السائق ' + h(o.driver || '') + ' · تجاوز الوقت الأقصى ' + fmtT(o.due) + '</div><div class="acts"><button class="btn btn-outline" data-l="dBoard">متابعة</button><button class="btn btn-outline" data-l="hide" data-id="late' + h(o.id) + '">إخفاء</button></div></div>';
     });
     b.innerHTML = html;
   }
@@ -79,6 +86,8 @@
       } else if (a === 'rOk' || a === 'rNo') {
         const x = await bz('reservationSetStatus', { id: id, status: a === 'rOk' ? 'confirmed' : 'cancelled' });
         showToast(x.success ? (a === 'rOk' ? 'تم تأكيد الحجز' : 'تم رفض الحجز') : (x.error || 'تعذر التحديث'), !x.success);
+      } else if (a === 'dBoard') {
+        switchTab('delivery');
       } else if (a === 'served') {
         await bz('kitchenBump', { id: id, status: 'served' }); L.dismissed[id] = 1;
       }
@@ -93,7 +102,7 @@
     L.data = r;
     (r.ready || []).forEach(function (o) { if (!L.seenReady[o.id]) { L.seenReady[o.id] = 1; if (L.started) chime(); } });
     L.started = true;
-    setAlarm((r.menuNew || []).length + (r.resvPending || []).length > 0);
+    setAlarm((r.menuNew || []).length + (r.resvPending || []).length + ((r.delivery && r.delivery.unassigned) || []).length > 0);
     render();
     // تحديث شارات الكاشير والطلبات المعلّقة دون الضغط على زر التحديث
     const sig = (r.menuNew || []).map(function (x) { return x.id; }).join(',') + '|' + (r.ready || []).map(function (x) { return x.id; }).join(',');
