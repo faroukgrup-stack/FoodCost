@@ -7,13 +7,13 @@ const PAYMENT_LINK="https://www.entervia.co/checkout/78";
 // روابط الدفع لكل باقة — ضع رابط صفحة الدفع الخاصة بكل باقة (الإنطلاقة 299$ والمتقدمة 499$)
 const PAYMENT_LINKS={
   basic:"https://www.entervia.co/checkout/78",
-  pro:"https://www.entervia.co/checkout/78",      // ← مؤقت: استبدله برابط الدفع لباقة الإنطلاقة (299$ سنوياً)
-  premium:"https://www.entervia.co/checkout/78"   // ← مؤقت: استبدله برابط الدفع لباقة المتقدمة (499$ سنوياً)
+  pro:"https://www.entervia.co/checkout/122",      // ← مؤقت: استبدله برابط الدفع لباقة الإنطلاقة (299$ سنوياً)
+  premium:"https://www.entervia.co/checkout/123"   // ← مؤقت: استبدله برابط الدفع لباقة المتقدمة (499$ سنوياً)
 };
 // رقم واتساب الدعم (يُستخدم عند عدم ضبط رابط دفع لباقة)
 const SUPPORT_WHATSAPP="905550196682";
 const CACHE_DURATION_MS=5*60*1000;
 const PUBLIC_APP_URL="https://rest-tools.farouk-grup.com/";
-const APP_VERSION="4.6";const APP_NAME="Mataami Pro";
+const APP_VERSION="4.7";const APP_NAME="Mataami Pro";
 // نطاقات النظام نفسه (أي نطاق آخر يُعامل كدومين خاص لمطعم ويُحوَّل لمينيو المطعم)
 const APP_HOSTS=["rest-tools.farouk-grup.com","localhost","127.0.0.1"];

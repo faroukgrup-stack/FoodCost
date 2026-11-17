@@ -316,8 +316,43 @@ async function bizFullSections() {
   if (!B.acc) { try { await loadAccount(); } catch (e) { } }
   if (!B.acc || !hasF('pos')) return null;
   const f = { from: daysAgo(29), to: isoLocal() }, period = rptPeriod(f);
-  const get = async function (fn, p) { try { const r = await bz(fn, p || {}, { silentPlan: true }); return r && r.success !== false ? r : null; } catch (e) { return null; } };
-  const list = async function (kind, p) { const r = await get('entityList', Object.assign({ kind: kind }, p || {})); return r ? r.rows || [] : []; };
+  const get0 = async function (fn, p) { try { const r = await bz(fn, p || {}, { silentPlan: true }); return r && r.success !== false ? r : null; } catch (e) { return null; } };
+  // v4.7: تحميل كل البيانات بالتوازي (أسرع بكثير) مع تحديث شريط التقدم
+  const rg = window.__fcBizRange || [60, 92], pg = window.fcProgress && window.fcProgress.active() ? window.fcProgress : null;
+  const jobs = {}; let total = 0, doneN = 0;
+  const need = function (key, fn, p, cond) { if (cond === false) return; total++; jobs[key] = get0(fn, p).then(function (r) { doneN++; if (pg) pg.set(rg[0] + (rg[1] - rg[0]) * doneN / total, 'تحميل بيانات نظام التشغيل (' + doneN + ' من ' + total + ')…'); return r; }); };
+  const ent = function (kind, p) { return Object.assign({ kind: kind }, p || {}); };
+  const fin = canP('finance', 'reports');
+  need('bizSummary', 'bizSummary', {});
+  need('financeReport', 'financeReport', f, hasF('reports') && fin);
+  need('profitReport', 'profitReport', f, hasF('profit_reports') && fin);
+  need('stockList', 'stockList', {}, hasF('inventory') && canP('inventory', 'purchasing'));
+  need('e:products', 'entityList', ent('products'), hasF('inventory') && canP('inventory', 'purchasing'));
+  need('e:purchases', 'entityList', ent('purchases', f), hasF('purchasing') && canP('purchasing', 'finance'));
+  need('e:suppliers', 'entityList', ent('suppliers'), hasF('purchasing') && canP('purchasing', 'finance'));
+  need('e:expenses', 'entityList', ent('expenses', f), hasF('finance') && canP('finance'));
+  need('e:shifts', 'entityList', ent('shifts', f), hasF('shifts') && canP('team', 'finance', 'pos'));
+  need('e:customers', 'entityList', ent('customers'), hasF('customers') && canP('customers', 'pos', 'finance'));
+  need('ledgerList', 'ledgerList', {}, hasF('ledger') && canP('customers', 'finance'));
+  need('e:gift_cards', 'entityList', ent('gift_cards'), hasF('gift_cards') && canP('customers'));
+  need('e:branches', 'entityList', ent('branches', { branchId: 'all' }), hasF('branches') && canP('team', 'reports', 'finance'));
+  need('e:staff', 'entityList', ent('staff'), hasF('team') && canP('team'));
+  need('e:tables', 'entityList', ent('tables', { branchId: 'all' }), hasF('tables') && canP('tables', 'pos'));
+  need('e:reservations', 'entityList', ent('reservations', Object.assign({ branchId: 'all' }, f)), hasF('tables') && canP('tables', 'pos'));
+  need('e:discounts', 'entityList', ent('discounts'), hasF('discounts') && canP('marketing', 'pos'));
+  need('e:production', 'entityList', ent('production', Object.assign({ branchId: 'all' }, f)), hasF('production') && canP('inventory'));
+  need('e:transfers', 'entityList', ent('transfers', f), hasF('transfers') && canP('inventory'));
+  need('e:quotes', 'entityList', ent('quotes', Object.assign({ branchId: 'all' }, f)), hasF('quotes') && canP('finance', 'pos'));
+  need('invoicesList', 'invoicesList', Object.assign({ branchId: 'all' }, f), hasF('finance') && canP('finance', 'reports', 'orders_manage'));
+  need('opsKpiReport', 'opsKpiReport', Object.assign({ branchId: 'all' }, f), canP('reports', 'finance', 'orders_manage', 'team'));
+  need('drawersReport', 'drawersReport', Object.assign({ branchId: 'all' }, f), hasF('shifts') && canP('reports', 'finance', 'team'));
+  need('deliveryReport', 'deliveryReport', Object.assign({ branchId: 'all' }, f), hasF('delivery') && canP('reports', 'dispatch', 'orders_manage'));
+  need('driverCashReport', 'driverCashReport', Object.assign({ branchId: 'all' }, f), hasF('delivery') && canP('reports', 'finance', 'dispatch', 'team'));
+  need('activityList', 'activityList', f, hasF('activity') && canP('team', 'reports'));
+  const keys = Object.keys(jobs), vals = await Promise.all(keys.map(function (k) { return jobs[k]; }));
+  const R = {}; keys.forEach(function (k, i) { R[k] = vals[i]; });
+  const get = async function (fn) { return R[fn] || null; };
+  const list = async function (kind) { const r = R['e:' + kind]; return r ? r.rows || [] : []; };
   const out = { period: period, kpis: [], sections: [] };
   const sm = await get('bizSummary', {});
   if (sm) {
@@ -371,6 +406,57 @@ async function bizFullSections() {
     const gc = await list('gift_cards');
     if (gc.length) out.sections.push({ title: 'بطاقات الهدايا', table: { headers: ['الكود', 'المستفيد', 'القيمة الأصلية', 'الرصيد', 'الحالة'], rows: gc.map(function (g) { return [g.code, g.customer_name || '', +g.initial_amount, +g.balance, g.active ? 'فعّالة' : 'موقوفة']; }), money: [2, 3], foot: 'sum' } });
   }
+  // ---------- v4.7: أقسام إضافية ليكون التقرير شاملاً لكل البيانات ----------
+  const tm = function (v) { return v ? String(v).slice(0, 16).replace('T', ' ') : ''; };
+  const iv = R.invoicesList;
+  if (iv && iv.invoices && iv.invoices.length) {
+    const sales = iv.invoices.filter(function (x) { return x.kind !== 'refund'; }), refs = iv.invoices.filter(function (x) { return x.kind === 'refund'; });
+    out.sections.push({ title: 'الفواتير — آخر 30 يوماً', pb: true, kpis: [['فواتير البيع', sales.length], ['قيمة المبيعات', money(sales.reduce(function (a, x) { return a + +x.total; }, 0))], ['المرتجعات', money(refs.reduce(function (a, x) { return a + +x.total; }, 0))]],
+      table: { headers: ['رقم الفاتورة', 'النوع', 'التاريخ', 'رقم الطلب', 'العميل', 'الموظف', 'طرق الدفع', 'الضريبة', 'الإجمالي'], rows: iv.invoices.map(function (x) { return [x.number, x.kind === 'refund' ? 'مرتجع' : 'بيع', tm(x.issued_at), x.order_number || '', x.customer_name || '', x.staff_name || '', (x.payments || []).map(function (p) { return (PAY_NAMES[p.method] || p.method) + ' ' + nf(p.amount); }).join(' + '), +x.tax_total, +x.total]; }), money: [7, 8], foot: 'sum' } });
+  }
+  const ok = R.opsKpiReport;
+  if (ok && ok.summary) {
+    const S = ok.summary;
+    out.sections.push({ title: 'مؤشرات الأداء التشغيلي — آخر 30 يوماً', pb: true, kpis: [['الطلبات', S.orders], ['المدفوعة', S.paid], ['الملغاة', S.cancelled], ['المسترجعة', S.refunded], ['هدر الإلغاء', money(S.wasteCost)], ['متوسط القبول (د)', nf(ok.accept.avg)], ['متوسط التحضير (د)', nf(ok.prep.avg)], ['متوسط التسليم (د)', nf(ok.serve.avg)]],
+      table: { headers: ['الموظف', 'الطلبات', 'الملغاة', 'القبول (د)', 'التحضير (د)', 'التسليم (د)', 'الإجمالي (د)', 'تحضير في الوقت %'], rows: (ok.byStaff || []).map(function (x) { return [x.name || '—', x.orders, x.cancelled, x.accept, x.prep, x.serve, x.total, x.prepOnTime]; }) } });
+    if ((ok.cancellations || []).length) out.sections.push({ title: 'الإلغاءات والمرتجعات', table: { headers: ['#', 'الفرع', 'الحالة', 'المرحلة', 'السبب', 'بواسطة', 'الوقت', 'القيمة', 'الهدر'], rows: ok.cancellations.map(function (c) { return [c.number, c.branch || '', c.status, c.stage, c.reason, c.by, tm(c.at), +c.total, +c.waste]; }), money: [7, 8], foot: 'sum' } });
+  }
+  const dw = R.drawersReport;
+  if (dw && (dw.shifts || []).length) {
+    out.sections.push({ title: 'الصناديق والورديات حسب الفرع والكاشير', kpis: [['صناديق مفتوحة', dw.summary.open], ['النقد الحالي', money(dw.summary.cashNow)], ['المبيعات', money(dw.summary.sales)], ['إجمالي الفروقات', money(dw.summary.diff)], ['حالات عجز', dw.summary.shortages]],
+      table: { headers: ['الكاشير', 'الفرع', 'الحالة', 'الفتح', 'الإغلاق', 'افتتاحي', 'نقد', 'بطاقة', 'تحويل', 'المبيعات', 'المتوقع', 'المعدود', 'الفرق'], rows: dw.shifts.map(function (x) { return [x.staff || '', x.branch || '', x.status === 'open' ? 'مفتوح' : 'مغلق', tm(x.opened_at), tm(x.closed_at), x.opening, x.cashSales, x.card, x.transfer, x.sales, x.expected, x.counted === null ? '' : x.counted, x.diff === null ? '' : x.diff]; }), money: [5, 6, 7, 8, 9, 10, 11, 12] } });
+  }
+  const dr = R.deliveryReport;
+  if (dr && dr.summary) {
+    const S = dr.summary;
+    out.sections.push({ title: 'التوصيل وأداء السائقين — آخر 30 يوماً', pb: true, kpis: [['طلبات مسلّمة', S.n], ['في الوقت', nf(S.onTime) + '%'], ['متأخرة', S.late], ['ملغاة', S.cancelled], ['متوسط زمن التوصيل (د)', nf(S.trip.avg)], ['قيمة الطلبات', money(S.value)]],
+      table: { headers: ['السائق', 'الطلبات', 'في الوقت %', 'متأخرة', 'متوسط القبول (د)', 'متوسط التوصيل (د)', 'القيمة', 'نقد محصّل'], rows: (dr.drivers || []).map(function (d) { return [d.name, d.n, d.onTime, d.late, d.wait.avg, d.trip.avg, d.value, d.cash]; }), money: [6, 7], foot: 'sum' } });
+  }
+  const dc = R.driverCashReport;
+  if (dc && dc.rows && dc.rows.length) {
+    const S = dc.summary, KN = { float: 'عهدة للسائق', settle: 'استلام نقد' }, SN = { pending: 'معلّق', done: 'تم', cancelled: 'ملغى' };
+    out.sections.push({ title: 'عهدة السائقين وتسليم النقد للكاشير', kpis: [['العهد المسلّمة', money(S.floats)], ['عمليات الاستلام', S.settles], ['النقد المستلم', money(S.collected)], ['تحصيلات الطلبات', money(S.cod)], ['إجمالي الفروقات', money(S.difference)]],
+      table: { headers: ['النوع', 'الحالة', 'السائق', 'الكاشير', 'الوقت', 'العهدة', 'التحصيلات', 'المطلوب', 'المستلم', 'الفرق'], rows: dc.rows.map(function (x) { return [KN[x.kind] || x.kind, SN[x.status] || x.status, x.driverName, x.cashierName, tm(x.doneAt || x.createdAt), x.floatAmount, x.codTotal, x.amount, x.counted === null ? '' : x.counted, x.difference === null ? '' : x.difference]; }), money: [5, 6, 7, 8, 9] } });
+  }
+  const br = await list('branches');
+  if (br.length) out.sections.push({ title: 'الفروع', pb: true, table: { headers: ['الفرع', 'العنوان', 'الجوال', 'الحالة'], rows: br.map(function (x) { return [x.name + (x.is_main ? ' (الرئيسي)' : ''), x.address || '', x.phone || '', x.active === false ? 'موقوف' : 'فعّال']; }) } });
+  const st2 = await list('staff');
+  if (st2.length) { const bn = {}; br.forEach(function (x) { bn[x.id] = x.name; }); out.sections.push({ title: 'الموظفون والصلاحيات', table: { headers: ['الموظف', 'اسم المستخدم', 'الدور', 'الفرع', 'الجوال', 'الحالة'], rows: st2.map(function (x) { return [x.name, x.username || '', (B.acc.roleNames || {})[x.role] || x.role, x.branch_id ? (bn[x.branch_id] || '') : 'كل الفروع', x.phone || '', x.active ? 'فعّال' : 'موقوف']; }) } }); }
+  const tb = await list('tables');
+  if (tb.length) out.sections.push({ title: 'الطاولات', table: { headers: ['الطاولة', 'المنطقة', 'المقاعد', 'الحالة'], rows: tb.map(function (x) { return [x.name, x.area || '', x.seats || '', x.active === false ? 'موقوفة' : 'فعّالة']; }) } });
+  const rs = await list('reservations');
+  if (rs.length) out.sections.push({ title: 'الحجوزات — آخر 30 يوماً', table: { headers: ['العميل', 'الجوال', 'الموعد', 'الأشخاص', 'الحالة', 'ملاحظات'], rows: rs.map(function (x) { return [x.customer_name || '', x.phone || '', tm(x.reserved_at), x.party_size, (typeof RES_ST !== 'undefined' && RES_ST[x.status] ? RES_ST[x.status][0] : x.status), x.notes || '']; }) } });
+  const ds = await list('discounts');
+  if (ds.length) out.sections.push({ title: 'العروض والخصومات', table: { headers: ['العرض', 'النوع', 'القيمة', 'الكود', 'الحد الأدنى', 'من', 'إلى', 'الحالة'], rows: ds.map(function (x) { return [x.name, x.kind === 'percent' ? 'نسبة' : x.kind, +x.value, x.code || '', +x.min_total || '', (x.starts_at || '').slice(0, 10), (x.ends_at || '').slice(0, 10), x.active ? 'فعّال' : 'موقوف']; }) } });
+  const pd = await list('production');
+  if (pd.length) out.sections.push({ title: 'أوامر الإنتاج — آخر 30 يوماً', table: { headers: ['#', 'التاريخ', 'المنتج', 'الكمية', 'التكلفة', 'بواسطة'], rows: pd.map(function (x) { return [x.number, tm(x.created_at), x.product_name, +x.qty, +x.total_cost, x.created_by || '']; }), money: [4], foot: 'sum' } });
+  const tr = await list('transfers');
+  if (tr.length) { const bn = {}; br.forEach(function (x) { bn[x.id] = x.name; }); out.sections.push({ title: 'التحويلات بين الفروع — آخر 30 يوماً', table: { headers: ['#', 'التاريخ', 'من', 'إلى', 'الأصناف', 'الحالة'], rows: tr.map(function (x) { return [x.number, tm(x.created_at), bn[x.from_branch] || '', bn[x.to_branch] || '', (x.items || []).map(function (i) { return i.name + ' × ' + i.qty; }).join('، '), x.status === 'received' ? 'مستلم' : x.status === 'cancelled' ? 'ملغى' : 'مرسل']; }) } }); }
+  const qt = await list('quotes');
+  if (qt.length) out.sections.push({ title: 'عروض الأسعار — آخر 30 يوماً', table: { headers: ['#', 'التاريخ', 'العميل', 'الجوال', 'صالح حتى', 'الحالة', 'الإجمالي'], rows: qt.map(function (x) { return [x.number, tm(x.created_at), x.customer_name || '', x.phone || '', (x.valid_until || '').slice(0, 10), x.status, +x.total]; }), money: [6], foot: 'sum' } });
+  const ac = R.activityList;
+  if (ac && ac.rows && ac.rows.length) out.sections.push({ title: 'سجل النشاط — آخر 30 يوماً', pb: true, table: { headers: ['الوقت', 'المستخدم', 'الدور', 'الإجراء', 'التفاصيل', 'الفرع'], rows: ac.rows.map(function (x) { return [tm(x.created_at), x.actor, x.actor_role || '', x.action, x.details || '', x.branch_name || '']; }) } });
+  if (pg) pg.set(rg[1], 'تنسيق أقسام نظام التشغيل…');
   return out;
 }
 async function bizFullWordHtml() {

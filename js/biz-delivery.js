@@ -70,16 +70,20 @@ function dlBoardRender(el, r) {
     '<div class="dl-board">' + col('في المطبخ', 'fire-burner', by('waiting')) + col('بانتظار سائق', 'bell', by('ready')) + col('في الطريق', 'motorcycle', by('on_way')) + '</div>' +
     '<div class="biz-grid-2"><div class="biz-card"><h4><i class="fas fa-id-badge"></i> السائقون في الوردية</h4>' +
     bTable([{ label: 'السائق', r: function (d) { return '<span class="dl-dot ' + (d.online ? 'on' : '') + '"></span> <b>' + h(d.name) + '</b>'; } }, { label: 'طلبات معه', num: true, r: function (d) { return d.active; } },
+      { label: 'العهدة', num: true, r: function (d) { return money(d.float || 0) + (d.floatCashier ? '<br><small class="muted">' + h(d.floatCashier) + '</small>' : ''); } },
+      { label: 'الحالة', r: function (d) { return d.status === 'closing' ? '<span class="badge badge-warning">بانتظار تسليم النقد</span>' : '<span class="badge badge-success">يعمل</span>'; } },
       { label: 'بدأ', r: function (d) { return new Date(d.startedAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }); } }, { label: 'آخر ظهور', r: function (d) { return dlMins(d.lastSeen) + ' د'; } },
       { label: 'الموقع', r: function (d) { return d.lat ? '<a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=' + d.lat + ',' + d.lng + '"><i class="fas fa-map-marked-alt"></i> الخريطة</a>' : '—'; } }], r.online, { empty: 'لا يوجد سائق في الوردية الآن', emptyIcon: 'motorcycle' }) + '</div>' +
     '<div class="biz-card"><h4><i class="fas fa-money-bill-wave"></i> النقد المحصّل لدى السائقين</h4>' +
     bTable([{ label: 'السائق', r: function (x) { return h(x.driverName); } }, { label: 'طلبات', num: true, r: function (x) { return x.orders; } }, { label: 'المبلغ', num: true, r: function (x) { return money(x.cash); } }], r.codPending, { empty: 'لا يوجد نقد معلّق' }) +
-    '<p class="muted" style="font-size:.78rem;margin-top:8px">عند استلام النقد من السائق أغلق الطلب من الكاشير ← الطلبات المعلّقة ← دفع.</p></div></div>' +
+    '<p class="muted" style="font-size:.78rem;margin-top:8px">عند إغلاق وردية السائق يسلّم النقد (العهدة + التحصيلات) للكاشير الموجود بالوردية، فتُغلق طلبات الدفع عند الاستلام تلقائياً في وردية الكاشير.</p>' +
+    (canP('pos') ? '<button class="btn btn-primary btn-sm" id="dlCashBtn" style="margin-top:6px"><i class="fas fa-hand-holding-usd"></i> عهدة السائقين وتسليم النقد</button>' : '') + '</div></div>' +
     '<div class="biz-card"><h4><i class="fas fa-check-double"></i> آخر الطلبات المسلّمة</h4>' +
     bTable([{ label: '#', r: function (o) { return '<b>' + o.number + '</b>'; } }, { label: 'العميل', r: function (o) { return h(o.customerName); } }, { label: 'السائق', r: function (o) { return h(o.driverName); } },
       { label: 'الانتظار', num: true, r: function (o) { return dlMins(o.dispatchAt, o.acceptedAt) + ' د'; } }, { label: 'زمن التوصيل', num: true, r: function (o) { const m = dlMins(o.acceptedAt, o.deliveredAt), lt = o.dueAt && new Date(o.deliveredAt) > new Date(o.dueAt); return '<span style="color:' + (lt ? '#f87171' : '#6ee7b7') + '">' + m + ' د</span>'; } },
       { label: 'الإجمالي من الطلب', num: true, r: function (o) { return dlMins(o.placedAt, o.deliveredAt) + ' د'; } }, { label: 'المبلغ', num: true, r: function (o) { return money(o.total); } }], r.delivered, { empty: 'لا توجد طلبات مسلّمة اليوم' }) + '</div>';
   el.onclick = async function (e) {
+    if (e.target.closest('#dlCashBtn')) { dlCashModal(function () { dlBoard(el); }); return; }
     const b = e.target.closest('[data-dl]'); if (!b) return;
     if (b.dataset.dl === 'dispatch') { await bzOk('deliveryDispatch', { id: b.dataset.id }); showToast('تم إرسال الطلب لجوالات السائقين'); dlBoard(el); }
   };
@@ -132,6 +136,93 @@ function dlSettings(el) {
   settingsForm(el, 'delivery', [{ k: 'enabled', label: 'تفعيل خدمة التوصيل', type: 'checkbox', full: true, hint: 'يظهر خيار «توصيل» للعميل في المينيو والتطبيق (يتطلب تفعيل الطلب أونلاين)، ويظهر في الكاشير.' },
     { k: 'maxMinutes', label: 'الزمن الأقصى للتوصيل (دقيقة)', type: 'number', hint: 'من قبول السائق حتى التسليم — يُحتسب الطلب متأخراً بعده' },
     { k: 'acceptMinutes', label: 'مهلة قبول السائق (دقيقة)', type: 'number', hint: 'بعدها يظهر تنبيه للإدارة لإسناد الطلب يدوياً' },
-    { k: 'fee', label: 'رسوم التوصيل', type: 'number', hint: 'تُضاف تلقائياً للفاتورة (0 = مجاني)' }, { k: 'minOrder', label: 'الحد الأدنى لطلب التوصيل', type: 'number' }],
+    { k: 'fee', label: 'رسوم التوصيل', type: 'number', hint: 'تُضاف تلقائياً للفاتورة (0 = مجاني)' }, { k: 'minOrder', label: 'الحد الأدنى لطلب التوصيل', type: 'number' },
+    { k: 'requireFloat', label: 'إلزام السائق باستلام عهدة من الكاشير قبل بدء ورديته', type: 'checkbox', full: true, hint: 'يسلّم الكاشير السائقَ رصيداً افتتاحياً (فكة) من درجه، ويؤكّد السائق الاستلام من تطبيقه لتبدأ ورديته. عند الإغلاق يسلّم العهدة + التحصيلات للكاشير الموجود بالوردية.' },
+    { k: 'floatAmount', label: 'مبلغ العهدة المقترح', type: 'number', hint: 'يظهر افتراضياً للكاشير عند تسليم العهدة (يمكن تعديله)' }],
     'العميل يجب أن يكون مسجّلاً في تطبيق المطعم برقم جواله، ويحدد موقعه عبر الأقمار الصناعية (GPS) مع تفاصيل المجمع والمبنى والطابق والشقة. يمكن للكاشير أيضاً إنشاء طلب توصيل يدوي بعنوان.');
+}
+
+// ============================================================
+// v4.7: عهدة السائقين — الكاشير يسلّم الرصيد الافتتاحي ويستلم النقد عند إغلاق وردية السائق
+// ============================================================
+var DLC = { m: null, timer: null };
+async function dlCashModal(onChange) {
+  if (DLC.m) { try { DLC.m.close(); } catch (e) { /* */ } }
+  const r = await bzOk('driverCashBoard', {});
+  const canMove = canP('pos') && (B.acc.isOwner || canP('pos_pay'));
+  const pend = r.pending.filter(function (x) { return x.kind === 'settle'; }), pf = r.pending.filter(function (x) { return x.kind === 'float'; });
+  const me = (B.acc.staff && B.acc.staff.id) || 'owner';
+  const warn = !r.shift ? '<div class="biz-card" style="border-color:#f59e0b"><b style="color:#fbbf24"><i class="fas fa-exclamation-triangle"></i> لا توجد وردية كاشير مفتوحة لك</b><p class="muted" style="margin-top:6px">تسليم العهدة واستلام النقد من السائقين يتم من درج وردية مفتوحة. افتح ورديتك من الكاشير أولاً.</p></div>' : '';
+  const settleCards = pend.length ? pend.map(function (x) {
+    const mine = x.cashierShiftId && r.shift && x.cashierShiftId === r.shift.id;
+    return '<div class="biz-card" style="border-color:' + (mine ? '#22c55e' : '#3b82f6') + '"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b style="font-size:1.05rem"><i class="fas fa-motorcycle"></i> ' + h(x.driverName) + '</b>' +
+      '<span class="badge ' + (mine ? 'badge-success' : 'badge-info') + '">' + (mine ? 'موجّه إليك' : 'موجّه إلى ' + h(x.cashierName)) + '</span><span class="muted" style="font-size:.8rem">' + dt(x.createdAt) + '</span></div>' +
+      kpis([['العهدة', money(x.floatAmount)], ['تحصيلات (' + x.orders.length + ' طلب)', money(x.codTotal)], ['المطلوب استلامه', money(x.amount), '', '#6ee7b7']]) +
+      (x.orders.length ? '<div class="muted" style="font-size:.8rem;line-height:1.8">' + x.orders.map(function (o) { return '#' + o.number + ' (' + nf(o.total) + ')'; }).join(' · ') + '</div>' : '') +
+      (x.notes ? '<div class="muted" style="font-size:.8rem">ملاحظة السائق: ' + h(x.notes) + '</div>' : '') +
+      (canMove && r.shift ? '<div style="margin-top:10px"><button class="btn btn-success" data-act="settleReq" data-id="' + h(x.id) + '" data-amt="' + x.amount + '" data-name="' + h(x.driverName) + '"><i class="fas fa-check-double"></i> استلام النقد وإغلاق وردية السائق</button></div>' : '') + '</div>';
+  }).join('') : '';
+  const drvTable = bTable([
+    { label: 'السائق', r: function (d) { return '<span class="dl-dot ' + (d.online ? 'on' : '') + '"></span> <b>' + h(d.name) + '</b>'; } },
+    { label: 'الحالة', r: function (d) { return !d.onShift ? '<span class="badge badge-dog">خارج الوردية</span>' : d.shiftStatus === 'closing' ? '<span class="badge badge-warning">يسلّم النقد</span>' : '<span class="badge badge-success">في الوردية</span>'; } },
+    { label: 'العهدة', num: true, r: function (d) { return money(d.float); } },
+    { label: 'تحصيلات معلّقة', num: true, r: function (d) { return money(d.cod) + (d.codOrders ? ' <small class="muted">(' + d.codOrders + ')</small>' : ''); } },
+    { label: 'المطلوب تسليمه', num: true, r: function (d) { return '<b>' + money(d.due) + '</b>'; } },
+    { label: '', r: function (d) {
+      if (!canMove || !r.shift) return '';
+      const hasPf = pf.some(function (x) { return x.driverId === d.id; });
+      return (hasPf ? '<span class="muted" style="font-size:.78rem">عهدة بانتظار تأكيده</span> ' : '<button class="btn btn-outline btn-sm" data-act="give" data-id="' + h(d.id) + '" data-name="' + h(d.name) + '"><i class="fas fa-hand-holding-usd"></i> ' + (d.onShift ? 'عهدة إضافية' : 'تسليم عهدة') + '</button> ') +
+        (d.onShift || d.cod > 0 ? '<button class="btn btn-success btn-sm" data-act="settle" data-id="' + h(d.id) + '" data-amt="' + d.due + '" data-name="' + h(d.name) + '"><i class="fas fa-cash-register"></i> استلام النقد</button>' : '');
+    } }], r.drivers, { empty: 'لا يوجد سائقون — أضف موظفاً بدور «سائق توصيل»', emptyIcon: 'motorcycle' });
+  const pfTable = pf.length ? '<div class="biz-card"><h4><i class="fas fa-hourglass-half"></i> عهد بانتظار تأكيد السائق</h4>' + bTable([
+    { label: 'السائق', r: function (x) { return h(x.driverName); } }, { label: 'المبلغ', num: true, r: function (x) { return money(x.amount); } },
+    { label: 'سلّمها', r: function (x) { return h(x.cashierName); } }, { label: 'الوقت', r: function (x) { return dt(x.createdAt); } },
+    { label: '', r: function (x) { return canMove ? '<button class="btn btn-danger btn-sm" data-act="cancelF" data-id="' + h(x.id) + '"><i class="fas fa-times"></i> إلغاء وإرجاع للدرج</button>' : ''; } }], pf) + '</div>' : '';
+  const recent = '<div class="biz-card"><h4><i class="fas fa-history"></i> آخر 24 ساعة</h4>' + bTable([
+    { label: 'النوع', r: function (x) { return x.kind === 'float' ? '<span class="badge badge-info">عهدة للسائق</span>' : '<span class="badge badge-success">استلام نقد</span>'; } },
+    { label: 'السائق', r: function (x) { return h(x.driverName); } }, { label: 'الكاشير', r: function (x) { return h(x.cashierName); } },
+    { label: 'المطلوب', num: true, r: function (x) { return money(x.amount); } },
+    { label: 'المستلم', num: true, r: function (x) { return x.kind === 'settle' ? money(x.counted) : '—'; } },
+    { label: 'الفرق', num: true, r: function (x) { return x.kind === 'settle' ? '<span style="color:' + (Math.abs(x.difference || 0) < 0.01 ? '#6ee7b7' : '#f87171') + '">' + nf(x.difference || 0) + '</span>' : '—'; } },
+    { label: 'الوقت', r: function (x) { return dt(x.doneAt); } },
+    { label: '', r: function (x) { return x.kind === 'settle' ? '<button class="ico-btn" data-act="print" data-id="' + h(x.id) + '" title="طباعة إيصال"><i class="fas fa-print"></i></button>' : ''; } }], r.recent, { empty: 'لا توجد عمليات بعد' }) + '</div>';
+  const all = r.pending.concat(r.recent);
+  const done = function () { if (onChange) try { onChange(); } catch (e) { /* */ } dlCashModal(onChange); };
+  const settle = function (m, payload, due, name) {
+    bPrompt('استلام النقد من ' + name, [
+      { type: 'html', html: '<div class="muted" style="line-height:1.9">المطلوب استلامه (العهدة + تحصيلات الدفع عند الاستلام): <b style="color:#6ee7b7">' + money(due) + '</b><br>عُدّ المبلغ وأدخل المستلم فعلياً. تُغلق طلبات السائق في ورديتك كمبيعات نقدية، ويُسجّل أي فرق.</div>' },
+      { k: 'counted', label: 'المبلغ المستلم فعلياً', type: 'number', req: true, def: due },
+      { k: 'notes', label: 'ملاحظات', type: 'textarea', rows: 2 }], {}, async function (v) {
+      const x = await bzOk('driverSettle', Object.assign({ counted: v.counted, notes: v.notes }, payload));
+      const df = x.item.difference || 0;
+      showToast('تم الاستلام وإغلاق وردية ' + name + (Math.abs(df) >= 0.01 ? ' · الفرق ' + nf(df) : ''), Math.abs(df) >= 0.01);
+      m.close(); done();
+    }, { icon: 'cash-register', saveText: 'تأكيد الاستلام' });
+  };
+  DLC.m = bModal({ title: 'عهدة السائقين وتسليم النقد', icon: 'hand-holding-usd', xwide: true, print: false,
+    sub: r.shift ? 'ورديتك: ' + h(r.shift.staffName) + ' · منذ ' + dt(r.shift.openedAt) : 'لا توجد وردية مفتوحة',
+    body: warn + (pend.length ? '<h4 style="margin:4px 2px 8px"><i class="fas fa-bell"></i> سائقون يطلبون تسليم النقد (' + pend.length + ')</h4>' + settleCards : '') +
+      '<div class="biz-card"><h4><i class="fas fa-id-badge"></i> السائقون</h4>' + drvTable +
+      '<p class="muted" style="font-size:.78rem;margin-top:8px;line-height:1.8">' + (r.requireFloat ? 'السائق لا يستطيع بدء ورديته قبل استلام العهدة وتأكيدها من تطبيقه. ' : '') + 'تُخصم العهدة من درجك عند التسليم، وتعود إليه مع التحصيلات عند استلام النقد وإغلاق وردية السائق.</p></div>' + pfTable + recent,
+    onClose: function () { DLC.m = null; },
+    actions: {
+      give: function (m, b) {
+        bPrompt('تسليم عهدة للسائق ' + b.dataset.name, [{ type: 'html', html: '<div class="muted" style="line-height:1.9">يُخصم المبلغ من درج ورديتك، ويظهر للسائق في تطبيقه ليؤكد الاستلام' + (r.requireFloat ? ' ويبدأ ورديته' : '') + '.</div>' },
+          { k: 'amount', label: 'مبلغ العهدة', type: 'number', req: true, def: r.defaultFloat || '' }, { k: 'notes', label: 'ملاحظات', type: 'textarea', rows: 2 }], {}, async function (v) {
+          await bzOk('driverFloatIssue', { driverId: b.dataset.id, amount: v.amount, notes: v.notes });
+          showToast('تم تسليم العهدة — بانتظار تأكيد السائق من تطبيقه'); m.close(); done();
+        }, { icon: 'hand-holding-usd', saveText: 'تسليم' });
+      },
+      cancelF: async function (m, b) { if (!(await bConfirm('إلغاء العهدة وإرجاع المبلغ للدرج؟'))) return; await bzOk('driverFloatCancel', { id: b.dataset.id }); showToast('تم إلغاء العهدة'); m.close(); done(); },
+      settleReq: function (m, b) { settle(m, { id: b.dataset.id }, +b.dataset.amt || 0, b.dataset.name); },
+      settle: function (m, b) { settle(m, { driverId: b.dataset.id }, +b.dataset.amt || 0, b.dataset.name); },
+      print: function (m, b) {
+        const x = all.find(function (y) { return y.id === b.dataset.id; }); if (!x) return;
+        printHtml('إيصال استلام نقد سائق', '<h2>' + h((B.acc && B.acc.restaurantName) || 'المطعم') + '</h2><h3>إيصال استلام نقد سائق</h3><table>' +
+          [['السائق', h(x.driverName)], ['الكاشير', h(x.cashierName)], ['الوقت', dt(x.doneAt)], ['العهدة', nf(x.floatAmount)], ['تحصيلات الطلبات', nf(x.codTotal)], ['المطلوب', nf(x.amount)], ['المستلم', nf(x.counted)], ['الفرق', nf(x.difference)]]
+            .map(function (rw) { return '<tr><td>' + rw[0] + '</td><td style="text-align:left">' + rw[1] + '</td></tr>'; }).join('') + '</table>' +
+          (x.orders.length ? '<p style="margin-top:6px">الطلبات: ' + x.orders.map(function (o) { return '#' + o.number + ' (' + nf(o.total) + ')'; }).join('، ') + '</p>' : '') +
+          '<p style="margin-top:18px">توقيع السائق: ____________</p><p>توقيع الكاشير: ____________</p>', (B.acc.biz && B.acc.biz.receipt && B.acc.biz.receipt.paper) || '80');
+      },
+    } });
 }

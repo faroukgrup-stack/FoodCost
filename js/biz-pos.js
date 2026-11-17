@@ -94,6 +94,7 @@ function posRender() {
       '<input class="biz-search grow" id="posSearch" placeholder="ابحث بالاسم أو امسح الباركود / QR (منتج، بطاقة هدية، كود خصم، جوال عميل)..." value="' + h(POS.q) + '">' + scanBtnHtml('posSearch', 'مسح QR / باركود بالكاميرا') +
       (shiftOn ? (POS.shift ? '<span class="shift-pill"><i class="fas fa-clock"></i> وردية مفتوحة منذ ' + new Date(POS.shift.opened_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) + '</span><button class="btn btn-outline btn-sm" data-a="shift"><i class="fas fa-cash-register"></i> الوردية</button>' : '<span class="shift-pill off">لا توجد وردية</span><button class="btn btn-success btn-sm" data-a="openShift"><i class="fas fa-play"></i> فتح وردية</button>') : '') +
       '<button class="btn btn-outline btn-sm" data-a="open"><i class="fas fa-receipt"></i> المعلّقة (' + b.openOrders.length + ')</button>' +
+      (hasF('delivery') && shiftOn && B.acc.biz && B.acc.biz.delivery && B.acc.biz.delivery.enabled ? '<button class="btn btn-outline btn-sm" data-a="driverCash"><i class="fas fa-hand-holding-usd"></i> عهدة السائقين</button>' : '') +
       (hasF('online_orders') ? '<button class="btn btn-outline btn-sm" data-a="menuOrders"><i class="fas fa-qrcode"></i> طلبات المينيو' + (b.menuOrdersNew ? ' <span class="badge badge-warning">' + b.menuOrdersNew + '</span>' : '') + '</button>' : '') +
       (b.canManage ? '<button class="btn btn-outline btn-sm" data-a="custom"><i class="fas fa-plus"></i> صنف يدوي</button>' : '') +
       '<button class="ico-btn" data-a="reload" title="تحديث"><i class="fas fa-sync-alt"></i></button>' +
@@ -111,7 +112,7 @@ function posRender() {
   });
   body.querySelector('.pos-topbar').addEventListener('click', function (e) {
     const a = e.target.closest('[data-a]'); if (!a) return;
-    ({ shift: posShiftModal, openShift: posOpenShift, open: posOpenOrdersModal, menuOrders: posMenuOrders, custom: posCustomItem, reload: async function () { await posLoad(); if (!POS.o) POS.o = posNewOrder(); posRender(); } })[a.dataset.a]();
+    ({ shift: posShiftModal, openShift: posOpenShift, open: posOpenOrdersModal, menuOrders: posMenuOrders, custom: posCustomItem, driverCash: function () { dlCashModal(async function () { if (POS.boot) { try { await posLoad(); } catch (e) { /* */ } } }); }, reload: async function () { await posLoad(); if (!POS.o) POS.o = posNewOrder(); posRender(); } })[a.dataset.a]();
   });
   if (!b.products.length) {
     body.querySelector('#posGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-box-open" style="font-size:2rem;opacity:.5"></i><p style="margin:10px 0">لا توجد منتجات بعد. أضف منتجاتك أو استوردها من المينيو الإلكتروني أو الأطباق.</p>' + (canP('inventory') ? '<button class="btn btn-primary" onclick="switchTab(\'products\')"><i class="fas fa-box"></i> إدارة المنتجات</button>' : '') + '</div>';

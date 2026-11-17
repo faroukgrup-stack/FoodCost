@@ -1,6 +1,6 @@
 // v4.3 — التحديث المباشر: طلبات المينيو، الحجوزات، الطلبات الجاهزة — مع تنبيه صوتي مستمر حتى القبول أو الرفض
 (function () {
-  const L = { timer: null, alarm: null, ctx: null, unlocked: false, seenReady: {}, dismissed: {}, data: null, sig: '', busy: false };
+  const L = { timer: null, alarm: null, ctx: null, unlocked: false, seenReady: {}, seenDc: {}, dcStarted: false, dismissed: {}, data: null, sig: '', busy: false };
   window.BIZ_LIVE = L;
 
   function audio() {
@@ -64,7 +64,14 @@
     (dl.late || []).filter(function (o) { return !L.dismissed['late' + o.id]; }).slice(0, 3).forEach(function (o) {
       html += '<div class="live-card resv"><b><i class="fas fa-clock"></i> تأخر توصيل الطلب #' + o.number + '</b><div class="muted">السائق ' + h(o.driver || '') + ' · تجاوز الوقت الأقصى ' + fmtT(o.due) + '</div><div class="acts"><button class="btn btn-outline" data-l="dBoard">متابعة</button><button class="btn btn-outline" data-l="hide" data-id="late' + h(o.id) + '">إخفاء</button></div></div>';
     });
+    // v4.7: سائق يطلب تسليم النقد وإغلاق ورديته
+    (d.driverCash || []).slice(0, 3).forEach(function (x) {
+      html += '<div class="live-card ready"><b><i class="fas fa-hand-holding-usd"></i> السائق ' + h(x.driver) + ' يسلّم النقد</b><div class="muted">' + money(x.amount) + ' · إلى ' + (x.mine ? 'أنت' : h(x.cashier)) + ' · ' + fmtT(x.since) + '</div>' +
+        '<div class="acts"><button class="btn btn-success" data-l="dCash"><i class="fas fa-cash-register"></i> استلام النقد</button></div></div>';
+    });
     b.innerHTML = html;
+    const cb = document.querySelector('[data-a=driverCash]');
+    if (cb) cb.innerHTML = '<i class="fas fa-hand-holding-usd"></i> عهدة السائقين' + ((d.driverCash || []).length ? ' <span class="badge badge-warning">' + d.driverCash.length + '</span>' : '');
   }
   async function onClick(e) {
     const t = e.target.closest('[data-l]'); if (!t || L.busy) return;
@@ -86,6 +93,8 @@
       } else if (a === 'rOk' || a === 'rNo') {
         const x = await bz('reservationSetStatus', { id: id, status: a === 'rOk' ? 'confirmed' : 'cancelled' });
         showToast(x.success ? (a === 'rOk' ? 'تم تأكيد الحجز' : 'تم رفض الحجز') : (x.error || 'تعذر التحديث'), !x.success);
+      } else if (a === 'dCash') {
+        if (typeof dlCashModal === 'function') dlCashModal();
       } else if (a === 'dBoard') {
         switchTab('delivery');
       } else if (a === 'served') {
@@ -105,7 +114,11 @@
     setAlarm((r.menuNew || []).length + (r.resvPending || []).length + ((r.delivery && r.delivery.unassigned) || []).length > 0);
     render();
     // تحديث شارات الكاشير والطلبات المعلّقة دون الضغط على زر التحديث
-    const sig = (r.menuNew || []).map(function (x) { return x.id; }).join(',') + '|' + (r.ready || []).map(function (x) { return x.id; }).join(',');
+    const sig = (r.menuNew || []).map(function (x) { return x.id; }).join(',') + '|' + (r.ready || []).map(function (x) { return x.id; }).join(',') + '|' + (r.driverCash || []).map(function (x) { return x.id; }).join(',');
+    const dcNew = (r.driverCash || []).filter(function (x) { return !L.seenDc[x.id]; });
+    (r.driverCash || []).forEach(function (x) { L.seenDc[x.id] = 1; });
+    if (dcNew.length && L.dcStarted) chime();
+    L.dcStarted = true;
     if (sig !== L.sig) {
       L.sig = sig;
       if (B.current === 'pos' && typeof posLoad === 'function' && POS.boot && !document.querySelector('.modal-overlay')) {

@@ -97,13 +97,22 @@
   };
   collectBackupData=async function(){
    if(unsaved())throw new Error('احفظ تعديلات النماذج قبل إنشاء النسخة');
-   const result=await rpc('r5Export'),data=result.backup;
+   const pg=window.fcProgress&&!window.__fcBkSilent?window.fcProgress:null;
+   if(pg)pg.start('نسخة احتياطية شاملة','تجميع كل بيانات المطعم والتشغيل من السيرفر…','backup');
+   const exp=rpc('r5Export');
+   const result=pg?await pg.track(exp,45,'export',8000,'تجميع كل بيانات المطعم والتشغيل من السيرفر (الأطباق، المواد، الكاشير، الفواتير، المخزون، العملاء، السائقون…)'):await exp,data=result.backup;
    if(data?.format!=='full-r5')throw new Error('استجابة النسخ غير متوافقة');
    data.assets=[];data.warnings=[];data.complete=true;
-   for(const ref of data.imageRefs.drive){
-    try{const result=await rpc('r5BackupImage',{fileId:ref.id}),asset=result.asset;if(await hash(asset.base64)!==asset.sha256)throw new Error('فشل تحقق SHA-256');data.assets.push(asset);}
+   // v4.7: تنزيل الصور بالتوازي (4 في نفس الوقت) مع تحديث النسبة
+   const refs=data.imageRefs.drive,total=refs.length,got=new Array(total);let doneN=0,idx=0;
+   if(pg)pg.set(45,total?'تضمين ملفات الصور (0 من '+total+')…':'التحقق من البيانات…');
+   const worker=async()=>{while(idx<total){const i=idx++,ref=refs[i];
+    try{const r=await rpc('r5BackupImage',{fileId:ref.id}),asset=r.asset;if(await hash(asset.base64)!==asset.sha256)throw new Error('فشل تحقق SHA-256');got[i]=asset;}
     catch(e){data.complete=false;data.warnings.push('ملف صورة غير مضمن '+ref.id+': '+e.message);}
-   }
+    doneN++;if(pg)pg.set(45+50*doneN/total,'تضمين ملفات الصور ('+doneN+' من '+total+')…');}};
+   await Promise.all(Array.from({length:Math.min(4,total)},worker));
+   got.forEach(a=>{if(a)data.assets.push(a);});
+   if(pg)pg.set(96,'تجهيز ملف النسخة…');
    if(data.imageRefs.external.length){data.complete=false;data.warnings.push('صور خارجية: الروابط فقط، وعددها '+data.imageRefs.external.length);}
    data.coverage.driveImageFiles=data.assets.length===data.imageRefs.drive.length?'included':'partial';
    data.manifest={sheetCount:data.sheets.length,imageRefs:data.imageRefs.drive.length,includedFiles:data.assets.length,externalUrls:data.imageRefs.external.length,integrity:'SHA-256 per embedded image'};
@@ -111,12 +120,12 @@
   };
   performRestore=async function(data){
    if(data.format!=='full-r5'){if(data.format==='full-r4'&&typeof r4ValidateBackup!=='function'&&!previousRestore.toString().includes('full-r4'))throw new Error('هذه الواجهة القديمة لا تدعم استعادة R4 بأمان؛ لم تُعدّل البيانات');return previousRestore(data);}
-   checkBackup(data);showExportLoading('استعادة نسخة R5','التحقق من سلامة الصور قبل تعديل البيانات…');
+   checkBackup(data);const pg=window.fcProgress;if(pg)pg.start('استعادة نسخة R5','التحقق من سلامة الصور قبل تعديل البيانات…','restore');else showExportLoading('استعادة نسخة R5','التحقق من سلامة الصور قبل تعديل البيانات…');
    try{
     for(const asset of data.assets||[])if(await hash(asset.base64)!==asset.sha256)throw new Error('فشل تحقق ملف الصورة '+asset.id+'؛ لم يتم تحويل ربط المطعم');
     const changes=[];
     for(let n=0;n<(data.assets||[]).length;n++){
-     const asset=data.assets[n];document.getElementById('exportLoadingMsg').textContent='رفع الصورة '+(n+1)+' من '+data.assets.length;
+     const asset=data.assets[n];document.getElementById('exportLoadingMsg').textContent='رفع الصورة '+(n+1)+' من '+data.assets.length;if(pg)pg.set(5+40*n/data.assets.length);
      const uploaded=await rpc('uploadMenuImage',{base64:'data:'+asset.mime+';base64,'+asset.base64,fileName:asset.name||'restored-r5.jpg'});
      if(!uploaded.url)throw new Error('السيرفر لم يرجع رابط الصورة');
      const ref=data.imageRefs.drive.find(r=>r.id===asset.id);(ref.urls||[]).forEach(url=>changes.push([url,uploaded.url]));
@@ -124,10 +133,13 @@
     const payload=JSON.parse(JSON.stringify(data));delete payload.assets;let encoded=JSON.stringify(payload);
     changes.forEach(([old,url])=>{encoded=encoded.split(JSON.stringify(old).slice(1,-1)).join(JSON.stringify(url).slice(1,-1));});
     document.getElementById('exportLoadingMsg').textContent='إنشاء ملف استعادة مستقل والتحقق قبل تبديل الربط…';
-    const result=await rpc('r5Restore',{backup:JSON.parse(encoded)});
+    const rq=rpc('r5Restore',{backup:JSON.parse(encoded)});
+    const result=pg?await pg.track(rq,85,'restore',12000,'استعادة كل البيانات على السيرفر بأمان (مع حفظ لقطة من بياناتك الحالية)…'):await rq;
+    if(pg)pg.set(90,'تحميل البيانات المستعادة…');
     try{localStorage.setItem('foodRestoreRecovery_'+currentUserEmail,JSON.stringify(result));}catch(e){}
     if(typeof r4States!=='undefined')r4States.clear();if(typeof editorStates!=='undefined')editorStates.clear();
     dataLoaded=false;app.revision=null;await loadAllData(true);await loadDigitalMenu();
+    if(pg)pg.done('اكتملت الاستعادة');
     alert('تمت استعادة البيانات. حُفظت لقطة من بياناتك السابقة قبل الاستعادة.\nمعرّف اللقطة للاسترجاع عند الحاجة:\n'+result.previousSpreadsheetId);
    }finally{hideExportLoading();}
   };
@@ -146,7 +158,7 @@
   // Never record an incomplete or silently-downloaded backup as a complete backup.
   backupData=async function(silent=false){
    if(!currentUserEmail){if(!silent)showToast('يجب تسجيل الدخول',true);return false;}
-   if(!silent)showLoading();
+   window.__fcBkSilent=!!silent;
    try{
     const started=Date.now(),data=await collectBackupData();
     if(!data.complete&&!confirm('النسخة غير مكتملة:\n'+data.warnings.join('\n')+'\nحفظ نسخة مع هذه التحذيرات؟'))return false;
@@ -157,10 +169,11 @@
     if(window.showSaveFilePicker)try{const handle=await window.showSaveFilePicker({suggestedName:filename,types:[{description:'FoodCost full R5 backup',accept:{'application/json':['.json']}}]});const writer=await handle.createWritable();await writer.write(blob);await writer.close();saved=true;}catch(e){if(e.name==='AbortError')return false;}
     if(!saved){if(typeof saveAs==='function')saveAs(blob,filename);else{const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}}
     if(data.complete&&saved)localStorage.setItem('foodLastBackupTime',String(started));
+    if(!silent&&window.fcProgress)window.fcProgress.done('اكتملت النسخة الاحتياطية');
     if(!silent)showToast(data.complete?(saved?'تم حفظ النسخة الشاملة والتحقق من ملفات الصور':'تم طلب تنزيل النسخة؛ تحقق من اكتمال تنزيلها على جهازك'):'تم حفظ نسخة مع تحذيرات؛ ليست مكتملة',!data.complete);
     return true;
    }catch(e){if(!silent)showToast('فشل النسخ: '+e.message,true);return false;}
-   finally{if(!silent)hideLoading();}
+   finally{window.__fcBkSilent=false;if(!silent&&window.fcProgress&&(window.fcProgress.active()||document.getElementById('exportLoadingOverlay')?.classList.contains('active')))hideExportLoading();}
   };
   const style=document.createElement('style');style.textContent='#r5BannerTools{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}#r5BannerTools .r5-banner-status{flex:0 0 100%;font-size:12px;color:#cfa776}#r5BannerTools button{width:auto;flex:0 1 auto;min-height:42px}';document.head.append(style);
   updateTools();

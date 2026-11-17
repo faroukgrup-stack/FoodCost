@@ -260,10 +260,12 @@ async function base64ToExcelImage(workbook, dataUrl) {
 
 async function exportFullReportExcel() {
         showExportLoading('جاري إنشاء تقرير Excel الشامل...', 'تجميع كل الأقسام والرسوم...');
+        if (window.fcProgress) window.fcProgress.start('جاري إنشاء تقرير Excel الشامل...', 'تجميع بيانات الحسابات والوصفات...', 'report-xlsx').creep(12, 2500);
         try {
             const data = await gatherFullReportData();
-            document.getElementById('exportLoadingMsg').textContent = 'إنشاء الرسوم البيانية...';
+            if (window.fcProgress) window.fcProgress.set(14, 'إنشاء الرسوم البيانية...').creep(28, 3000);
             const charts = await buildReportCharts(data);
+            if (window.fcProgress) window.fcProgress.set(30, 'تنسيق أقسام التقرير...');
             const workbook = new ExcelJS.Workbook();
             workbook.creator = 'Mataami Pro - FAROUK GRUP';
             workbook.created = new Date();
@@ -503,8 +505,10 @@ async function exportFullReportExcel() {
                 }
             }
 
-            try { if (typeof bizFullExcelAppend === 'function') { document.getElementById('exportLoadingMsg').textContent = 'إضافة بيانات الكاشير والمخزون والمالية...'; await bizFullExcelAppend(workbook); } } catch (e) { console.error(e); }
+            window.__fcBizRange = [55, 92]; if (window.fcProgress) window.fcProgress.set(55); try { if (typeof bizFullExcelAppend === 'function') { document.getElementById('exportLoadingMsg').textContent = 'إضافة بيانات الكاشير والمخزون والمالية...'; await bizFullExcelAppend(workbook); } } catch (e) { console.error(e); }
+            if (window.fcProgress) window.fcProgress.set(94, 'كتابة ملف Excel...').creep(99, 3000);
             const buffer = await workbook.xlsx.writeBuffer();
+            if (window.fcProgress) window.fcProgress.done('اكتمل التقرير');
             saveAs(new Blob([buffer]), `التقرير_الشامل_${data.restaurantName}_${new Date().toISOString().slice(0, 10)}.xlsx`);
             showToast('✅ تم تصدير التقرير الشامل Excel');
         } catch (e) {
@@ -517,10 +521,12 @@ async function exportFullReportExcel() {
 
 async function exportFullReportWord() {
         showExportLoading('جاري إنشاء تقرير Word الشامل...', 'تجميع وتنسيق كل الأقسام...');
+        if (window.fcProgress) window.fcProgress.start('جاري إنشاء تقرير Word الشامل...', 'تجميع بيانات الحسابات والوصفات...', 'report-docx').creep(12, 2500);
         try {
             const data = await gatherFullReportData();
-            document.getElementById('exportLoadingMsg').textContent = 'إنشاء الرسوم البيانية...';
+            if (window.fcProgress) window.fcProgress.set(14, 'إنشاء الرسوم البيانية...').creep(28, 3000);
             const charts = await buildReportCharts(data);
+            if (window.fcProgress) window.fcProgress.set(30, 'تنسيق أقسام التقرير...');
             const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             const chartImg = (src, alt) => src
                 ? `<div class="chart-wrap"><img src="${src}" alt="${esc(alt)}" /></div>`
@@ -594,7 +600,7 @@ async function exportFullReportWord() {
             }
 
             let bizHtml = '';
-            try { if (typeof bizFullWordHtml === 'function') { document.getElementById('exportLoadingMsg').textContent = 'إضافة بيانات الكاشير والمخزون والمالية...'; bizHtml = await bizFullWordHtml(); } } catch (e) { console.error(e); }
+            window.__fcBizRange = [55, 92]; if (window.fcProgress) window.fcProgress.set(55); try { if (typeof bizFullWordHtml === 'function') { document.getElementById('exportLoadingMsg').textContent = 'إضافة بيانات الكاشير والمخزون والمالية...'; bizHtml = await bizFullWordHtml(); } } catch (e) { console.error(e); }
             const html = `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
@@ -630,7 +636,7 @@ async function exportFullReportWord() {
     <div class="sub">مجموعة فاروق | FAROUK GRUP</div>
     <div class="sub">المطعم: <strong>${esc(data.restaurantName)}</strong></div>
     <div class="sub">${esc(data.dateStr)}</div>
-    <div class="badge">الإصدار 4.6</div>
+    <div class="badge">الإصدار 4.7</div>
   </div>
 
   <div class="summary-grid">
@@ -668,6 +674,7 @@ async function exportFullReportWord() {
 </body>
 </html>`;
 
+            if (window.fcProgress) window.fcProgress.done('اكتمل التقرير');
             const blob = new Blob(['\uFEFF' + html], { type: 'application/msword' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
