@@ -69,6 +69,22 @@ h3 .n{background:#3b82f6;color:#fff;border-radius:20px;padding:0 8px;font-size:.
 .toast{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:10px 16px;border-radius:12px;font-size:.85rem;z-index:50;max-width:90vw;box-shadow:0 8px 24px rgba(0,0,0,.4)}
 .toast.err{background:#7f1d1d}
 .foot{text-align:center;color:#475569;font-size:.68rem;margin-top:18px}
+/* v4.7: العهدة وتسليم النقد */
+.cashbox{background:#121828;border:1px solid #232c45;border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.cashbox .row{display:flex;justify-content:space-between;font-size:.84rem;padding:3px 0;color:#cbd5e1}
+.cashbox .row b{color:#e6c08f}.cashbox .row.tot{border-top:1px dashed #2a3452;margin-top:4px;padding-top:7px;font-size:.95rem}
+.cashbox .row.tot b{color:#86efac;font-size:1.05rem}
+.fl{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.45);border-radius:14px;padding:12px;margin:8px 0;line-height:1.7;font-size:.86rem}
+.fl b{color:#93c5fd}.fl .btn{margin-top:8px;width:100%}
+.fl.wait{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.4)}.fl.wait b{color:#fcd34d}
+.b-warn{background:#f59e0b;color:#1f1300}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet .in{background:#121828;border:1px solid #2a3452;border-radius:18px 18px 0 0;width:100%;max-width:520px;max-height:88vh;overflow:auto;padding:16px 14px calc(16px + env(safe-area-inset-bottom))}
+.sheet h4{color:#e6c08f;font-size:1.05rem;margin-bottom:10px}
+.cs{display:flex;align-items:center;gap:10px;background:#0d1220;border:1px solid #2a3452;border-radius:12px;padding:10px;margin:6px 0;cursor:pointer}
+.cs input{accent-color:#22c55e;width:18px;height:18px}.cs small{display:block;color:#8f9bb8;font-size:.72rem}
+.sheet textarea{width:100%;background:#0b0e17;color:#fff;border:1px solid #2a3452;border-radius:10px;padding:8px;font-family:inherit;margin-top:6px}
+.sheet .acts .btn{flex:1}
 </style>
 </head>
 <body>
@@ -86,13 +102,14 @@ h3 .n{background:#3b82f6;color:#fff;border-radius:20px;padding:0 8px;font-size:.
   <div class="wrap">
     <div class="shift"><span class="dot" id="sd"></span><div class="s"><b id="ss">خارج الوردية</b><small id="ssub">ابدأ الوردية لاستقبال الطلبات الجاهزة</small></div><button class="btn b-go" id="sb">بدء الوردية</button></div>
     <div id="warn"></div>
-    <div class="stats"><div class="st"><b id="t1">0</b><small>تسليم اليوم</small></div><div class="st"><b id="t2">0</b><small>متوسط (د)</small></div><div class="st"><b id="t3">0</b><small>متأخرة</small></div><div class="st"><b id="t4">0</b><small>نقد معي</small></div></div>
+    <div id="cashArea"></div>
+    <div class="stats"><div class="st"><b id="t1">0</b><small>تسليم اليوم</small></div><div class="st"><b id="t2">0</b><small>متوسط (د)</small></div><div class="st"><b id="t3">0</b><small>متأخرة</small></div><div class="st"><b id="t4">0</b><small>نقد معي (عهدة+تحصيل)</small></div></div>
     <h3><i class="fas fa-bell"></i> طلبات جاهزة للاستلام <span class="n" id="on">0</span></h3><div id="offers"></div>
     <h3><i class="fas fa-route"></i> طلباتي قيد التوصيل</h3><div id="mine"></div>
     <div class="foot">© 2026 FAROUK GRUP · Mataami Pro</div>
   </div>
 </div>
-<script src="js/config.js?v=4.6"></script>
+<script src="js/config.js?v=4.7"></script>
 <script>
 const $ = s => document.querySelector(s);
 const h = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -177,17 +194,67 @@ function render() {
   if (S.logo) $('#lg').src = S.logo;
   const on = !!S.shift;
   $('#sd').className = 'dot' + (on ? ' on' : ''); $('#ss').textContent = on ? 'في الوردية — متصل' : 'خارج الوردية';
-  $('#ssub').textContent = on ? 'سيرن الجوال فور تجهيز أي طلب توصيل' : 'ابدأ الوردية لاستقبال الطلبات الجاهزة';
-  $('#sb').className = 'btn ' + (on ? 'b-stop' : 'b-go'); $('#sb').textContent = on ? 'إنهاء الوردية' : 'بدء الوردية';
+  const closing = on && (S.shift.status === 'closing' || S.pendingSettle);
+  $('#ssub').textContent = closing ? 'بانتظار استلام الكاشير للنقد لإغلاق ورديتك' : on ? 'سيرن الجوال فور تجهيز أي طلب توصيل' : (S.requireFloat ? 'استلم العهدة من الكاشير ثم ابدأ الوردية' : 'ابدأ الوردية لاستقبال الطلبات الجاهزة');
+  $('#sb').className = 'btn ' + (closing ? 'b-warn' : on ? 'b-stop' : 'b-go'); $('#sb').textContent = closing ? 'بانتظار الكاشير' : on ? 'إنهاء الوردية' : 'بدء الوردية';
   let w = '';
   if (!S.enabled) w += '<div class="banner"><i class="fas fa-info-circle"></i> خدمة التوصيل غير مفعّلة حالياً من الإدارة.</div>';
   if (on && !AC) w += '<div class="banner"><i class="fas fa-volume-up"></i> اضغط في أي مكان لتفعيل صوت التنبيه.</div>';
   if (on && !pos && navigator.geolocation) w += '<div class="banner"><i class="fas fa-location-crosshairs"></i> اسمح بالوصول للموقع لعرض المسافة ومشاركة موقعك مع الإدارة.</div>';
   $('#warn').innerHTML = w;
-  $('#t1').textContent = S.today.delivered; $('#t2').textContent = S.today.avgMinutes; $('#t3').textContent = S.today.late; $('#t4').textContent = money(S.today.cash);
+  $('#t1').textContent = S.today.delivered; $('#t2').textContent = S.today.avgMinutes; $('#t3').textContent = S.today.late;
+  const C = S.cash || { float: 0, cod: 0, due: 0, orders: [] };
+  $('#t4').textContent = money(S.cash ? C.due : S.today.cash);
+  renderCash(on, C);
   $('#on').textContent = S.offers.length;
   $('#offers').innerHTML = !on ? '<div class="empty"><i class="fas fa-power-off"></i>ابدأ ورديتك لرؤية الطلبات</div>' : S.offers.length ? S.offers.map(offerCard).join('') : '<div class="empty"><i class="fas fa-mug-hot"></i>لا توجد طلبات جاهزة الآن</div>';
   $('#mine').innerHTML = S.mine.length ? S.mine.map(mineCard).join('') : '<div class="empty"><i class="fas fa-motorcycle"></i>لا توجد طلبات معك</div>';
+}
+// ---------- v4.7: العهدة وتسليم النقد ----------
+let wasOn = null;
+function renderCash(on, C) {
+  let x = '';
+  const pf = S.pendingFloat, ps = S.pendingSettle;
+  if (pf) x += '<div class="fl"><i class="fas fa-hand-holding-usd"></i> الكاشير <b>' + h(pf.cashierName) + '</b> سلّمك عهدة (رصيد افتتاحي) بمبلغ <b>' + money(pf.amount) + '</b>.' +
+    '<br>تأكّد من عدّ المبلغ ثم أكّد الاستلام' + (on ? '' : ' لبدء ورديتك') + '.' +
+    '<button class="btn b-go" data-a="float" data-id="' + pf.id + '"><i class="fas fa-check"></i> استلمت ' + money(pf.amount) + (on ? ' — إضافة للعهدة' : ' — بدء الوردية') + '</button></div>';
+  else if (!on && S.requireFloat) x += '<div class="fl wait"><i class="fas fa-info-circle"></i> لبدء الوردية يجب أن <b>تستلم العهدة</b> من الكاشير الموجود بالوردية. اطلب منه: شاشة الكاشير ← «عهدة السائقين» ← تسليم عهدة. ستظهر هنا للتأكيد تلقائياً.</div>';
+  if (ps) x += '<div class="fl wait"><i class="fas fa-hourglass-half"></i> طلب تسليم <b>' + money(ps.amount) + '</b> مُرسل إلى الكاشير <b>' + h(ps.cashierName) + '</b>.<br>سلّمه المبلغ نقداً، وستُغلق ورديتك تلقائياً عند تأكيده الاستلام.' +
+    '<button class="btn b-sm" data-a="cancelHo" style="margin-top:8px;width:100%"><i class="fas fa-times"></i> إلغاء طلب التسليم والعودة للعمل</button></div>';
+  if (on) x += '<div class="cashbox"><div class="row"><span>العهدة المستلمة' + (S.shift.float_cashier ? ' (من ' + h(S.shift.float_cashier) + ')' : '') + '</span><b>' + money(C.float) + '</b></div>' +
+    '<div class="row"><span>تحصيلات الدفع عند الاستلام (' + C.orders.length + ' طلب)</span><b>' + money(C.cod) + '</b></div>' +
+    '<div class="row tot"><span>المطلوب تسليمه للكاشير</span><b>' + money(C.due) + '</b></div></div>';
+  $('#cashArea').innerHTML = x;
+}
+function sheet(html) { closeSheet(); const d = document.createElement('div'); d.className = 'sheet'; d.id = 'sheet'; d.innerHTML = '<div class="in">' + html + '</div>'; d.addEventListener('click', e => { if (e.target === d) closeSheet(); }); document.body.appendChild(d); return d; }
+function closeSheet() { const d = $('#sheet'); if (d) d.remove(); }
+async function endFlow() {
+  const r = await api('driverShift', { action: 'prepareEnd' });
+  if (!r.success) { toast(r.error || 'تعذر التنفيذ', true); return; }
+  if (r.ended) { tick(); return; }
+  if (r.onWay) { toast('لديك ' + r.onWay + ' طلب قيد التوصيل — سلّمها أولاً قبل إنهاء الوردية', true); return; }
+  if (!r.needHandover) {
+    if (!confirm('إنهاء الوردية؟ لن تصلك طلبات جديدة.')) return;
+    const e = await api('driverShift', { action: 'end' }); if (!e.success) { toast(e.error || 'تعذر التنفيذ', true); return; }
+    wasOn = false; stopGeo(); keepAwake(false); toast('انتهت الوردية'); tick(); return;
+  }
+  const c = r.cash;
+  const list = r.cashiers.length ? r.cashiers.map((k, i) => '<label class="cs"><input type="radio" name="csh" value="' + k.shiftId + '"' + (i === 0 ? ' checked' : '') + '><div><b>' + h(k.name) + '</b><small>' + h(k.branchName || '') + ' · وردية مفتوحة منذ ' + new Date(k.openedAt).toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' }) + '</small></div></label>').join('')
+    : '<div class="fl wait">لا يوجد كاشير بوردية مفتوحة الآن — اطلب من الكاشير فتح ورديته ثم أعد المحاولة.</div>';
+  const d = sheet('<h4><i class="fas fa-cash-register"></i> تسليم النقد للكاشير وإغلاق الوردية</h4>' +
+    '<div class="cashbox"><div class="row"><span>العهدة (الرصيد الافتتاحي)</span><b>' + money(c.float) + '</b></div><div class="row"><span>تحصيلات ' + c.orders.length + ' طلب دفع عند الاستلام</span><b>' + money(c.cod) + '</b></div>' +
+    c.orders.map(o => '<div class="row" style="font-size:.76rem;color:#8f9bb8"><span>#' + o.number + (o.customer ? ' · ' + h(o.customer) : '') + '</span><span>' + money(o.total) + '</span></div>').join('') +
+    '<div class="row tot"><span>الإجمالي المطلوب تسليمه</span><b>' + money(c.due) + '</b></div></div>' +
+    '<div style="font-size:.82rem;color:#a5b0cc;margin:8px 2px">اختر الكاشير الموجود بالوردية الذي ستسلّمه المبلغ:</div>' + list +
+    '<textarea id="hoNote" rows="2" placeholder="ملاحظة (اختياري)"></textarea>' +
+    '<div class="acts"><button class="btn b-go" id="hoSend"' + (r.cashiers.length ? '' : ' disabled style="opacity:.5"') + '><i class="fas fa-paper-plane"></i> إرسال طلب التسليم</button><button class="btn b-sm" id="hoX">إلغاء</button></div>');
+  d.querySelector('#hoX').onclick = closeSheet;
+  d.querySelector('#hoSend').onclick = async () => {
+    const sel = d.querySelector('input[name=csh]:checked'); if (!sel) return;
+    const x = await api('driverShift', { action: 'handover', cashierShiftId: sel.value, notes: d.querySelector('#hoNote').value });
+    if (!x.success) { toast(x.error || 'تعذر التنفيذ', true); return; }
+    closeSheet(); setRing(false); toast('تم إرسال طلب التسليم إلى ' + x.request.cashierName + ' — سلّمه ' + money(x.request.amount)); tick();
+  };
 }
 async function tick() {
   if (busy) return;
@@ -195,6 +262,8 @@ async function tick() {
   if (r.authError) { localStorage.removeItem('drvToken'); token = null; showLogin('انتهت الجلسة — سجّل الدخول مجدداً'); return; }
   if (!r.success) { if (r.planError) { showLogin(r.error); return; } if (!r.net) toast(r.error || 'خطأ', true); return; }
   S = r; skew = new Date(r.serverTime).getTime() - Date.now();
+  if (wasOn === true && !r.shift) { stopGeo(); keepAwake(false); closeSheet(); toast('تم استلام النقد من الكاشير وإغلاق ورديتك — شكراً لك'); }
+  wasOn = !!r.shift;
   const fresh = r.offers.filter(o => !seen[o.id]);
   r.offers.forEach(o => { seen[o.id] = 1; });
   if (fresh.length && document.hidden && 'Notification' in window && Notification.permission === 'granted') { try { new Notification('طلب توصيل جاهز', { body: 'طلب #' + fresh[0].number + ' بانتظار سائق', tag: 'drv', renotify: true }); } catch (e) { /* */ } }
@@ -212,7 +281,9 @@ async function start() {
 $('#sb').onclick = async () => {
   unlockAudio();
   const on = S && S.shift;
-  if (on && !confirm('إنهاء الوردية؟ لن تصلك طلبات جديدة.')) return;
+  if (on) { if (S.shift.status === 'closing' || S.pendingSettle) { toast('طلب التسليم بانتظار تأكيد الكاشير'); return; } await endFlow(); return; }
+  if (S && S.pendingFloat) { const b = document.querySelector('[data-a=float]'); if (b) b.click(); return; }
+  if (S && S.requireFloat) { toast('استلم العهدة من الكاشير أولاً — ستظهر هنا للتأكيد', true); return; }
   if (!on) { startGeo(); if ('Notification' in window && Notification.permission === 'default') try { Notification.requestPermission(); } catch (e) { /* */ } }
   const r = await api('driverShift', Object.assign({ action: on ? 'end' : 'start' }, pos || {}));
   if (!r.success) { toast(r.error || 'تعذر التنفيذ', true); return; }
@@ -225,6 +296,19 @@ document.addEventListener('click', async e => {
   const id = b.dataset.id, a = b.dataset.a;
   if (a === 'done' && !confirm('تأكيد تسليم الطلب للعميل؟')) return;
   if (a === 'rel' && !confirm('إرجاع الطلب ليستلمه سائق آخر؟')) return;
+  if (a === 'float' || a === 'cancelHo') {
+    if (a === 'float' && !confirm('تأكيد استلام مبلغ العهدة من الكاشير؟')) return;
+    if (a === 'cancelHo' && !confirm('إلغاء طلب التسليم؟')) return;
+    busy = true; b.disabled = true;
+    const on = S && S.shift;
+    if (a === 'float' && !on) { startGeo(); if ('Notification' in window && Notification.permission === 'default') try { Notification.requestPermission(); } catch (e2) { /* */ } }
+    const r = await api('driverShift', a === 'cancelHo' ? { action: 'cancelHandover' } : Object.assign({ action: on ? 'acceptFloat' : 'start', floatId: id }, pos || {}));
+    busy = false;
+    if (!r.success) toast(r.error || 'تعذر التنفيذ', true);
+    else if (a === 'float') { if (!on) keepAwake(true); toast(on ? 'تمت إضافة المبلغ لعهدتك' : 'تم استلام العهدة وبدأت الوردية — بانتظار الطلبات'); }
+    else toast('تم إلغاء طلب التسليم — يمكنك استقبال الطلبات');
+    tick(); return;
+  }
   busy = true; b.disabled = true;
   const r = await api(a === 'acc' ? 'driverAccept' : a === 'done' ? 'driverDeliver' : 'driverRelease', { id });
   busy = false;
@@ -237,7 +321,7 @@ document.addEventListener('click', async e => {
 $('#out').onclick = async () => {
   if (S && S.mine && S.mine.length) { toast('سلّم طلباتك قبل تسجيل الخروج', true); return; }
   if (!confirm('تسجيل الخروج؟')) return;
-  if (S && S.shift) await api('driverShift', { action: 'end' });
+  if (S && S.shift) { const e = await api('driverShift', { action: 'end' }); if (!e.success) { toast(e.error || 'سلّم النقد للكاشير أولاً', true); return; } }
   localStorage.removeItem('drvToken'); token = null; S = null; showLogin();
 };
 if (token && email) start(); else showLogin();
