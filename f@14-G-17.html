@@ -40,7 +40,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             min-height: 100vh;
             margin: 0;
             overflow-x: hidden;
@@ -79,49 +79,25 @@
             66% { transform: translate(-20px, 20px) scale(0.94); }
         }
 
-        .mini-nav {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .mini-nav .logo-sm {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            color: var(--gold-light);
-            font-family: 'Alexandria', sans-serif;
-            font-weight: 700;
-            font-size: 0.95rem;
-            background: rgba(18, 24, 36, 0.75);
-            backdrop-filter: blur(12px);
-            padding: 8px 16px;
-            border-radius: 50px;
-            border: 1px solid rgba(184, 134, 11, 0.25);
-            transition: all 0.35s ease;
-        }
-        .mini-nav .logo-sm img {
-            height: 28px;
-            width: auto;
-            object-fit: contain;
-            border-radius: 4px;
-        }
-        .mini-nav .logo-sm:hover {
-            background: rgba(184, 134, 11, 0.2);
-            border-color: var(--gold);
-            color: #fff;
-            box-shadow: 0 4px 18px rgba(184, 134, 11, 0.3);
-            transform: translateY(-2px);
-        }
+        /* ===== الهيدر (v4.7) ===== */
+        .site-head{position:sticky;top:0;z-index:50;width:100%;background:rgba(10,13,20,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(184,134,11,.18)}
+        .site-head .in{max-width:1140px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+        .site-head .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;min-width:0}
+        .site-head .brand .bx{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--gold-light));display:grid;place-items:center;color:#0a0d14;font-size:1.1rem;flex-shrink:0}
+        .site-head .brand b{font-family:'Alexandria',sans-serif;font-size:1.05rem;display:block;line-height:1.3;white-space:nowrap}
+        .site-head .brand small{color:#9aa6bd;font-size:.75rem;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .site-head nav{display:flex;align-items:center;gap:6px;flex-shrink:0}
+        .site-head nav a{color:#cbd5e1;text-decoration:none;font-weight:700;font-size:.9rem;padding:8px 12px;border-radius:10px;transition:.2s;white-space:nowrap}
+        .site-head nav a:hover{color:var(--gold-light);background:rgba(184,134,11,.1)}
+        .site-head nav a.cta{border:1px solid var(--gold);color:var(--gold-light)}
+        .site-head nav a.cta:hover{background:var(--gold);color:#0a0d14}
+        @media(max-width:760px){.site-head nav a.hide-m{display:none}.site-head .brand small{display:none}.site-head .in{padding:10px 12px}}
+        @media(max-width:420px){.site-head .brand b{font-size:.9rem}.site-head nav a{padding:7px 8px;font-size:.8rem}.site-head .brand .bx{width:34px;height:34px}}
 
         .sub-card {
             text-align: center;
-            max-width: 480px;
-            width: 90%;
+            max-width: 560px;
+            width: 92%;
             padding: 2.8rem 2.2rem;
             background: rgba(15, 20, 30, 0.8);
             backdrop-filter: blur(20px);
@@ -132,7 +108,7 @@
             position: relative;
             z-index: 2;
             transition: all 0.4s ease;
-            margin: 100px 0 60px;
+            margin: 46px 0 40px;
         }
         .sub-card:hover {
             border-color: rgba(184, 134, 11, 0.45);
@@ -270,19 +246,32 @@
             border-bottom-color: var(--gold-light);
         }
 
-        .mini-footer {
-            position: absolute;
-            bottom: 20px;
-            text-align: center;
-            font-size: 0.78rem;
-            color: #667080;
-            z-index: 2;
-            width: 100%;
-        }
-        .mini-footer span {
-            color: var(--gold);
-            font-weight: 700;
-        }
+        /* ===== التذييل (v4.7) ===== */
+        .site-foot{width:100%;margin-top:auto;position:relative;z-index:2;background:rgba(8,10,16,.92);border-top:1px solid rgba(184,134,11,.2)}
+        .site-foot .in{max-width:1140px;margin:0 auto;padding:34px 20px 18px;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:28px}
+        .site-foot h4{font-family:'Alexandria',sans-serif;color:var(--gold-light);font-size:1rem;margin-bottom:12px}
+        .site-foot p,.site-foot li{color:#9aa6bd;font-size:.88rem;line-height:1.9}
+        .site-foot ul{list-style:none;padding:0;margin:0}
+        .site-foot a{color:#cbd5e1;text-decoration:none}
+        .site-foot a:hover{color:var(--gold-light)}
+        .site-foot li i{color:var(--gold);width:20px}
+        .site-foot .pays{display:flex;gap:12px;margin-top:10px;color:#cbd5e1;font-size:1.6rem}
+        .site-foot .copy{border-top:1px solid rgba(255,255,255,.06);text-align:center;color:#8590a3;font-size:.82rem;padding:14px 20px}
+        .site-foot .copy span{color:var(--gold-light);font-weight:700}
+        @media(max-width:760px){.site-foot .in{grid-template-columns:1fr;gap:18px;padding:26px 18px 12px;text-align:center}.site-foot .pays{justify-content:center}}
+        /* ===== خطوات الاشتراك والتجديد ===== */
+        .how-sec{width:92%;max-width:1100px;margin:0 auto 34px;position:relative;z-index:2}
+        .how-sec h2{text-align:center;font-family:'Alexandria',sans-serif;color:var(--gold-light);font-size:1.4rem;margin-bottom:18px}
+        .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+        .how{background:rgba(15,20,30,.8);border:1px solid rgba(184,134,11,.18);border-radius:18px;padding:18px 16px;text-align:center}
+        .how .n{width:38px;height:38px;border-radius:50%;margin:0 auto 10px;display:grid;place-items:center;background:rgba(184,134,11,.15);border:1px solid var(--gold);color:var(--gold-light);font-weight:900}
+        .how b{display:block;color:#fff;margin-bottom:6px}
+        .how p{color:#9aa6bd;font-size:.86rem;line-height:1.7}
+        .notes{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+        .note{background:rgba(184,134,11,.06);border:1px dashed rgba(184,134,11,.3);border-radius:14px;padding:12px 14px;color:#cbd5e1;font-size:.86rem;line-height:1.8}
+        .note i{color:var(--gold-light);margin-left:6px}
+        @media(max-width:900px){.how-grid{grid-template-columns:repeat(2,1fr)}.notes{grid-template-columns:1fr}}
+        @media(max-width:480px){.how-grid{grid-template-columns:1fr}}
 
         /* ===== أنماط المودالات ===== */
         .modal-overlay {
@@ -402,6 +391,8 @@
             align-items: center;
             gap: 4px;
         }
+        .tx-id-hint { display: block; line-height: 1.8; font-size: 0.78rem; }
+        .tx-id-hint i { margin-left: 4px; }
         .domain-hint i, .tx-id-hint i {
             color: var(--gold-light);
         }
@@ -491,6 +482,7 @@
             color: #ff6b6b;
             border: 1px solid #ff4444;
         }
+        .msg-box.info { background: rgba(59,130,246,0.12); color: #93c5fd; border: 1px solid #3b82f6; line-height: 1.8; }
         .msg-box.exists {
             background: rgba(255,165,0,0.12);
             color: #ffa500;
@@ -509,15 +501,12 @@
         }
 
         @media (max-width: 600px) {
-            .sub-card { padding: 2rem 1.4rem; margin: 90px 0 50px; }
+            .sub-card { padding: 2rem 1.4rem; margin: 26px 0 30px; }
             .sub-title { font-size: 1.8rem; }
             .icon-wrapper { width: 70px; height: 70px; }
             .icon-wrapper i { font-size: 2rem; }
             .action-btn { font-size: 0.95rem; padding: 14px 16px; }
             .modal-box { padding: 1.6rem 1.2rem; }
-            .mini-nav { top: 10px; right: 10px; }
-            .mini-nav .logo-sm { font-size: 0.8rem; padding: 6px 12px; }
-            .mini-nav .logo-sm img { height: 22px; }
         }
         @media (max-width: 380px) {
             .sub-title { font-size: 1.5rem; }
@@ -544,6 +533,7 @@
         .pl .pb{display:flex;gap:8px}
         .pl .pb button,.pl .pb a{flex:1;text-align:center;padding:11px;border-radius:14px;font-family:inherit;font-weight:800;cursor:pointer;text-decoration:none;font-size:.92rem;border:1px solid var(--gold);background:transparent;color:var(--gold-light)}
         .pl .pb .pay{background:var(--gold);color:#0a0d14}
+        .pl .pb-main{margin-bottom:8px}.pl .pb-main .pay{font-size:1rem;padding:12px}
         .plan-pick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
         .plan-pick label{border:1px solid rgba(184,134,11,.3);border-radius:12px;padding:8px 4px;text-align:center;cursor:pointer;font-size:.85rem;color:#cbd5e1;margin:0}
         .plan-pick input{display:none}
@@ -555,20 +545,25 @@
 </head>
 <body>
 
-    <div class="mini-nav" data-aos="fade-down" data-aos-duration="700">
-        <a href="https://www.farouk-grup.com/" target="_blank" class="logo-sm">
-            <img src="https://lh3.googleusercontent.com/d/1e6u-DPTinDJl_Q9wW3QvGgzFbXO_2sXa" alt="FAROUK GRUP LOGO">
-            <span>مجموعة فاروق للإستشارات والأعمال</span>
-        </a>
-    </div>
+    <header class="site-head">
+        <div class="in">
+            <a href="index.html" class="brand"><span class="bx"><i class="fas fa-utensils"></i></span><span><b>Mataami Pro | مطعمي برو</b><small>من مجموعة فاروق للإستشارات والأعمال</small></span></a>
+            <nav>
+                <a href="#plans" class="hide-m">الباقات</a>
+                <a href="#how" class="hide-m">آلية الاشتراك</a>
+                <a href="#" id="navRenew">تجديد الاشتراك</a>
+                <a href="index.html" class="cta"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</a>
+            </nav>
+        </div>
+    </header>
 
     <div class="sub-card" data-aos="zoom-in-up" data-aos-duration="800" data-aos-delay="150">
         <div class="icon-wrapper">
             <i class="fas fa-user-plus"></i>
         </div>
 
-        <h1 class="sub-title">Mataami Pro | مطعمي برو — النظام المتكامل لإدارة المطاعم</h1>
-        <p class="sub-desc">ثلاث باقات سنوية: الأساسية 99$ · الإنطلاقة 299$ · المتقدمة 499$ — <a href="#plans" style="color:var(--gold-light)">قارن الباقات</a></p>
+        <h1 class="sub-title">الاشتراك وتجديد الاشتراك</h1>
+        <p class="sub-desc">Mataami Pro | مطعمي برو — النظام المتكامل لإدارة المطاعم<br>ثلاث باقات سنوية: الأساسية 99$ · الإنطلاقة 299$ · المتقدمة 499$<br><a href="#plans" style="color:var(--gold-light)">قارن الباقات والمزايا</a></p>
 
         <div class="action-buttons">
             <button class="action-btn primary" id="openRegisterModalBtn">
@@ -582,19 +577,58 @@
         <div class="divider"></div>
 
         <div class="login-alt">
-            لديك حساب بالفعل؟ <a href="index.html" target="_blank">تسجيل الدخول</a>
+            لديك حساب بالفعل؟ <a href="index.html">تسجيل الدخول</a>
         </div>
     </div>
 
+
+    <section class="how-sec" id="how">
+        <h2>آلية الاشتراك والتجديد</h2>
+        <div class="how-grid">
+            <div class="how"><div class="n">1</div><b>اختر الباقة</b><p>الأساسية أو الإنطلاقة أو المتقدمة حسب حجم نشاطك.</p></div>
+            <div class="how"><div class="n">2</div><b>ادفع بأمان</b><p>اضغط «ادفع الآن» واستخدم نفس البريد الذي ستسجّل أو سجّلت به.</p></div>
+            <div class="how"><div class="n">3</div><b>التفعيل</b><p>بعد تأكيد الدفع يتم تحويلك تلقائياً لصفحة التفعيل، أو أدخل رقم العملية في «اشتراك جديد» أو «تجديد الاشتراك».</p></div>
+            <div class="how"><div class="n">4</div><b>ابدأ العمل</b><p>سجّل الدخول وستجد باقتك مفعّلة لمدة سنة كاملة.</p></div>
+        </div>
+        <div class="notes">
+            <div class="note"><i class="fas fa-sync-alt"></i>التجديد بنفس الباقة يضيف سنة كاملة إلى تاريخ انتهائك الحالي، فلا تخسر الأيام المتبقية.</div>
+            <div class="note"><i class="fas fa-arrow-up"></i>الترقية لباقة أعلى تحتسب قيمة الأيام المتبقية من باقتك الحالية كرصيد أيام إضافية.</div>
+            <div class="note"><i class="fas fa-shield-alt"></i>لا يتم تفعيل أي حساب دون عملية دفع مؤكدة، وكل رقم عملية يُستخدم مرة واحدة فقط.</div>
+        </div>
+    </section>
 
     <section class="plans-sec" id="plans">
         <h2>اختر الباقة المناسبة لنشاطك</h2>
         <p class="ps-sub">اشتراك سنوي · ادفع عبر رابط الدفع ثم أدخل رقم العملية لتفعيل الباقة فوراً</p>
         <div class="pl-grid" id="plGrid"></div>
     </section>
-    <div class="mini-footer">
-        جميع الحقوق محفوظة © 2026 <span>FAROUK GRUP</span> &mdash; إسطنبول، تركيا
-    </div>
+    <footer class="site-foot">
+        <div class="in">
+            <div>
+                <h4>Mataami Pro | مطعمي برو</h4>
+                <p>منصة متكاملة لإدارة المطاعم: حساب التكاليف وهندسة المنيو، الكاشير والمخزون، التوصيل والسائقون، والتقارير المالية.</p>
+                <div class="pays"><i class="fab fa-cc-visa"></i><i class="fab fa-cc-mastercard"></i><i class="fas fa-lock" title="دفع آمن"></i></div>
+            </div>
+            <div>
+                <h4>روابط سريعة</h4>
+                <ul>
+                    <li><i class="fas fa-angle-left"></i><a href="#plans">الباقات والأسعار</a></li>
+                    <li><i class="fas fa-angle-left"></i><a href="#" data-foot="reg">اشتراك جديد</a></li>
+                    <li><i class="fas fa-angle-left"></i><a href="#" data-foot="renew">تجديد أو ترقية الاشتراك</a></li>
+                    <li><i class="fas fa-angle-left"></i><a href="index.html">تسجيل الدخول</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>الدعم والتواصل</h4>
+                <ul>
+                    <li><i class="fab fa-whatsapp"></i><a href="#" id="footWa" target="_blank" rel="noopener">واتساب الدعم</a></li>
+                    <li><i class="fas fa-globe"></i><a href="https://www.farouk-grup.com/" target="_blank" rel="noopener">farouk-grup.com</a></li>
+                    <li><i class="fas fa-map-marker-alt"></i>إسطنبول، تركيا</li>
+                </ul>
+            </div>
+        </div>
+        <div class="copy">جميع الحقوق محفوظة © 2026 <span>FAROUK GRUP</span> — مجموعة فاروق للإستشارات والأعمال</div>
+    </footer>
 
     <!-- ===== مودال اشتراك جديد ===== -->
     <div class="modal-overlay" id="registerModal">
@@ -659,7 +693,7 @@
                 <div class="field-group">
                     <label>معرّف العملية (رقم الدفع)</label>
                     <input type="text" id="renewTxId" placeholder="أدخل 8 أرقام على الأقل" required minlength="8">
-                    <div class="tx-id-hint"><i class="fas fa-info-circle"></i> يجب أن يكون 8 أرقام أو أكثر</div>
+                    <div class="tx-id-hint"><i class="fas fa-info-circle"></i> لم تدفع بعد؟ <a href="#" id="renewPayLink" style="color:var(--gold-light)">ادفع الآن للباقة المختارة</a> ثم أدخل رقم العملية (8 أرقام أو أكثر) من بريد تأكيد الدفع.</div>
                 </div>
                 <div class="field-group">
                     <label>البريد الإلكتروني</label>
@@ -684,27 +718,24 @@
     </div>
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="js/config.js?v=4.7"></script>
-    <script src="js/plans-data.js?v=4.7"></script>
+    <script src="js/config.js?v=4.8.1"></script>
+    <script src="js/plans-data.js?v=4.8.1"></script>
     <script>
     // ---- كود الحماية ومنع الوصول لأدوات المطور ----
     document.addEventListener('keydown', function(e) {
       // منع زر F12
       if (e.key === 'F12' || e.keyCode === 123) {
         e.preventDefault();
-        alert('تم تعطيل زر F12!');
         return false;
       }
       // منع اختصارات أدوات المطور (Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C)
       if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
         e.preventDefault();
-        alert('تم تعطيل أدوات المطور!');
         return false;
       }
       // منع عرض مصدر الصفحة (Ctrl+U)
       if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
         e.preventDefault();
-        alert('تم تعطيل عرض المصدر!');
         return false;
       }
     });
@@ -712,7 +743,6 @@
     // منع النقر بزر الماوس الأيمن (Context Menu)
     document.addEventListener('contextmenu', function(e) {
       e.preventDefault();
-      alert('النقر بزر الماوس الأيمن معطل!');
       return false;
     });
     // ---- نهاية كود الحماية ----
@@ -766,6 +796,9 @@
         // ربط الأزرار
         document.getElementById('openRegisterModalBtn').addEventListener('click', openRegisterModal);
         document.getElementById('openRenewModalBtn').addEventListener('click', openRenewModal);
+        document.getElementById('navRenew').addEventListener('click', e => { e.preventDefault(); openRenewModal(); });
+        document.querySelectorAll('[data-foot]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); a.dataset.foot === 'reg' ? openRegisterModal() : openRenewModal(); }));
+        (function () { const wa = (typeof SUPPORT_WHATSAPP !== 'undefined' && SUPPORT_WHATSAPP) || ''; const a = document.getElementById('footWa'); if (a) { if (wa) { a.href = 'https://wa.me/' + wa; a.textContent = 'واتساب الدعم'; } else a.closest('li').remove(); } })();
 
         // إغلاق المودال عند الضغط على الخلفية
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
@@ -868,9 +901,9 @@
 
                 msgBox.style.display = 'block';
                 if (data.status === 'success') {
-                    msgBox.className = 'msg-box success';
-                    msgBox.innerHTML = `<i class="fas fa-check-circle"></i> ${data.message || 'تم التسجيل بنجاح!'}<br>
-                        <a href="index.html" target="_blank" class="login-link">اذهب إلى تسجيل الدخول</a>`;
+                    msgBox.className = data.pending ? 'msg-box info' : 'msg-box success';
+                    msgBox.innerHTML = `<i class="fas fa-${data.pending ? 'hourglass-half' : 'check-circle'}"></i> ${data.message || 'تم التسجيل بنجاح'}<br>
+                        <a href="index.html" class="login-link">اذهب إلى تسجيل الدخول</a>`;
                     document.getElementById('registerForm').reset();
                     document.getElementById('regStrengthBar').className = 'password-strength-bar';
                     document.getElementById('regStrengthBar').style.width = '0%';
@@ -946,13 +979,16 @@
                 const renewData = await renewResp.json();
 
                 msgBox.style.display = 'block';
-                if (renewData.status === 'success' || renewData.status === 'exists') {
+                if (renewData.pending || renewData.status === 'pending') {
+                    msgBox.className = 'msg-box info';
+                    msgBox.innerHTML = '<i class="fas fa-hourglass-half"></i> ' + (renewData.message || 'تم استلام طلب التجديد وسيُفعَّل فور تأكيد الدفع');
+                } else if (renewData.status === 'success' || renewData.status === 'exists') {
                     const expiryText = renewData.newExpiry
                         ? '<br><small>صالح حتى: ' + renewData.newExpiry + '</small>'
                         : '';
                     msgBox.className = 'msg-box success';
-                    msgBox.innerHTML = '<i class="fas fa-check-circle"></i> تم تجديد اشتراكك بنجاح' + expiryText +
-                        '<br><a href="index.html" target="_blank" class="login-link">اذهب إلى تسجيل الدخول</a>';
+                    msgBox.innerHTML = '<i class="fas fa-check-circle"></i> ' + (renewData.planName ? 'تم تجديد اشتراكك — باقة ' + renewData.planName : 'تم تجديد اشتراكك بنجاح') + expiryText +
+                        '<br><a href="index.html" class="login-link">اذهب إلى تسجيل الدخول</a>';
                     document.getElementById('renewForm').reset();
                 } else {
                     msgBox.className = 'msg-box error';
@@ -1006,6 +1042,7 @@
             const k = pickedPlan('reg'), g = document.getElementById('regTxGroup');
             if (g) g.style.display = '';
             const l = document.getElementById('regPayLink'); if (l) l.onclick = e => { e.preventDefault(); payPlan(k); };
+            const rl = document.getElementById('renewPayLink'); if (rl) rl.onclick = e => { e.preventDefault(); payPlan(pickedPlan('renew')); };
         }
         document.querySelectorAll('input[name="regPlan"]').forEach(r => r.addEventListener('change', syncReg));
         (function renderPlans() {
@@ -1017,7 +1054,7 @@
                 const li = (prev ? '<li class="inh"><i class="fas fa-plus"></i> كل ما في ' + prev.name + '، بالإضافة إلى:</li>' : '') +
                     own.map(r => '<li><i class="fas fa-check"></i> ' + r[0] + (typeof r[pk[p.key]] === 'string' ? ' · ' + r[pk[p.key]] : '') + '</li>').join('');
                 return '<div class="pl' + (p.popular ? ' pop' : '') + '">' + (p.popular ? '<span class="tagp">الأكثر طلباً</span>' : '') + '<h3>' + p.name + '</h3><div class="tg">' + p.tag + '</div><div class="pr">' + p.price + '$ <small>/ سنوياً</small></div><div class="br">' + p.branches + '</div><ul>' + li + '</ul>' +
-                    '<div class="pb"><button type="button" class="pay" data-pay="' + p.key + '">ادفع</button><button type="button" data-reg="' + p.key + '">اشترك</button><button type="button" data-ren="' + p.key + '">جدّد / رقِّ</button></div></div>';
+                    '<div class="pb pb-main"><button type="button" class="pay" data-pay="' + p.key + '"><i class="fas fa-lock"></i> ادفع الآن — ' + p.price + '$</button></div><div class="pb"><button type="button" data-reg="' + p.key + '">اشتراك جديد</button><button type="button" data-ren="' + p.key + '">تجديد / ترقية</button></div></div>';
             }).join('');
             g.addEventListener('click', e => {
                 const a = e.target.closest('[data-pay]'), r = e.target.closest('[data-reg]'), n = e.target.closest('[data-ren]');
@@ -1029,7 +1066,8 @@
         (function preselect() {
             const q = new URLSearchParams(location.search), k = q.get('plan'), em = q.get('email');
             if (k && /^(basic|pro|premium)$/.test(k)) { setPlan('reg', k); setPlan('renew', k); }
-            if (em) { openRenewModal(); if (k) setPlan('renew', k); document.getElementById('renewEmail').value = em; }
+            if (em || q.get('renew') !== null || location.hash === '#renew') { openRenewModal(); if (k) setPlan('renew', k); if (em) document.getElementById('renewEmail').value = em; }
+            else if (q.get('register') !== null || location.hash === '#register') { openRegisterModal(); if (k) setPlan('reg', k); }
             syncReg();
         })();
     </script>
