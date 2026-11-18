@@ -367,7 +367,7 @@ async function loadAccount() {
   if (hasF('notifications')) { refreshNotifications(); clearInterval(B.notifTimer); B.notifTimer = setInterval(refreshNotifications, 30000); }
   if (typeof bizLiveStart === 'function') bizLiveStart();
   setTimeout(bizPaymentReturn, 300);
-  const vb = document.querySelector('.version-badge'); if (vb) vb.innerHTML = '<i class="fas fa-code-branch"></i> الإصدار 4.8.1 · ' + planBadge(r.plan);
+  const vb = document.querySelector('.version-badge'); if (vb) vb.innerHTML = '<i class="fas fa-code-branch"></i> الإصدار 4.9.0 · ' + planBadge(r.plan);
   return r;
 }
 function renderHeaderExtras() {

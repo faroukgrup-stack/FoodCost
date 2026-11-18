@@ -121,10 +121,10 @@ async function productEdit(p, after, all) {
 bizPage('inventory', { group: 'stock', title: 'المخزون والجرد', icon: 'warehouse', feature: 'inventory', perms: ['inventory'], plan: 'pro',
   pitch: 'أرصدة المواد الأولية والمنتجات لكل فرع، الجرد الفعلي، تسجيل الهدر والتالف، حد أدنى وتنبيهات، وسجل حركة كامل.',
   render: async function (body) {
-    const tabs = [['stock', 'الأرصدة', 'boxes'], ['count', 'الجرد', 'clipboard-check'], ['moves', 'حركة المخزون', 'exchange-alt'], ['transfers', 'التحويلات بين الفروع', 'truck', !hasF('transfers')], ['production', 'أوامر الإنتاج', 'industry', !hasF('production')]];
+    const tabs = [['stock', 'الأرصدة', 'boxes'], ['count', 'الجرد', 'clipboard-check'], ['moves', 'حركة المخزون', 'exchange-alt'], ['transfers', 'التحويلات بين الفروع', 'truck', !hasF('transfers')], ['production', 'أوامر الإنتاج', 'industry', !hasF('production')], ['variance', 'التكلفة الفعلية والنظرية', 'balance-scale-left', !hasF('food_variance')]];
     body.innerHTML = subTabs('invSub', tabs, 'stock') + '<div id="invBody"></div>';
     const el = body.querySelector('#invBody');
-    bindSubTabs(body, 'invSub', function (k) { ({ stock: stockView, count: countView, moves: movesView, transfers: transfersView, production: productionView })[k](el); });
+    bindSubTabs(body, 'invSub', function (k) { ({ stock: stockView, count: countView, moves: movesView, transfers: transfersView, production: productionView, variance: varianceView })[k](el); });
     stockView(el);
   } });
 async function stockItems() { const r = await bzOk('stockList', {}, { loading: false }); return r; }
@@ -185,7 +185,9 @@ async function countView(el) {
     const counts = []; el.querySelectorAll('[data-ci]').forEach(function (inp) { if (inp.value !== '') { const i = r.items[+inp.dataset.ci]; counts.push({ itemType: i.itemType, itemId: i.itemId, counted: parseFloat(inp.value) }); } });
     if (!counts.length) { showToast('أدخل كمية صنف واحد على الأقل', true); return; }
     if (!(await bConfirm('اعتماد الجرد لـ ' + counts.length + ' صنف؟'))) return;
-    const x = await bzOk('stockCount', { counts: counts }); showToast('تم اعتماد الجرد' + (x.changed !== undefined ? ' — ' + x.changed + ' صنف تغيّر' : '')); countView(el);
+    const x = await bzOk('stockCount', { counts: counts }); showToast('تم اعتماد الجرد' + (x.changed !== undefined ? ' — ' + x.changed + ' صنف تغيّر' : ''));
+    if (typeof varianceView === 'function' && hasF('food_variance') && await bConfirm('تم اعتماد الجرد. هل تريد عرض مقارنة التكلفة الفعلية بالتكلفة النظرية (الوصفات) الآن؟', 'التكلفة الفعلية والنظرية')) { const tb = document.querySelector('#invSub [data-sub="variance"]'); if (tb) { tb.click(); return; } }
+    countView(el);
   };
 }
 function movesView(el) {

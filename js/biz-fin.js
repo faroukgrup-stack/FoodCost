@@ -21,24 +21,41 @@ bizPage('finance', { group: 'fin', title: 'الحسابات والمصروفات
     expensesView(el);
   } });
 function expensesView(el) {
-  el.innerHTML = dateRangeBar('exRange', daysAgo(29), isoLocal(), '<button class="btn btn-success btn-sm" type="button" id="exNew"><i class="fas fa-plus"></i> مصروف</button>') + '<div id="exList"></div>';
+  const cfgPerm = typeof expManage === 'function' && (B.acc.isOwner || canP('finance')), cfgLock = cfgPerm && !hasF('exp_custom'), canCfg = cfgPerm;
+  el.innerHTML = dateRangeBar('exRange', daysAgo(29), isoLocal(), '<select id="exCat" class="biz-search" style="min-width:130px"><option value="">كل البنود</option></select><button class="btn btn-success btn-sm" type="button" id="exNew"><i class="fas fa-plus"></i> مصروف</button>' + (canCfg ? '<button class="btn btn-outline btn-sm" type="button" id="exCfg"><i class="fas fa-tags"></i> إدارة البنود' + (cfgLock ? ' <i class="fas fa-lock" style="font-size:.7rem"></i>' : '') + '</button>' : '')) + '<div id="exList"></div>';
   const get = bindRange(el, 'exRange', load);
-  const F = [{ k: 'category', label: 'البند', type: 'select', options: EXP_CATS }, { k: 'amount', label: 'المبلغ', type: 'number', req: true }, { k: 'tax', label: 'منها ضريبة', type: 'number', def: 0 }, { k: 'method', label: 'طريقة الدفع', type: 'select', options: [['cash', 'نقداً (من الدرج)'], ['card', 'بطاقة'], ['transfer', 'تحويل']] }, { k: 'spent_at', label: 'التاريخ', type: 'date', def: isoLocal() }, { k: 'note', label: 'الوصف', full: true }];
-  el.querySelector('#exNew').onclick = function () { bPrompt('مصروف جديد', F, {}, async function (d) { await entSave('expenses', d); load(); }, { icon: 'money-bill-wave', sub: 'المصروف النقدي يُخصم من نقدية الوردية المفتوحة' }); };
-  let rows = [];
+  const F = function (cur) { return [{ k: 'category', label: 'البند', type: 'select', options: typeof expCatOptions === 'function' ? expCatOptions(cur) : EXP_CATS }, { k: 'amount', label: 'المبلغ', type: 'number', req: true }, { k: 'tax', label: 'منها ضريبة', type: 'number', def: 0 }, { k: 'method', label: 'طريقة الدفع', type: 'select', options: [['cash', 'نقداً (من الدرج)'], ['card', 'بطاقة'], ['transfer', 'تحويل']] }, { k: 'spent_at', label: 'التاريخ', type: 'date', def: isoLocal() }, { k: 'note', label: 'الوصف', full: true }]; };
+  el.querySelector('#exNew').onclick = function () { bPrompt('مصروف جديد', F(), {}, async function (d) { await entSave('expenses', d); load(); }, { icon: 'money-bill-wave', sub: 'المصروف النقدي يُخصم من نقدية الوردية المفتوحة' }); };
+  if (canCfg) el.querySelector('#exCfg').onclick = function () { if (cfgLock) { bizUpgradeModal('premium'); return; } expManage(function () { load(); }); };
+  el.querySelector('#exCat').onchange = function () { draw(); };
+  let rows = [], range = {};
+  const chip = function (n) { return typeof expChip === 'function' ? expChip(n) : h(n); };
+  function fillCats() {
+    const s = el.querySelector('#exCat'), v = s.value;
+    const names = (typeof expCats === 'function' ? expCats(true).map(function (c) { return c.name; }) : EXP_CATS.slice());
+    rows.forEach(function (x) { if (x.category && names.indexOf(x.category) < 0) names.push(x.category); });
+    s.innerHTML = '<option value="">كل البنود</option>' + names.map(function (n) { return '<option' + (n === v ? ' selected' : '') + '>' + h(n) + '</option>'; }).join('');
+  }
+  function draw() {
+    const cf = el.querySelector('#exCat').value, L = cf ? rows.filter(function (x) { return x.category === cf; }) : rows;
+    const by = {}; L.forEach(function (x) { by[x.category] = (by[x.category] || 0) + +x.amount; });
+    el.querySelector('#exList').innerHTML = kpis([['إجمالي المصروفات', money(L.reduce(function (s, x) { return s + +x.amount; }, 0)), L.length + ' عملية']].concat(Object.entries(by).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 4).map(function (x) { return [x[0], money(x[1])]; }))) +
+      (typeof expBudgetTable === 'function' && hasF('exp_custom') && !cf ? expBudgetTable(rows, range.from || daysAgo(29), range.to || isoLocal()) : '') +
+      bTable([{ label: 'التاريخ', r: function (x) { return dOnly(x.spent_at); } }, { label: 'البند', r: function (x) { return chip(x.category); } }, { label: 'الوصف', r: function (x) { return h(x.note); } }, { label: 'الطريقة', r: function (x) { return h(PAY_NAMES[x.method] || x.method); } }, { label: 'المبلغ', num: true, r: function (x) { return money(x.amount); } }, { label: 'بواسطة', r: function (x) { return h(x.created_by); } }, { label: '', r: function (x) { return '<button class="ico-btn" data-e="' + x.id + '"><i class="fas fa-pen"></i></button><button class="ico-btn danger" data-d="' + x.id + '"><i class="fas fa-trash"></i></button>'; } }], L, { empty: 'لا توجد مصروفات في هذه الفترة' });
+  }
   async function load(f) {
-    rows = await entList('expenses', f || get());
-    const by = {}; rows.forEach(function (x) { by[x.category] = (by[x.category] || 0) + +x.amount; });
-    el.querySelector('#exList').innerHTML = kpis([['إجمالي المصروفات', money(rows.reduce(function (s, x) { return s + +x.amount; }, 0)), rows.length + ' عملية']].concat(Object.entries(by).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 4).map(function (x) { return [x[0], money(x[1])]; }))) +
-      bTable([{ label: 'التاريخ', r: function (x) { return dOnly(x.spent_at); } }, { label: 'البند', r: function (x) { return h(x.category); } }, { label: 'الوصف', r: function (x) { return h(x.note); } }, { label: 'الطريقة', r: function (x) { return h(PAY_NAMES[x.method] || x.method); } }, { label: 'المبلغ', num: true, r: function (x) { return money(x.amount); } }, { label: 'بواسطة', r: function (x) { return h(x.created_by); } }, { label: '', r: function (x) { return '<button class="ico-btn" data-e="' + x.id + '"><i class="fas fa-pen"></i></button><button class="ico-btn danger" data-d="' + x.id + '"><i class="fas fa-trash"></i></button>'; } }], rows, { empty: 'لا توجد مصروفات في هذه الفترة' });
+    range = f || get();
+    const res = await Promise.all([entList('expenses', range), typeof expLoadCfg === 'function' ? expLoadCfg().catch(function () { return null; }) : null]);
+    rows = res[0]; fillCats(); draw();
   }
   el.querySelector('#exList') && (el.onclick = async function (e) {
     const ed = e.target.closest('#exList [data-e]'), d = e.target.closest('#exList [data-d]');
-    if (ed) { const x = rows.find(function (y) { return y.id === ed.dataset.e; }); bPrompt('تعديل مصروف', F, x, async function (dd) { dd.id = x.id; await entSave('expenses', dd); load(); }); }
+    if (ed) { const x = rows.find(function (y) { return y.id === ed.dataset.e; }); bPrompt('تعديل مصروف', F(x.category), x, async function (dd) { dd.id = x.id; await entSave('expenses', dd); load(); }); }
     if (d && await entDel('expenses', d.dataset.d, 'المصروف')) load();
   });
   load();
 }
+
 function shiftsView(el) {
   el.innerHTML = dateRangeBar('shRange', daysAgo(13), isoLocal(), '<select data-f="status"><option value="">الكل</option><option value="open">مفتوحة</option><option value="closed">مغلقة</option></select>') + '<div id="shList"></div>';
   const get = bindRange(el, 'shRange', load);
