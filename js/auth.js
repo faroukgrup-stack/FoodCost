@@ -97,7 +97,7 @@ async function attemptLogin() {
                 setTimeout(() => checkPendingBackup(), 2500);
                 switchTab('dashboard');
             } else if (result.status === 'expired') {
-                errDiv.innerHTML = '❌ انتهى اشتراكك. <a href="f@14-G-17.html" target="_blank" style="color:#cfa776; text-decoration:underline;">جدد من هنا</a>';
+                errDiv.innerHTML = '❌ انتهى اشتراكك. <a href="f-14-G-17.html?renew=1&email=' + encodeURIComponent(user) + '" style="color:#cfa776; text-decoration:underline;">جدد اشتراكك من هنا</a>';
             } else if (result.status === 'frozen') {
                 errDiv.textContent = '❌ ' + (result.message || 'تم تجميد الحساب');
             } else {

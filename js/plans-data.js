@@ -42,6 +42,7 @@ var FC_PLAN_ROWS = [
   ['عروض الأسعار', 0, 0, 1],
   ['دفتر الآجل', 0, 0, 1],
   ['سجل النشاط', 0, 0, 1],
+  ['التوصيل وتطبيق السائق وعهدة السائقين', 0, 0, 1],
   ['تطبيق خاص باسم نشاطك', 0, 0, 1],
 ];
 function fcPlanByKey(k) { return FC_PLANS.find(function (p) { return p.key === k; }) || FC_PLANS[0]; }
