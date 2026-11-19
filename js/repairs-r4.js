@@ -1,7 +1,7 @@
 
 // R4 applies after the existing app; unrelated tools are left unchanged.
 const r4States=new Map();
-const r4Fields={settingsModal:['settingsRestaurantName','globalWastePercent','foodCostPercent','settingsCurrency','minMarginPercent'],dmSettings:['dmDisplayName','dmSubtitle','dmWhatsapp','dmCurrency']};
+const r4Fields={settingsModal:['settingsRestaurantName','globalWastePercent','foodCostPercent','settingsCurrency','minMarginPercent','settingsOwnerName','settingsLang'],dmSettings:['dmDisplayName','dmSubtitle','dmWhatsapp','dmCurrency']};
 function r4Signature(id){const els=id==='dmItemModal'?[...document.querySelectorAll('#dmItemModal input:not([type=file]),#dmItemModal select,#dmItemModal textarea')]:r4Fields[id].map(k=>document.getElementById(k));return JSON.stringify(els.map(e=>e?[e.id||e.className,e.type==='checkbox'?e.checked:e.value]:null));}
 function r4Clean(id){r4States.set(id,{base:r4Signature(id),dirty:false,busy:false});r4Indicators();}
 function r4Dirty(id){const st=r4States.get(id)||{base:r4Signature(id)};st.dirty=true;r4States.set(id,st);r4Indicators();}
@@ -27,6 +27,7 @@ saveSettings=async function(){
  try{const res=await callServer('updateSettings',{wastePercent:waste,foodCostPercent:fcp,currency,minMarginPercent:margin},false);if(!res?.success)throw new Error(res?.error||'فشل الحفظ');globalWaste=waste;foodCostPercent=fcp;appCurrency=currency;minMarginPercent=margin;
   const el=document.getElementById('restaurantNameText');if(name!==el?.textContent){const r=await callServer('updateRestaurantName',{name},false);if(!r?.success)throw new Error('حُفظت النسب لكن تعذر حفظ اسم المطعم: '+(r?.error||''));if(el)el.textContent=name;}
   try{localStorage.setItem('foodCurrency_'+currentUserEmail,currency);localStorage.setItem('foodMinMargin_'+currentUserEmail,String(margin));}catch(e){}
+  if(typeof fcSaveOwnerAndLang==='function'&&await fcSaveOwnerAndLang()==='stop'){r4Clean('settingsModal');return;}
   r4Clean('settingsModal');closeModals(true);showToast('تم حفظ الإعدادات');if(typeof generateQRCode==='function')generateQRCode();if(typeof refreshCostsAndPrices==='function')Promise.resolve(refreshCostsAndPrices(true)).catch(()=>{});
  }catch(e){showToast(e.message,true);}finally{r4Busy('settingsModal',false);}
 };

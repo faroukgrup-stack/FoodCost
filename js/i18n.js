@@ -81,7 +81,10 @@
   function skip(el) { for (var e = el; e && e.nodeType === 1; e = e.parentNode) { if (SKIP[e.tagName] || e.hasAttribute('data-i18n-skip') || e.isContentEditable) return true; } return false; }
   function doText(n) { var v = n.nodeValue; if (!v || !HASX.test(v)) return; if (n.parentNode && skip(n.parentNode)) return; var t = tr(v); if (t !== v) n.nodeValue = t; }
   function doEl(el) {
-    if (el.nodeType !== 1 || skip(el)) return;
+    if (el.nodeType !== 1) return;
+    // v5.0.2: حقول النص الطويل — نترجم التلميح (placeholder) فقط ولا نلمس ما يكتبه المستخدم
+    if (el.tagName === 'TEXTAREA') { if (el.parentNode && skip(el.parentNode)) return; var ph = el.getAttribute('placeholder'); if (ph && HASX.test(ph)) { var tp = tr(ph); if (tp !== ph) el.setAttribute('placeholder', tp); } return; }
+    if (skip(el)) return;
     // مهم: لا نعيد الكتابة إلا عند تغيّر القيمة فعلاً (تجنب حلقة لا نهائية مع المراقب)
     for (var i = 0; i < ATTRS.length; i++) { var a = el.getAttribute(ATTRS[i]); if (a && HASX.test(a)) { var t = tr(a); if (t !== a) el.setAttribute(ATTRS[i], t); } }
     if (el.tagName === 'INPUT' && (el.type === 'button' || el.type === 'submit') && HASX.test(el.value)) { var v = tr(el.value); if (v !== el.value) el.value = v; }

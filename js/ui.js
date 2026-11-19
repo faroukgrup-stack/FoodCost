@@ -195,6 +195,30 @@ function showSettingsModal() {
     document.getElementById('settingsModal').classList.add('active');
 }
 
+// v5.0.2: حفظ اسم صاحب الحساب واللغة (تستدعيها كل نسخ saveSettings) — ترجع 'stop' عند الخطأ أو عند إعادة التحميل لتغيير اللغة
+async function fcSaveOwnerAndLang() {
+        const on = document.getElementById('settingsOwnerName');
+        let ownerErr = '';
+        if (on && on.value.trim() && on.value.trim() !== on.dataset.orig && (typeof B === 'undefined' || !B.acc || B.acc.isOwner !== false)) {
+            let r2 = null;
+            try { r2 = await callServer('ownerProfileSave', { fullName: on.value.trim() }, false); } catch (e) { r2 = { success: false, error: e.message }; }
+            if (r2 && r2.success) {
+                localStorage.setItem('foodUserName', r2.ownerName);
+                if (typeof B !== 'undefined' && B.acc) B.acc.ownerName = r2.ownerName;
+                on.dataset.orig = r2.ownerName;
+                ['userNameDisplay', 'ddOwnerName'].forEach(function (id) { const el = document.getElementById(id); if (el) el.textContent = r2.ownerName; });
+                const dd = document.getElementById('ddOwner'); if (dd) dd.style.display = '';
+            } else {
+                const er = (r2 && r2.error) || '';
+                ownerErr = /غير معروفة/.test(er) ? 'لم يُحفظ اسم صاحب الحساب: أعد نشر دالة api على Supabase بالإصدار 5.0' : ('لم يُحفظ اسم صاحب الحساب: ' + (er || 'خطأ غير معروف'));
+            }
+        }
+        if (ownerErr) { showToast(ownerErr, true); return 'stop'; }
+        const ls = document.getElementById('settingsLang');
+        if (ls && window.fcI18n && ls.value !== fcI18n.lang()) { fcI18n.set(ls.value); return 'stop'; }
+    return 'ok';
+}
+
 async function saveSettings() {
     const waste = parseFloat(document.getElementById('globalWastePercent').value);
     const fcp = parseFloat(document.getElementById('foodCostPercent').value);
@@ -228,25 +252,7 @@ async function saveSettings() {
             document.getElementById('restaurantNameText').textContent = restName;
             if (typeof generateQRCode === 'function') generateQRCode();
         }
-        const on = document.getElementById('settingsOwnerName');
-        let ownerErr = '';
-        if (on && on.value.trim() && on.value.trim() !== on.dataset.orig && (typeof B === 'undefined' || !B.acc || B.acc.isOwner !== false)) {
-            let r2 = null;
-            try { r2 = await callServer('ownerProfileSave', { fullName: on.value.trim() }, false); } catch (e) { r2 = { success: false, error: e.message }; }
-            if (r2 && r2.success) {
-                localStorage.setItem('foodUserName', r2.ownerName);
-                if (typeof B !== 'undefined' && B.acc) B.acc.ownerName = r2.ownerName;
-                on.dataset.orig = r2.ownerName;
-                ['userNameDisplay', 'ddOwnerName'].forEach(function (id) { const el = document.getElementById(id); if (el) el.textContent = r2.ownerName; });
-                const dd = document.getElementById('ddOwner'); if (dd) dd.style.display = '';
-            } else {
-                const er = (r2 && r2.error) || '';
-                ownerErr = /غير معروفة/.test(er) ? 'لم يُحفظ اسم صاحب الحساب: أعد نشر دالة api على Supabase بالإصدار 5.0' : ('لم يُحفظ اسم صاحب الحساب: ' + (er || 'خطأ غير معروف'));
-            }
-        }
-        if (ownerErr) { showToast(ownerErr, true); return; }
-        const ls = document.getElementById('settingsLang');
-        if (ls && window.fcI18n && ls.value !== fcI18n.lang()) { fcI18n.set(ls.value); return; }
+        if (await fcSaveOwnerAndLang() === 'stop') return;
         showToast('تم حفظ الإعدادات');
         if (typeof refreshCostsAndPrices === 'function') refreshCostsAndPrices(true);
     } else showToast(res.error, true);
