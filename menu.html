@@ -301,10 +301,10 @@ header.menu-head .head-line{display:none}
     <div class="sheet-box" id="cartSheetBox"></div>
   </div>
 
-<script src="js/config.js?v=5.0.2"></script>
-<script src="js/i18n.js?v=5.0.2"></script>
-<script src="js/domain.js?v=5.0.2"></script>
-<script src="js/cust-delivery.js?v=5.0.2"></script>
+<script src="js/config.js?v=5.0.3"></script>
+<script src="js/i18n.js?v=5.0.3"></script>
+<script src="js/domain.js?v=5.0.3"></script>
+<script src="js/cust-delivery.js?v=5.0.3"></script>
 <script>
 
 function menuImageUrl(value) {
@@ -387,6 +387,7 @@ async function loadMenu() {
     renderCats();
     renderGrid();
     renderGoogleCard();
+    renderClosedBanner();
   } catch (e) {
     document.getElementById('grid').innerHTML = '<div class="empty">تعذر تحميل القائمة: ' + esc(e.message) + '</div>';
   }
@@ -612,6 +613,35 @@ function sendWhatsApp() {
 // ---------- الطلب المباشر إلى الكاشير (الباقات المتقدمة) ----------
 const tableNo = (params.get('t') || '').trim().slice(0, 20);
 function orderingOn() { return !!(menuData && menuData.ordering && menuData.ordering.enabled); }
+// ---------- v5.0.3: حالة المطعم (مفتوح/مغلق) وأوقات الدوام ----------
+const DAYS_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+function storeStatusFor(bId) {
+  if (!orderingOn()) return null;
+  const brs = menuData.branches || [];
+  const b = bId ? brs.find(x => x.id === bId) : (brs.length === 1 ? brs[0] : null);
+  if (b && b.status) return b.status;
+  if (brs.length > 1 && !bId) { const anyOpen = brs.some(x => x.open !== false); return anyOpen ? { open: true } : (brs[0].status || menuData.ordering.status); }
+  return menuData.ordering.status || { open: true };
+}
+function closedHtml(st) {
+  if (!st || st.open !== false) return '';
+  const nx = st.next ? `<span>يفتح</span> <span>${st.next.today ? 'اليوم' : 'يوم ' + (DAYS_AR[st.next.day] || '')}</span> <span>الساعة</span> <b dir="ltr">${esc(st.next.time)}</b>` : '';
+  const why = st.reason === 'hours' ? '<span>خارج أوقات الدوام</span>' : st.note ? `<span data-i18n-skip>${esc(st.note)}</span>` : '';
+  const until = st.until ? `<span>حتى</span> <b dir="ltr">${esc(new Date(st.until).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))}</b>` : '';
+  return `<div class="closed-box"><b>${st.reason === 'branch' ? 'الفرع مغلق مؤقتاً' : 'المطعم مغلق حالياً'}</b>${why ? ' · ' + why : ''}${nx || until ? '<br>' + (nx || until) : ''}<br><small>يمكنك تصفح القائمة، وسيُتاح الطلب عند الفتح.</small></div>`;
+}
+function renderClosedBanner() {
+  let el = document.getElementById('closedBanner');
+  const fixed = params.get('b') || localStorage.getItem('menuBranch_' + (publicId || restaurantEmail)) || '';
+  const st = storeStatusFor(fixed && (menuData.branches || []).find(x => x.id === fixed) ? fixed : '');
+  if (!st || st.open !== false) { if (el) el.remove(); return; }
+  if (!el) {
+    if (!document.getElementById('closedCss')) { const cs = document.createElement('style'); cs.id = 'closedCss'; cs.textContent = '.closed-box{background:#3b0d0d;border:1px solid #ef4444;color:#fecaca;border-radius:14px;padding:10px 14px;margin:10px auto;max-width:720px;text-align:center;line-height:1.7;font-size:.92rem}.closed-box b{color:#fff}.closed-box small{opacity:.8}#closedBanner{position:sticky;top:0;z-index:50;padding:0 10px}'; document.head.appendChild(cs); }
+    el = document.createElement('div'); el.id = 'closedBanner'; document.body.insertBefore(el, document.body.firstChild);
+  }
+  el.innerHTML = closedHtml(st);
+}
+
 function checkoutHtml(total) {
   const wa = String((menuData.settings && menuData.settings.whatsapp) || '').replace(/\D/g, '');
   const dis = cart.length ? '' : 'disabled';
@@ -620,7 +650,7 @@ function checkoutHtml(total) {
   const brs = menuData.branches || [], fixedB = params.get('b') && brs.find(x => x.id === params.get('b'));
   const savedB = localStorage.getItem('menuBranch_' + (publicId || restaurantEmail)) || '';
   const brHtml = brs.length > 1 ? (fixedB ? `<div class="checkout-note" style="font-weight:700">الفرع: ${esc(fixedB.name)}</div>`
-    : `<label for="custBranch">الفرع (مطلوب)</label><select id="custBranch" onchange="localStorage.setItem('menuBranch_' + (publicId || restaurantEmail), this.value)" style="width:100%"><option value="">— اختر الفرع —</option>${brs.map(x => `<option value="${esc(x.id)}" ${x.id === savedB ? 'selected' : ''}>${esc(x.name)}${x.address ? ' — ' + esc(x.address) : ''}</option>`).join('')}</select>`) : '';
+    : `<label for="custBranch">الفرع (مطلوب)</label><select id="custBranch" onchange="localStorage.setItem('menuBranch_' + (publicId || restaurantEmail), this.value)" style="width:100%"><option value="">— اختر الفرع —</option>${brs.map(x => `<option value="${esc(x.id)}" ${x.open === false ? 'disabled' : ''} ${x.id === savedB ? 'selected' : ''}>${esc(x.name)}${x.address ? ' — ' + esc(x.address) : ''}</option>`).join('')}</select>`) : '';
   const tbl = tableNo && ord.tableOrdering ? `<div class="checkout-note" style="font-weight:700">الطلب على طاولة رقم: ${esc(tableNo)}</div>` : '';
   const dv = deliveryOn(), isD = dv && orderType() === 'delivery', fee = isD ? +(ord.delivery.fee || 0) : 0;
   const typeHtml = dv ? `<div class="otype"><button class="${isD ? '' : 'on'}" onclick="setOrderType('pickup')">استلام من المطعم</button><button class="${isD ? 'on' : ''}" onclick="setOrderType('delivery')">توصيل</button></div>` : '';
@@ -628,6 +658,8 @@ function checkoutHtml(total) {
     <div class="checkout-note">رسوم التوصيل: <b>${fee.toFixed(2)} ${esc(cur())}</b>${ord.delivery.minOrder ? ' · الحد الأدنى للطلب ' + (+ord.delivery.minOrder).toFixed(2) : ''}${ord.delivery.maxMinutes ? ' · يصلك خلال ' + ord.delivery.maxMinutes + ' دقيقة تقريباً' : ''}</div>` : '';
   if (isD) setTimeout(refreshDeliveryAddr, 0);
   total = total + fee;
+  const stC = storeStatusFor(fixedB ? fixedB.id : '');
+  if (stC && stC.open === false) return closedHtml(stC);
   return `${typeHtml}${addrHtml}<label for="custPhone">رقم الجوال ${ord.requirePhone ? '(مطلوب)' : '(اختياري)'}</label><input id="custPhone" dir="ltr" inputmode="tel" value="${esc(prevPhone)}" placeholder="05xxxxxxxx" oninput="sessionStorage.setItem('menuCustomerPhone',this.value)">${brHtml}${tbl}
     <p class="checkout-note">${isD ? 'يصل طلبك للمطعم، وعند تجهيزه يستلمه السائق ويوصله إلى عنوانك.' : 'يصل طلبك مباشرة إلى المطعم، ويتم تأكيده من الكاشير.'}</p>
     <button class="addwide" id="sendOrderBtn" ${dis} style="width:100%" onclick="sendOrderDirect()">إرسال الطلب للمطعم · ${total.toFixed(2)} ${esc(cur())}</button>
@@ -674,6 +706,10 @@ async function sendOrderDirect() {
       cart = cart.filter(c => !so.has(c.name)); paintCart(); renderGrid();
       alert((r.error || 'بعض الأصناف نفدت') + '\nتمت إزالتها من سلتك، راجع الطلب ثم أرسله مجدداً.');
       btn.disabled = false; btn.textContent = 'إرسال الطلب للمطعم'; if (cart.length) openCart(); else closeCart(); return;
+    }
+    if (!r.success && r.closed) {
+      if (r.status) { const bid = body.b || ''; const bb = (menuData.branches || []).find(x => x.id === bid); if (bb) { bb.status = r.status; bb.open = false; } else menuData.ordering.status = r.status; }
+      renderClosedBanner(); alert(window.fcI18n ? fcI18n.t('المطعم مغلق حالياً') : 'المطعم مغلق حالياً'); openCart(); return;
     }
     if (!r.success && (r.needLogin || r.needAddress)) {
       btn.disabled = false; btn.textContent = 'إرسال الطلب للمطعم';

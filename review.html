@@ -284,7 +284,7 @@
             .option-pill { padding: 10px 16px; font-size: 0.9rem; background: #0A192A; }
             .section-title { font-size: 1.3rem; }
         }
-        /* v5.0.2 — تنسيق مضغوط للجوال: حاويات أصغر ومسافات أقل */
+        /* v5.0.3 — تنسيق مضغوط للجوال: حاويات أصغر ومسافات أقل */
         @media (max-width: 600px) {
             body { padding: 10px 8px; }
             .card { padding: 16px 10px; border-radius: 20px; }
@@ -412,10 +412,10 @@
     <div id="thankYouMessage"><i class="fas fa-check-circle"></i> شكراً جزيلاً! <br> تم استلام تقييمك بنجاح. نتمنى رؤيتك قريباً 🌟</div>
 </div>
 
-<script src="js/config.js?v=5.0.2"></script>
-<script src="js/i18n.js?v=5.0.2"></script>
+<script src="js/config.js?v=5.0.3"></script>
+<script src="js/i18n.js?v=5.0.3"></script>
 <script>
-// v5.0.2 — اختيار اللغة عند أول فتح لصفحة التقييم (ما لم تُحدد بالرابط ?lang=)
+// v5.0.3 — اختيار اللغة عند أول فتح لصفحة التقييم (ما لم تُحدد بالرابط ?lang=)
 (function () {
   var has = false; try { has = !!localStorage.getItem('fcLang'); } catch (e) { has = true; }
   if (has) return;

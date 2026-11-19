@@ -436,12 +436,12 @@ body.is-staff .owner-only{display:none!important}
   .sr-preview{padding:8px}.sr-ing{min-width:640px}
 }
 @media (max-width:480px){.sr-grid,.mn-grid{grid-template-columns:1fr}}
-/* v5.0.2: حقول الإدخال داخل الجداول (مثل إدارة بنود المصروفات) — نص فاتح على خلفية داكنة مقروءة */
+/* v5.0.3: حقول الإدخال داخل الجداول (مثل إدارة بنود المصروفات) — نص فاتح على خلفية داكنة مقروءة */
 .biz-table input:not([type=color]):not([type=checkbox]):not([type=radio]),.biz-table select,.biz-table textarea{background:#0f1522!important;color:#f1f5f9!important;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:6px 9px;font:inherit;font-size:.85rem;-webkit-text-fill-color:#f1f5f9}
 .biz-table input:focus,.biz-table select:focus,.biz-table textarea:focus{background:#16203a!important;color:#fff!important;border-color:var(--accent,#b48554);outline:none}
 .biz-table input::placeholder{color:#8a96ad!important;-webkit-text-fill-color:#8a96ad}
 .biz-table select option{background:#0f1522;color:#f1f5f9}
-/* v5.0.2: منع تراكب أزرار الطباعة على عنوان الصفحة (عربي / إنجليزي / تركي) */
+/* v5.0.3: منع تراكب أزرار الطباعة على عنوان الصفحة (عربي / إنجليزي / تركي) */
 .biz-page-head h2{padding-inline-end:132px}.biz-page-head p{padding-inline-end:132px}
 .biz-page-tools{inset-inline-end:0;inset-inline-start:auto}
 html[dir=ltr] .biz-page-tools{left:auto;right:0}
