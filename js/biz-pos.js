@@ -154,7 +154,8 @@ function posSoldOut(p) { return !!(POS.boot && POS.boot.settings.pos.autoSoldOut
 async function posHandleCode(code) {
   code = String(code || '').trim(); if (!code) return;
   const b = POS.boot;
-  if (/^FCC-/i.test(code)) { posCustomerQr(code); return; }
+  { const mc = code.match(/FCC-[A-Z0-9]+/i); if (mc) { posCustomerQr(mc[0].toUpperCase()); return; } }
+  if (/^FCB:/i.test(code) && typeof posBatchCode === 'function') { posBatchCode(code); return; }
   const p = b.products.find(function (x) { return (x.barcode && x.barcode === code) || (x.sku && x.sku.toLowerCase() === code.toLowerCase()); });
   if (p) { posAddProduct(p); return; }
   const d = (b.discounts || []).find(function (x) { return x.code && x.code.toUpperCase() === code.toUpperCase(); });
@@ -361,7 +362,17 @@ function posPickCustomer() {
       { label: '', r: function (c) { const sel = o.customerId === c.id; return '<button class="btn btn-sm ' + (sel ? 'btn-success' : 'btn-primary') + '" data-act="pick" data-c="' + h(JSON.stringify({ id: c.id, name: c.name, phone: c.phone, points: c.points })) + '"><i class="fas fa-' + (sel ? 'check-circle' : 'check') + '"></i> ' + (sel ? 'محدد' : 'اختيار') + '</button>'; } }],
       rows.slice(0, 30), { rowAttr: function (c) { return 'class="pick-row" data-act="pick" data-c="' + h(JSON.stringify({ id: c.id, name: c.name, phone: c.phone, points: c.points })) + '"'; }, empty: 'لا يوجد عملاء مطابقون — أضف عميلاً جديداً' });
   };
-  m.$('#pcQ').addEventListener('input', function () { clearTimeout(tm); tm = setTimeout(load, 300); });
+  // v5.0: قراءة QR العميل من زر الكاميرا داخل نافذة العميل تربطه مباشرة بالطلب (بدل وضع الرمز في البحث فقط)
+  let qrDone = false;
+  const qrCheck = function () {
+    if (qrDone) return true;
+    const v = m.$('#pcQ').value.trim(), mm = v.match(/FCC-[A-Z0-9]+/i);
+    if (!mm) return false;
+    qrDone = true; clearTimeout(tm); m.close(); posCustomerQr(mm[0].toUpperCase()); return true;
+  };
+  m.$('#pcQ').addEventListener('input', function () { if (qrCheck()) return; clearTimeout(tm); tm = setTimeout(load, 300); });
+  m.$('#pcQ').addEventListener('change', qrCheck);
+  m.$('#pcQ').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); if (!qrCheck()) { clearTimeout(tm); load(); } } });
   load();
 }
 // v4.5: عنوان التوصيل لطلب الكاشير (من عناوين العميل المحفوظة أو يدوياً + رابط الموقع)

@@ -367,7 +367,7 @@ async function loadAccount() {
   if (hasF('notifications')) { refreshNotifications(); clearInterval(B.notifTimer); B.notifTimer = setInterval(refreshNotifications, 30000); }
   if (typeof bizLiveStart === 'function') bizLiveStart();
   setTimeout(bizPaymentReturn, 300);
-  const vb = document.querySelector('.version-badge'); if (vb) vb.innerHTML = '<i class="fas fa-code-branch"></i> الإصدار 4.9.0 · ' + planBadge(r.plan);
+  const vb = document.querySelector('.version-badge'); if (vb) vb.innerHTML = '<i class="fas fa-code-branch"></i> الإصدار 5.0.0 · ' + planBadge(r.plan);
   return r;
 }
 function renderHeaderExtras() {
@@ -473,7 +473,7 @@ async function renderBizDashboard() {
 function injectStaffLogin() {
   const card = document.querySelector('#loginScreen .login-card'); if (!card || document.getElementById('staffLoginBox')) return;
   const sw = document.createElement('div'); sw.className = 'login-switch';
-  sw.innerHTML = '<button type="button" class="active" data-m="owner"><i class="fas fa-user-shield"></i> صاحب الحساب</button><button type="button" data-m="staff"><i class="fas fa-user-tie"></i> موظف</button>';
+  sw.innerHTML = '<button type="button" class="active" data-m="owner"><i class="fas fa-user-shield"></i> صاحب الحساب</button><button type="button" data-m="staff"><i class="fas fa-user-tie"></i> موظف</button><button type="button" data-m="driver"><i class="fas fa-motorcycle"></i> سائق</button>';
   const p = card.querySelector('p'); p.after(sw);
   const box = document.createElement('div'); box.id = 'staffLoginBox'; box.style.display = 'none';
   box.innerHTML = '<input type="text" id="staffRestInput" class="login-input" placeholder="بريد المطعم أو رمزه" dir="ltr" value="' + h(localStorage.getItem('fcStaffRest') || '') + '">' +
@@ -485,7 +485,8 @@ function injectStaffLogin() {
   sw.addEventListener('click', function (e) {
     const b = e.target.closest('[data-m]'); if (!b) return;
     sw.querySelectorAll('button').forEach(function (x) { x.classList.toggle('active', x === b); });
-    const staff = b.dataset.m === 'staff';
+    const staff = b.dataset.m !== 'owner'; window._fcLoginMode = b.dataset.m;
+    const sb = document.getElementById('staffLoginBtn'); if (sb) sb.innerHTML = b.dataset.m === 'driver' ? '<i class="fas fa-motorcycle"></i> دخول السائق' : '<i class="fas fa-sign-in-alt"></i> دخول الموظف';
     ownerEls.forEach(function (el) { if (el) el.style.display = staff ? 'none' : ''; });
     box.style.display = staff ? '' : 'none';
   });
@@ -502,6 +503,11 @@ async function staffLoginAttempt() {
     const r = await res.json();
     if (r.status !== 'success') { err.textContent = r.message || r.error || 'بيانات خاطئة'; return; }
     localStorage.setItem('fcStaffRest', rest);
+    // v5.0: السائق يدخل مباشرة إلى تطبيق السائق المخصص (حساب الفريق منفصل تماماً عن تطبيق العميل)
+    if (window._fcLoginMode === 'driver' || (r.staff && r.staff.role === 'driver')) {
+      localStorage.setItem('drvToken', r.token); localStorage.setItem('drvEmail', r.email); localStorage.setItem('drvRest', rest);
+      location.href = 'driver.html'; return;
+    }
     localStorage.setItem('foodUserToken', r.token);
     localStorage.setItem('foodUserName', r.name);
     localStorage.setItem('foodUserEmail', r.email);

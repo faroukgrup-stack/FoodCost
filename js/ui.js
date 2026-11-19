@@ -185,6 +185,12 @@ function showSettingsModal() {
     const found = WORLD_CURRENCIES.find(x => x.s === (appCurrency || 'ر.س'));
     selectCurrency(appCurrency || 'ر.س', found ? found.n : appCurrency);
     initCurrencySearch();
+    // v5.0: اسم صاحب الحساب + لغة البرنامج
+    const on = document.getElementById('settingsOwnerName'), ow = document.getElementById('settingsOwnerWrap');
+    if (on) { on.value = (typeof B !== 'undefined' && B.acc && B.acc.ownerName) || localStorage.getItem('foodUserName') || ''; on.dataset.orig = on.value; }
+    if (ow) ow.style.display = (typeof B !== 'undefined' && B.acc && !B.acc.isOwner) ? 'none' : '';
+    const oe = document.getElementById('settingsOwnerEmail'); if (oe) oe.textContent = currentUserEmail || '';
+    const ls = document.getElementById('settingsLang'); if (ls) ls.value = (window.fcI18n && fcI18n.lang()) || 'ar';
     document.getElementById('settingsModal').classList.add('active');
 }
 
@@ -221,6 +227,14 @@ async function saveSettings() {
             document.getElementById('restaurantNameText').textContent = restName;
             if (typeof generateQRCode === 'function') generateQRCode();
         }
+        const on = document.getElementById('settingsOwnerName');
+        if (on && on.value.trim() && on.value.trim() !== on.dataset.orig && (typeof B === 'undefined' || !B.acc || B.acc.isOwner)) {
+            const r2 = await callServer('ownerProfileSave', { fullName: on.value.trim() }, false);
+            if (r2 && r2.success) { localStorage.setItem('foodUserName', r2.ownerName); if (typeof B !== 'undefined' && B.acc) B.acc.ownerName = r2.ownerName; const un = document.getElementById('userNameDisplay'); if (un) un.textContent = r2.ownerName; }
+            else if (r2) showToast(r2.error || 'تعذر حفظ اسم صاحب الحساب', true);
+        }
+        const ls = document.getElementById('settingsLang');
+        if (ls && window.fcI18n && ls.value !== fcI18n.lang()) { fcI18n.set(ls.value); return; }
         showToast('تم حفظ الإعدادات');
         if (typeof refreshCostsAndPrices === 'function') refreshCostsAndPrices(true);
     } else showToast(res.error, true);

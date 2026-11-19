@@ -74,6 +74,7 @@ async function productEdit(p, after, all) {
     { k: 'kind', label: 'النوع', type: 'select', options: [['product', 'منتج'], ['service', 'خدمة (بدون مخزون)'], ['semi', 'نصف مصنّع (يُنتج بأوامر الإنتاج)']] },
     { k: 'unit', label: 'الوحدة', def: 'قطعة' },
     { k: 'barcode', label: 'الباركود', ltr: true }, { k: 'sku', label: 'رمز المنتج SKU', ltr: true },
+    { k: 'shelf_life_hours', label: 'مدة الصلاحية بالساعات (للمنتجات المصنّعة)', type: 'number', hint: 'مثال: 48 = يومان — تُحسب منها تواريخ الانتهاء على ملصقات QR لأوامر الإنتاج' }, { k: 'storage_note', label: 'طريقة الحفظ', ph: 'مبرد 0-4°م' },
     { k: 'tax_rate', label: 'نسبة ضريبة خاصة %', type: 'number', hint: 'اتركها فارغة لاستخدام النسبة العامة' },
     { k: 'color', label: 'لون الزر', type: 'color', def: '#b48554' }, { k: 'sort', label: 'الترتيب', type: 'number', def: 0 },
     { k: 'image_url', label: 'رابط الصورة', ltr: true, full: true },

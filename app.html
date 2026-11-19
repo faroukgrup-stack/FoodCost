@@ -67,6 +67,36 @@ label{font-size:.8rem;margin:8px 0 4px}input,select,textarea{padding:10px;border
 .acc-card{padding:14px;border-radius:18px}.acc-card .qr img{width:170px;height:170px}.acc-row b{font-size:1.2rem}.acc-item{font-size:.84rem;padding:8px 10px}
 .pts{font-size:2rem}.steps div i{width:32px;height:32px}
 }
+/* v5.0 واجهة العميل الجديدة (ترحيب + QR + بطاقة النقاط + بلاطات + العروض) */
+body.v5{padding-bottom:30px}
+.v5h{position:relative;margin:0 -16px;padding:calc(18px + env(safe-area-inset-top)) 16px 46px;background:linear-gradient(160deg,color-mix(in srgb,var(--c) 55%,#000) 0%,color-mix(in srgb,var(--c) 22%,var(--bg)) 70%,var(--bg) 100%);border-radius:0 0 26px 26px}
+.v5top{display:flex;align-items:center;gap:12px}
+.v5top img{width:46px;height:46px;border-radius:14px;object-fit:contain;background:rgba(255,255,255,.08);padding:4px}
+.v5top .rn{flex:1;min-width:0}.v5top .rn b{display:block;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v5top .rn small{color:rgba(255,255,255,.7);font-size:.72rem}
+.v5qr{position:relative;width:46px;height:46px;border-radius:50%;background:#fff;color:#0b0e17;border:0;font-size:1.25rem;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.35);flex:none}
+.v5hi{margin-top:18px}.v5hi small{color:rgba(255,255,255,.75);font-size:.9rem}.v5hi h1{font-size:1.45rem;margin-top:2px;line-height:1.3}
+.v5card{position:relative;margin-top:-30px;background:#151b2b;border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:14px;display:flex;gap:14px;align-items:center;box-shadow:0 10px 26px rgba(0,0,0,.35);cursor:pointer}
+.v5ring{width:84px;height:84px;flex:none;position:relative}.v5ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.v5ring .t{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}.v5ring .t b{font-size:1.25rem;color:var(--c)}.v5ring .t small{font-size:.62rem;color:#94a3b8}
+.v5pi{flex:1;min-width:0;line-height:1.6}.v5pi b{font-size:1rem}.v5pi .v{color:var(--c);font-weight:800;font-size:1.05rem}.v5pi small{display:block;color:#94a3b8;font-size:.76rem}
+.v5stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.v5stats div{background:rgba(255,255,255,.04);border-radius:14px;padding:9px 6px;text-align:center;font-size:.72rem;color:#94a3b8}.v5stats b{display:block;color:#fff;font-size:1rem}
+.v5big{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.v5t{position:relative;border-radius:18px;padding:14px 12px;min-height:104px;display:flex;flex-direction:column;justify-content:flex-end;text-decoration:none;color:#fff;border:0;font-family:inherit;text-align:start;cursor:pointer;overflow:hidden;background:#1a2133}
+.v5t.p{background:linear-gradient(140deg,var(--c),color-mix(in srgb,var(--c) 45%,#000))}.v5t.p,.v5t.p small{color:#0b0e17}
+.v5t i{position:absolute;top:12px;inset-inline-end:12px;font-size:1.7rem;opacity:.9}.v5t b{font-size:.98rem}.v5t small{font-size:.72rem;color:#94a3b8}
+.v5ic{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.v5ic a,.v5ic button{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:10px 4px;color:#e2e8f0;text-decoration:none;font-family:inherit;font-size:.7rem;text-align:center;cursor:pointer;position:relative}
+.v5ic i{display:block;font-size:1.15rem;color:var(--c);margin-bottom:5px}
+.v5sec{display:flex;justify-content:space-between;align-items:center;margin:18px 0 8px}.v5sec b{font-size:1rem}.v5sec small{color:#94a3b8;font-size:.75rem}
+.v5car{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}.v5car::-webkit-scrollbar{display:none}
+.v5car>*{scroll-snap-align:start;flex:0 0 82%;border-radius:18px;overflow:hidden;background:#1a2133}
+.v5car img{width:100%;aspect-ratio:16/8;object-fit:cover;display:block}
+.v5off{padding:14px;min-height:110px;display:flex;flex-direction:column;justify-content:center;background:linear-gradient(135deg,color-mix(in srgb,var(--c) 35%,#151b2b),#151b2b)}.v5off b{font-size:1rem}.v5off .big{font-size:1.5rem;font-weight:800;color:var(--c)}.v5off small{color:#cbd5e1;font-size:.75rem}
+.v5login{margin-top:-30px;position:relative;background:#151b2b;border:1px dashed var(--c);border-radius:20px;padding:14px;display:flex;gap:12px;align-items:center;cursor:pointer}
+.v5login i{font-size:1.6rem;color:var(--c)}.v5login div{flex:1;line-height:1.5}.v5login small{color:#94a3b8;font-size:.76rem;display:block}
+.v5qrs{text-align:center}.v5qrs .q{background:#fff;border-radius:20px;padding:14px;display:inline-block;margin:6px 0 10px}.v5qrs .q img{width:min(64vw,250px);height:min(64vw,250px);display:block}
+.v5qrs .code{font-family:monospace;font-weight:800;letter-spacing:2px;direction:ltr;font-size:1.05rem}
+@media(max-width:600px){.v5h{margin:0 -12px;padding-left:12px;padding-right:12px}.v5car{margin:0 -12px;padding:0 12px 4px}.v5hi h1{font-size:1.3rem}}
 .acc-item.dlv{border-inline-start-color:#22c55e;background:rgba(34,197,94,.08)}.acc-item.dlv i{color:#22c55e}
 </style>
 </head>
@@ -74,9 +104,10 @@ label{font-size:.8rem;margin:8px 0 4px}input,select,textarea{padding:10px;border
 <div class="wrap" id="root"><div class="loading">جاري التحميل...</div></div>
 <div class="sheet" id="sheet"><div class="box" id="box"></div></div>
 <div id="install"><b id="instTxt">ثبّت التطبيق على جوالك</b><button id="instBtn">تثبيت</button><button class="no" id="instNo">لاحقاً</button></div>
-<script src="js/config.js?v=4.9.0"></script>
-<script src="js/domain.js?v=4.9.0"></script>
-<script src="js/cust-delivery.js?v=4.9.0"></script>
+<script src="js/config.js?v=5.0.0"></script>
+<script src="js/i18n.js?v=5.0.0"></script>
+<script src="js/domain.js?v=5.0.0"></script>
+<script src="js/cust-delivery.js?v=5.0.0"></script>
 <script>
 const qs = new URLSearchParams(location.search), R = (qs.get('r') || localStorage.getItem('appLastR') || '').trim().toLowerCase();
 if (R) try { localStorage.setItem('appLastR', R); } catch (e) {}
@@ -98,19 +129,31 @@ function setManifest() {
 function menuUrl() { return base() + 'menu.html?r=' + encodeURIComponent(R); }
 function render() {
   document.documentElement.style.setProperty('--c', C.color || '#b48554'); document.documentElement.style.setProperty('--bg', C.bg || '#0b0e17');
-  document.title = C.name;
-  const f = C.features || {}, wa = String(C.whatsapp || C.phone || '').replace(/\D/g, '');
-  $('#root').innerHTML = '<div class="hero">' + '<img class="logo" src="' + h(C.icon || (base() + 'assets/icon-512.png')) + '" alt="">' + '<h1>' + h(C.name) + '</h1>' + (C.welcome ? '<p class="welcome">' + h(C.welcome) + '</p>' : '') + '</div>' +
-    (C.banners && C.banners[0] ? '<img class="banner" src="' + h(C.banners[0]) + '" alt="">' : '') +
-    (f.account ? '<button class="tile big" data-o="acc" style="margin-bottom:12px"><i class="fas fa-id-card"></i><b>' + (ct() ? 'حسابي ورمز QR الخاص بي' : 'سجّل دخولك برقم جوالك') + (ME && ME.unread ? '<span class="dot">' + ME.unread + '</span>' : '') + '</b><small>' + (ME ? 'رصيدك ' + ME.points + ' نقطة · ' + ME.value + ' ' + h(C.currency || '') : 'اجمع النقاط، استلم العروض، وتابع طلباتك وحجوزاتك') + '</small></button>' : '') +
-    '<div class="tiles"><a class="tile big" href="' + h(menuUrl()) + '"><i class="fas fa-book-open"></i><b>' + (f.ordering ? 'المينيو واطلب الآن' : 'تصفح المينيو') + '</b><small>' + (f.ordering ? 'اطلب مباشرة من جوالك' : 'الأصناف والأسعار') + '</small></a>' +
-    (f.reservations ? '<button class="tile" data-o="resv"><i class="fas fa-calendar-check"></i><b>احجز طاولة</b><small>اختر الموعد وعدد الأشخاص</small></button>' : '') +
-    (f.loyalty ? '<button class="tile" data-o="loy"><i class="fas fa-gift"></i><b>نقاطي</b><small>رصيد الولاء</small></button>' : '') +
-    (f.orderStatus ? '<button class="tile" data-o="st"><i class="fas fa-receipt"></i><b>حالة طلبي</b><small>تتبع طلبك برقمه</small></button>' : '') +
-    (C.googleReview ? '<a class="tile" href="' + h(C.googleReview) + '" target="_blank" rel="noopener"><i class="fab fa-google"></i><b>قيّمنا</b><small>رأيك يهمنا</small></a>' : '') +
-    (C.maps ? '<a class="tile" href="' + h(C.maps) + '" target="_blank" rel="noopener"><i class="fas fa-map-marker-alt"></i><b>موقعنا</b><small>الاتجاهات على الخريطة</small></a>' : '') +
-    (isStandalone() ? '' : '<button class="tile inst" data-o="inst"><i class="fas fa-mobile-screen-button"></i><b>حمّل التطبيق</b><small>تثبيت مباشر على جوالك بدون متجر</small></button>') + '</div>' +
-    '<div class="contact">' + (C.phone ? '<a href="tel:' + h(C.phone) + '" title="اتصال"><i class="fas fa-phone"></i></a>' : '') + (wa ? '<a href="https://wa.me/' + wa + '" target="_blank" title="واتساب"><i class="fab fa-whatsapp"></i></a>' : '') + (C.instagram ? '<a href="' + h(C.instagram) + '" target="_blank" title="إنستغرام"><i class="fab fa-instagram"></i></a>' : '') + '</div>' +
+  document.title = C.name; document.body.classList.add('v5');
+  const f = C.features || {}, wa = String(C.whatsapp || C.phone || '').replace(/\D/g, ''), cur = h(C.currency || '');
+  const logo = h(C.icon || (base() + 'assets/icon-512.png'));
+  const hour = new Date().getHours(), greet = hour < 12 ? 'صباح الخير' : hour < 18 ? 'مرحباً بك' : 'مساء الخير';
+  let card = '';
+  if (f.account && ME) {
+    const need = +ME.minRedeem || 0, pts = +ME.points || 0, pr = need ? Math.min(1, pts / need) : (pts > 0 ? 1 : 0), dash = 2 * Math.PI * 34;
+    card = '<div class="v5card" data-o="acc"><div class="v5ring"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="8"/><circle cx="40" cy="40" r="34" fill="none" stroke="var(--c)" stroke-width="8" stroke-linecap="round" stroke-dasharray="' + dash.toFixed(1) + '" stroke-dashoffset="' + (dash * (1 - pr)).toFixed(1) + '"/></svg><div class="t"><b>' + pts + '</b><small>نقطة</small></div></div>' +
+      '<div class="v5pi"><b>رصيد نقاطك</b><div>قيمة الاستبدال: <span class="v">' + h(ME.value) + ' ' + cur + '</span></div><small>' + (need ? (pts >= need ? 'يمكنك استبدال نقاطك الآن عند الكاشير' : 'باقي ' + (need - pts) + ' نقطة لتتمكن من الاستبدال') : 'اعرض رمز QR عند الدفع لتجمع النقاط') + '</small></div></div>' +
+      '<div class="v5stats"><div><b>' + (ME.visits || 0) + '</b>زيارة</div><div><b>' + h(ME.totalSpent || 0) + '</b>مشترياتك ' + cur + '</div><div><b>' + ((ME.offers || []).length + (ME.giftCards || []).length) + '</b>عروض وبطاقات</div></div>';
+  } else if (f.account) card = '<div class="v5login" data-o="acc"><i class="fas fa-id-card"></i><div><b>سجّل دخولك برقم جوالك</b><small>احصل على رمز QR خاص، اجمع النقاط واستبدلها، واستلم العروض</small></div><i class="fas fa-chevron-left" style="font-size:1rem"></i></div>';
+  const offers = [].concat((C.banners || []).map(b => '<div><img src="' + h(b) + '" alt="" loading="lazy"></div>'),
+    ((ME && ME.offers) || []).map(o => '<div class="v5off"><b>' + h(o.name) + '</b><div class="big">' + (o.kind === 'percent' ? o.value + '%' : o.value + ' ' + cur) + '</div><small>الكود: <b dir="ltr">' + h(o.code) + '</b>' + (o.ends_at ? ' · حتى ' + String(o.ends_at).slice(0, 10) : '') + '</small></div>'));
+  const icons = [f.loyalty && !ME ? '<button data-o="loy"><i class="fas fa-gift"></i>نقاطي</button>' : '', f.orderStatus ? '<button data-o="st"><i class="fas fa-receipt"></i>حالة طلبي</button>' : '',
+    C.googleReview ? '<a href="' + h(C.googleReview) + '" target="_blank" rel="noopener"><i class="fab fa-google"></i>قيّمنا</a>' : '', C.maps ? '<a href="' + h(C.maps) + '" target="_blank" rel="noopener"><i class="fas fa-map-marker-alt"></i>موقعنا</a>' : '',
+    C.phone ? '<a href="tel:' + h(C.phone) + '"><i class="fas fa-phone"></i>اتصال</a>' : '', wa ? '<a href="https://wa.me/' + wa + '" target="_blank"><i class="fab fa-whatsapp"></i>واتساب</a>' : '',
+    C.instagram ? '<a href="' + h(C.instagram) + '" target="_blank"><i class="fab fa-instagram"></i>إنستغرام</a>' : '', isStandalone() ? '' : '<button data-o="inst" class="inst"><i class="fas fa-mobile-screen-button"></i>تثبيت</button>'].filter(Boolean);
+  $('#root').innerHTML = '<div class="v5h"><div class="v5top"><img src="' + logo + '" alt=""><div class="rn"><b>' + h(C.name) + '</b>' + (C.welcome ? '<small>' + h(C.welcome).slice(0, 60) + '</small>' : '') + '</div>' +
+      (f.account ? '<button class="v5qr" data-o="qr" aria-label="رمز QR">' + '<i class="fas fa-qrcode"></i>' + (ME && ME.unread ? '<span class="dot" style="position:absolute;top:-4px;inset-inline-end:-4px;margin:0">' + ME.unread + '</span>' : '') + '</button>' : '') + '</div>' +
+      '<div class="v5hi"><small>' + greet + '،</small><h1>' + (ME ? h(ME.name) : 'ضيفنا العزيز') + '</h1></div></div>' +
+    card +
+    '<div class="v5big"><a class="v5t p" href="' + h(menuUrl()) + '"><i class="fas fa-mug-hot"></i><b>' + (f.ordering ? 'اطلب الآن' : 'المينيو') + '</b><small>' + (f.ordering ? 'تصفح المينيو واطلب من جوالك' : 'الأصناف والأسعار') + '</small></a>' +
+      (f.reservations ? '<button class="v5t" data-o="resv"><i class="fas fa-calendar-check" style="color:var(--c)"></i><b>احجز طاولة</b><small>اختر الموعد وعدد الأشخاص</small></button>' : (f.account ? '<button class="v5t" data-o="acc"><i class="fas fa-user" style="color:var(--c)"></i><b>حسابي</b><small>طلباتي ورسائلي وعروضي</small></button>' : '<a class="v5t" href="' + h(menuUrl()) + '"><i class="fas fa-book-open" style="color:var(--c)"></i><b>المينيو</b><small>الأصناف والأسعار</small></a>')) + '</div>' +
+    (icons.length ? '<div class="v5ic">' + icons.join('') + '</div>' : '') +
+    (offers.length ? '<div class="v5sec"><b>الأخبار والعروض</b><small>' + offers.length + '</small></div><div class="v5car">' + offers.join('') + '</div>' : '') +
     '<footer>' + h(C.name) + '</footer>';
 }
 function sheet(html) { $('#box').innerHTML = html; $('#sheet').classList.add('open'); }
@@ -178,6 +221,15 @@ function drawAcc() {
   $('#accPin').onclick = async () => { const p = prompt('الرمز السري الجديد (4 إلى 6 أرقام)'); if (!p) return; const r = await api('custSetPin', { ct: ct(), pin: p }).catch(() => ({ error: 'تعذر الاتصال' })); alert(r.success ? 'تم تغيير الرمز السري' : r.error); };
 }
 const OPEN = {
+  async qr() {
+    if (!ct()) return OPEN.acc();
+    if (!ME) await loadMe(true);
+    if (!ME) return OPEN.acc();
+    sheet('<h2>رمزي الخاص <button class="x">&times;</button></h2><div class="v5qrs"><b style="font-size:1.1rem">' + h(ME.name) + '</b><div class="q"><img src="' + qrSrc(ME.qr) + '" alt="QR"></div><div class="code">' + h(ME.qr) + '</div>' +
+      (ME.loyalty ? '<div class="acc-row"><div>رصيد النقاط<b>' + ME.points + '</b></div><div>قيمة الاستبدال<b>' + h(ME.value) + '</b><small>' + h(C.currency || '') + '</small></div></div>' : '') +
+      '<small style="color:#94a3b8">اعرض هذا الرمز على الكاشير لتجميع النقاط أو الاستبدال من فاتورتك</small><button class="btn" data-o="acc" style="background:#1e2537;color:#fff">حسابي بالتفصيل</button></div>');
+    try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(() => {}); } catch (e) { /* */ }
+  },
   async acc() {
     if (ct()) { sheet('<h2>حسابي <button class="x">&times;</button></h2><div class="res">جاري التحميل...</div>'); const r = await loadMe(true); if (r) { drawAcc(); render(); return; } }
     sheet('<h2>تسجيل الدخول <button class="x">&times;</button></h2><p style="color:#cbd5e1;line-height:1.8">سجّل برقم جوالك ليصبح لديك رمز QR خاص تجمع به النقاط وتستلم العروض مباشرة.</p>' +
