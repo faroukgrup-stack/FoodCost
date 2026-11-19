@@ -306,6 +306,8 @@ document.addEventListener('click', function (e) {
 // ============================================================
 function v5Fmt(v) { if (!v) return '—'; const d = new Date(v); if (isNaN(d)) return String(v); const z = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()) + ' ' + z(d.getHours()) + ':' + z(d.getMinutes()); }
 function v5ExpBadge(x) {
+  if (x.status === 'cancelled') return '<span class="badge badge-question" title="' + h(x.cancel_reason || '') + '">ملغى</span>';
+  if (x.status === 'wasted') return '<span class="badge badge-dog" title="' + h(x.cancel_reason || '') + '">متلف</span>';
   if (!x.expires_at) return '<span class="muted">—</span>';
   const left = (new Date(x.expires_at) - Date.now()) / 36e5;
   if (left < 0) return '<span class="badge badge-dog">منتهي</span>';
@@ -321,7 +323,11 @@ async function productionView(el) {
     el.querySelector('#pdList').innerHTML = bTable([{ label: '#', r: function (x) { return x.number; } }, { label: 'رقم الدفعة', r: function (x) { return x.batch_code ? '<b dir="ltr">' + h(x.batch_code) + '</b>' : '—'; } }, { label: 'المنتج', r: function (x) { return '<b>' + h(x.product_name) + '</b>' + (x.location ? '<div class="muted" style="font-size:.72rem"><i class="fas fa-snowflake"></i> ' + h(x.location) + '</div>' : ''); } },
       { label: 'الكمية', num: true, r: function (x) { return nf(x.qty, 2) + ' <small class="muted">' + h(x.unit || 'قطعة') + '</small>'; } }, { label: 'الإنتاج', r: function (x) { return v5Fmt(x.produced_at || x.created_at); } }, { label: 'الانتهاء', r: function (x) { return x.expires_at ? v5Fmt(x.expires_at) : '—'; } }, { label: 'الصلاحية', r: v5ExpBadge },
       { label: 'المواد المصروفة', r: function (x) { return '<small>' + (x.materials || []).map(function (m) { return h(m.name) + ' ' + nf(m.qty, 3); }).join('، ') + '</small>'; } }, { label: 'التكلفة', num: true, r: function (x) { return money(x.total_cost); } }, { label: 'بواسطة', r: function (x) { return h(x.created_by); } },
-      { label: '', r: function (x) { return '<button class="btn btn-outline btn-sm" data-lb="' + h(x.id) + '"' + (labels ? '' : ' disabled title="الباقة المتقدمة"') + '><i class="fas fa-qrcode"></i> ملصقات</button>'; } }], rows, { empty: 'لا توجد أوامر إنتاج' });
+      { label: '', r: function (x) { const act = !x.status || x.status === 'done';
+        return '<div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">' + (act ? '<button class="btn btn-outline btn-sm" data-lb="' + h(x.id) + '"' + (labels ? '' : ' disabled title="الباقة المتقدمة"') + '><i class="fas fa-qrcode"></i> ملصقات</button>' +
+          '<button class="ico-btn" data-pc="cancel" data-id="' + h(x.id) + '" title="إلغاء الأمر وإرجاع المواد للمخزون"><i class="fas fa-ban"></i></button><button class="ico-btn" data-pc="waste" data-id="' + h(x.id) + '" title="إتلاف المتبقي من الدفعة (تالف / منتهي)"><i class="fas fa-dumpster"></i></button>' :
+          '<small class="muted">' + h(x.cancel_reason || '') + (x.cancelled_by ? ' · ' + h(x.cancelled_by) : '') + '</small>') +
+          '<button class="ico-btn" data-pc="delete" data-id="' + h(x.id) + '" title="حذف السجل نهائياً"><i class="fas fa-trash"></i></button></div>'; } }], rows, { empty: 'لا توجد أوامر إنتاج', rowClass: function (x) { return x.status && x.status !== 'done' ? 'muted' : ''; } });
   };
   el.querySelector('#pdNew').onclick = async function () {
     const prods = (await entList('products')).filter(function (p) { return p.recipe_name; });
@@ -342,6 +348,11 @@ async function productionView(el) {
       sel.addEventListener('change', sync); sync();
     } });
   };
+  el.querySelector('#pdList').addEventListener('click', function (e) {
+    const b = e.target.closest('[data-pc]'); if (!b) return;
+    const x = rows.find(function (y) { return y.id === b.dataset.id; }); if (!x) return;
+    v5ProdCancel(x, b.dataset.pc, load);
+  });
   el.querySelector('#pdList').onclick = function (e) { const b = e.target.closest('[data-lb]'); if (!b) return; const x = rows.find(function (y) { return y.id === b.dataset.lb; }); if (x) v5LabelsModal(x); };
   load();
 }
@@ -373,10 +384,25 @@ function v5PrintLabels(x, count, start, size, total) {
   w.document.close();
 }
 // مسح ملصق الدفعة في الكاشير
+function v5ProdCancel(x, mode, done) {
+  const T = { cancel: ['إلغاء أمر الإنتاج #' + x.number, 'ban', 'إلغاء الأمر'], waste: ['إتلاف دفعة ' + (x.batch_code || '#' + x.number), 'dumpster', 'تأكيد الإتلاف'], delete: ['حذف أمر الإنتاج #' + x.number, 'trash', 'حذف نهائي'] }[mode];
+  const note = mode === 'cancel' ? 'سيتم إرجاع المواد الأولية المصروفة إلى المخزون وخصم ' + nf(x.qty, 2) + ' من «' + x.product_name + '». يتطلب أن تكون كامل الدفعة متوفرة (لم يُبع منها شيء).'
+    : mode === 'waste' ? 'لا تعود المواد الأولية. يُخصم المتبقي من الدفعة من المخزون كهدر/تالف (مثلاً: منتهي الصلاحية، تلف في التخزين، خطأ في التحضير).'
+    : (!x.status || x.status === 'done' ? 'سيتم إلغاء الأمر وإرجاع المخزون ثم حذف السجل نهائياً. ' : '') + 'لا يمكن التراجع عن الحذف، وتبقى حركات المخزون في السجل.';
+  const F = [{ k: 'reason', label: 'السبب', req: mode !== 'delete', full: true, type: 'select', options: mode === 'waste' ? ['انتهاء الصلاحية', 'تلف أثناء التخزين', 'خطأ في التحضير', 'فحص الجودة', 'أخرى'] : ['إدخال خاطئ', 'خطأ في الكمية', 'خطأ في المنتج', 'إلغاء من الإدارة', 'أخرى'] },
+    { k: 'other', label: 'تفاصيل إضافية', full: true, ph: 'اختياري' }].concat(mode === 'waste' ? [{ k: 'qty', label: 'الكمية المتلفة', type: 'number', hint: 'اتركها فارغة لإتلاف كل المتبقي من الدفعة' }] : []);
+  bPrompt(T[0], F, {}, async function (d) {
+    const reason = [d.reason, d.other].filter(Boolean).join(' — ');
+    await bzOk('productionCancel', { id: x.id, mode: mode, reason: reason, qty: d.qty });
+    showToast(mode === 'cancel' ? 'تم إلغاء أمر الإنتاج وإرجاع المواد' : mode === 'waste' ? 'تم تسجيل الإتلاف' : 'تم حذف أمر الإنتاج');
+    done && done();
+  }, { icon: T[1], saveText: T[2], sub: note });
+}
 async function posBatchCode(code) {
   const r = await bz('batchLookup', { code: code });
   if (!r.success) { showToast(r.error || 'دفعة غير معروفة', true); return; }
   const b = r.batch;
+  if (b.status && b.status !== 'done') { showToast('الدفعة ' + (b.batch_code || '') + ' ' + (b.status === 'cancelled' ? 'ملغاة' : 'متلفة') + ' ولا يمكن بيعها', true); return; }
   const p = (POS.boot && POS.boot.products || []).find(function (x) { return x.id === b.product_id; });
   if (!p) { showToast('المنتج «' + b.product_name + '» غير متاح في الكاشير', true); return; }
   if (b.expired && !await bConfirm('تنبيه: دفعة «' + b.product_name + '» رقم ' + (b.batch_code || '') + ' منتهية الصلاحية منذ ' + v5Fmt(b.expires_at) + '. هل تريد إضافتها رغم ذلك؟', 'منتج منتهي الصلاحية')) return;
@@ -544,7 +570,7 @@ function v5AfterAccount() {
     if (sup && sup.rows.length) { const L = sup.rows.filter(function (x) { return Math.abs(x.balance) > 0.004; }); if (L.length) out.sections.push({ title: 'أرصدة الموردين', table: { headers: ['المورد', 'الجوال', 'المستحق'], money: [2], foot: 'sum', rows: L.map(function (x) { return [x.name, x.sub || '', x.balance]; }) } }); }
     if (emp && emp.employees.length) out.sections.push({ title: 'حسابات الموظفين (السلف والأرصدة)', table: { headers: ['الموظف', 'المسمى', 'الراتب', 'سلف قائمة', 'الرصيد', 'الحالة'], money: [2, 3, 4], rows: emp.employees.map(function (x) { return [x.name, x.job || '', x.wage, x.advances, Math.abs(x.balance), Math.abs(x.balance) < 0.005 ? 'مسدد' : x.balance > 0 ? 'دائن (له)' : 'مدين (عليه)']; }) } });
     const pr = prod && (prod.rows || prod.items || prod.list);
-    if (pr && pr.length && pr.some(function (x) { return x.batch_code; })) out.sections.push({ title: 'دفعات الإنتاج والصلاحية', table: { headers: ['الدفعة', 'المنتج', 'الكمية', 'الإنتاج', 'الانتهاء', 'المكان', 'الحالة'], rows: pr.filter(function (x) { return x.batch_code; }).map(function (x) { return [x.batch_code, x.product_name, +x.qty, v5Fmt(x.produced_at || x.created_at), x.expires_at ? v5Fmt(x.expires_at) : '—', x.location || '', !x.expires_at ? '—' : new Date(x.expires_at) < new Date() ? 'منتهي' : 'صالح']; }) } });
+    if (pr && pr.length && pr.some(function (x) { return x.batch_code; })) out.sections.push({ title: 'دفعات الإنتاج والصلاحية', table: { headers: ['الدفعة', 'المنتج', 'الكمية', 'الإنتاج', 'الانتهاء', 'المكان', 'الحالة'], rows: pr.filter(function (x) { return x.batch_code; }).map(function (x) { return [x.batch_code, x.product_name, +x.qty, v5Fmt(x.produced_at || x.created_at), x.expires_at ? v5Fmt(x.expires_at) : '—', x.location || '', x.status === 'cancelled' ? 'ملغى' : x.status === 'wasted' ? 'متلف' : !x.expires_at ? '—' : new Date(x.expires_at) < new Date() ? 'منتهي' : 'صالح']; }) } });
     if (fr && fr.rows.length) out.sections.push({ title: 'منظومة الامتياز التجاري — آخر 30 يوماً', pb: true, table: { headers: ['الفرع', 'المدينة', 'الدولة', 'العقد', 'الحالة', 'المبيعات', 'تكلفة الطعام %', 'الالتزام %', 'الإتاوة'], money: [5, 8], rows: fr.rows.map(function (x) { return [v5FrName(x), x.city, x.country, x.contractNo, (V5_FR_STATUS[x.status] || [x.status])[0], x.kpi.sales, nf(x.kpi.foodCostPct, 1), x.kpi.sopRuns ? nf(x.kpi.sopScore, 0) : '—', x.kpi.sales * x.royaltyPct / 100]; }) } });
     return out;
   };

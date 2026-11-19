@@ -115,9 +115,10 @@ async function attemptLogin() {
 async function logoutWithBackupCheck() {
         closeRestaurantDropdown();
         const lastChange = parseInt(localStorage.getItem('foodLastDataChange') || '0');
-        const lastBackup = parseInt(localStorage.getItem('foodLastBackupTime') || '0');
+        const lastBackup = (typeof fcLastBackupAt === 'function') ? fcLastBackupAt() : parseInt(localStorage.getItem('foodLastBackupTime') || '0');
+        const bkMode = (typeof fcBackupMode === 'function') ? fcBackupMode() : 'close';
 
-        if (lastChange > lastBackup && lastChange > 0) {
+        if (bkMode === 'close' && lastChange > lastBackup && lastChange > 0) {
             const wantBackup = confirm(
                 '⚠️ لديك تغييرات غير محفوظة في نسخة احتياطية!\n\n' +
                 'هل تريد عمل نسخة احتياطية قبل الخروج؟\n\n' +

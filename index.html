@@ -4,15 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
     <title>Mataami Pro | مطعمي برو - النظام المتكامل لإدارة المطاعم</title>
+    <script>/* v5.0.1: تطبيق الفريق له نطاق index.html مستقل عن تطبيق العميل app.html */ try { if (/\/$/.test(location.pathname)) history.replaceState(null, '', location.pathname + 'index.html' + location.search + location.hash); } catch (e) { }</script>
     <link rel="manifest" href="manifest.json">
+    <script src="js/i18n.js?v=5.0.1"></script>
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
     <link rel="icon" type="image/png" href="assets/favicon-64.png">
     <meta name="theme-color" content="#b48554">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-        <link rel="stylesheet" href="css/style.css?v=4.9.0">
-        <link rel="stylesheet" href="css/biz.css?v=4.9.0">
-        <link rel="stylesheet" href="css/mobile46.css?v=4.9.0">
+        <link rel="stylesheet" href="css/style.css?v=5.0.1">
+        <link rel="stylesheet" href="css/biz.css?v=5.0.1">
+        <link rel="stylesheet" href="css/mobile46.css?v=5.0.1">
 
 <style id="menu-v3-admin">
 .dm-thumb{width:84px!important;height:84px!important;aspect-ratio:1;object-fit:cover;border-radius:14px}
@@ -75,6 +77,8 @@
                 <a href="f-14-G-17.html" target="_blank"><i class="fas fa-sync-alt"></i> للإشتراك أو التجديد</a>
             </div>
             <div class="error-msg" id="errorMsg"></div>
+            <div class="login-team-note" style="margin-top:12px;font-size:.74rem;opacity:.75;line-height:1.7"><i class="fas fa-users-cog"></i> تطبيق فريق العمل: صاحب الحساب · الموظفون · السائقون — تطبيق العملاء منفصل ويُفتح من رابط المطعم الخاص.</div>
+            <div data-lang-picker style="margin-top:10px"></div>
         </div>
     </div>
 
@@ -97,10 +101,12 @@
             <div class="restaurant-dropdown-wrap">
                 <button class="restaurant-trigger" id="restaurantTrigger" onclick="toggleRestaurantDropdown(event)">
                     <i class="fas fa-store"></i>
-                    <span id="restaurantNameText">المطعم</span>
+                    <span id="restaurantNameText" data-i18n-skip>المطعم</span>
                     <i class="fas fa-chevron-down"></i>
                 </button>
                 <div class="restaurant-dropdown" id="restaurantDropdown">
+                    <div class="dropdown-owner" id="ddOwner" style="padding:8px 14px;font-size:.78rem;opacity:.85;display:none"><i class="fas fa-user-shield"></i> <span id="ddOwnerName" data-i18n-skip></span></div>
+                    <button class="dropdown-item" onclick="fcI18n.menu(event)"><i class="fas fa-language"></i> اللغة / Language / Dil</button>
                     <button class="dropdown-item owner-only" onclick="exportFullReportExcel(); closeRestaurantDropdown();">
                         <i class="fas fa-file-excel"></i> تقرير Excel شامل
                     </button>
@@ -171,7 +177,7 @@
                             <i class="fas fa-envelope"></i> البريد
                         </a>
                     </div>
-                    <div class="version-badge"><i class="fas fa-code-branch"></i> الإصدار 4.9.0</div>
+                    <div class="version-badge"><i class="fas fa-code-branch"></i> الإصدار 5.0.1</div>
                     <div class="copyright-text">
                         © 2026 <strong>FAROUK GRUP</strong><br>
                         <span style="font-size:0.68rem;">تطوير وتشغيل منصة Mataami Pro</span>
@@ -600,6 +606,25 @@
                         <i class="fas fa-pen pro-icon"></i>
                     </div>
                 </div>
+                <div style="margin-bottom:16px;" id="settingsOwnerWrap">
+                    <label class="pro-label"><i class="fas fa-user-shield" style="margin-left:6px; color:var(--accent-soft);"></i> اسم صاحب الحساب الرئيسي</label>
+                    <div class="pro-input-wrap">
+                        <input type="text" id="settingsOwnerName" placeholder="الاسم الظاهر في التقارير والكشوف والتوقيعات">
+                        <i class="fas fa-pen pro-icon"></i>
+                    </div>
+                    <div class="biz-hint" id="settingsOwnerEmail" dir="ltr" style="text-align:right"></div>
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label class="pro-label"><i class="fas fa-language" style="margin-left:6px; color:var(--accent-soft);"></i> لغة البرنامج</label>
+                    <div class="pro-input-wrap">
+                        <select id="settingsLang" style="width:100%">
+                            <option value="ar">العربية</option>
+                            <option value="en">English</option>
+                            <option value="tr">Türkçe</option>
+                        </select>
+                    </div>
+                    <div class="biz-hint">تُحفظ اللغة على هذا الجهاز وتنطبق على لوحة التحكم والكاشير والمطبخ وتطبيق السائق وصفحة التسجيل.</div>
+                </div>
                 <div class="pro-grid-2" style="margin-bottom:16px;">
                     <div>
                         <label class="pro-label">نسبة الهدر العامة %</label>
@@ -655,6 +680,14 @@
                         <button class="btn btn-primary btn-sm" onclick="backupData()" style="flex:1; justify-content:center; border-radius:12px;"><i class="fas fa-download"></i> نسخة احتياطية</button>
                         <button class="btn btn-outline btn-sm" onclick="restoreData()" style="flex:1; justify-content:center; border-radius:12px;"><i class="fas fa-upload"></i> استعادة</button>
                     </div>
+                    <label style="display:block;margin-top:12px;font-size:.8rem;color:var(--text-muted)"><i class="fas fa-clock"></i> طريقة النسخ الاحتياطي على هذا الجهاز</label>
+                    <select id="settingsBackupMode" class="pro-input" onchange="fcSetBackupMode(this.value)" style="margin-top:6px">
+                        <option value="close">السؤال عند الخروج أو الإغلاق (افتراضي)</option>
+                        <option value="weekly">تلقائي أسبوعياً عند فتح البرنامج</option>
+                        <option value="daily">تلقائي يومياً عند فتح البرنامج</option>
+                        <option value="off">يدوي فقط (بدون تذكير)</option>
+                    </select>
+                    <div id="settingsBackupLast" style="font-size:.74rem;color:var(--text-muted);margin-top:6px"></div>
                 </div>
                 <div style="border-top: 1px solid var(--border); padding-top: 14px;">
                     <button class="btn btn-primary" onclick="openChangePasswordModal()" style="width:100%; border-radius:14px; justify-content:center;">
@@ -775,42 +808,43 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <!-- ملفات النظام -->
-    <script src="js/config.js?v=4.9.0"></script>
-<script src="js/domain.js?v=4.9.0"></script>
-    <script src="js/api.js?v=4.9.0"></script>
-    <script src="js/progress47.js?v=4.9.0"></script>
-    <script src="js/ui.js?v=4.9.0"></script>
-    <script src="js/auth.js?v=4.9.0"></script>
-    <script src="js/dashboard.js?v=4.9.0"></script>
-    <script src="js/recipes.js?v=4.9.0"></script>
-    <script src="js/materials.js?v=4.9.0"></script>
-    <script src="js/menu-engineering.js?v=4.9.0"></script>
-    <script src="js/breakeven.js?v=4.9.0"></script>
-    <script src="js/reviews.js?v=4.9.0"></script>
-    <script src="js/reports.js?v=4.9.0"></script>
-    <script src="js/backup.js?v=4.9.0"></script>
-    <script src="js/digital-menu.js?v=4.9.0"></script>
-    <script src="js/app.js?v=4.9.0"></script>
-<script src="js/repairs-r4.js?v=4.9.0"></script>
+    <script src="js/config.js?v=5.0.1"></script>
+<script src="js/domain.js?v=5.0.1"></script>
+    <script src="js/api.js?v=5.0.1"></script>
+    <script src="js/progress47.js?v=5.0.1"></script>
+    <script src="js/ui.js?v=5.0.1"></script>
+    <script src="js/auth.js?v=5.0.1"></script>
+    <script src="js/dashboard.js?v=5.0.1"></script>
+    <script src="js/recipes.js?v=5.0.1"></script>
+    <script src="js/materials.js?v=5.0.1"></script>
+    <script src="js/menu-engineering.js?v=5.0.1"></script>
+    <script src="js/breakeven.js?v=5.0.1"></script>
+    <script src="js/reviews.js?v=5.0.1"></script>
+    <script src="js/reports.js?v=5.0.1"></script>
+    <script src="js/backup.js?v=5.0.1"></script>
+    <script src="js/digital-menu.js?v=5.0.1"></script>
+    <script src="js/app.js?v=5.0.1"></script>
+<script src="js/repairs-r4.js?v=5.0.1"></script>
 
     <button type="button" id="pwaInstallBtn" class="hidden" style="position:fixed; bottom:20px; left:20px; z-index:999; background:var(--accent); color:#0a0e17; border:none; border-radius:14px; padding:12px 18px; font-family:var(--f-body);
  font-weight:700; cursor:pointer; box-shadow:0 8px 24px rgba(180,133,84,0.4);">
         <i class="fas fa-download"></i> تثبيت التطبيق
     </button>
-<script src="js/foodcost-r5.js?v=4.9.0"></script>
-<script src="js/plans-data.js?v=4.9.0"></script>
-<script src="js/biz-core.js?v=4.9.0"></script>
-<script src="js/biz-live.js?v=4.9.0"></script>
-    <script src="js/biz-report.js?v=4.9.0"></script>
-<script src="js/biz-pos.js?v=4.9.0"></script>
-<script src="js/biz-kpi.js?v=4.9.0"></script>
-<script src="js/biz-ops.js?v=4.9.0"></script>
-<script src="js/biz-crm.js?v=4.9.0"></script>
-<script src="js/biz-fin.js?v=4.9.0"></script>
-<script src="js/biz-delivery.js?v=4.9.0"></script>
-<script src="js/biz-opsmgmt.js?v=4.9.0"></script>
-<script src="js/manuals-data.js?v=4.9.0"></script>
-<script src="js/biz-mgmt.js?v=4.9.0"></script>
-<script src="js/mobile46.js?v=4.9.0"></script>
+<script src="js/foodcost-r5.js?v=5.0.1"></script>
+<script src="js/plans-data.js?v=5.0.1"></script>
+<script src="js/biz-core.js?v=5.0.1"></script>
+<script src="js/biz-live.js?v=5.0.1"></script>
+    <script src="js/biz-report.js?v=5.0.1"></script>
+<script src="js/biz-pos.js?v=5.0.1"></script>
+<script src="js/biz-kpi.js?v=5.0.1"></script>
+<script src="js/biz-ops.js?v=5.0.1"></script>
+<script src="js/biz-crm.js?v=5.0.1"></script>
+<script src="js/biz-fin.js?v=5.0.1"></script>
+<script src="js/biz-delivery.js?v=5.0.1"></script>
+<script src="js/biz-opsmgmt.js?v=5.0.1"></script>
+<script src="js/manuals-data.js?v=5.0.1"></script>
+<script src="js/biz-mgmt.js?v=5.0.1"></script>
+<script src="js/mobile46.js?v=5.0.1"></script>
+<script src="js/biz-v5.js?v=5.0.1"></script>
 </body>
 </html>

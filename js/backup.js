@@ -399,9 +399,43 @@ async function performRestore(data) {
     }
 }
 
+// v5.0: طريقة النسخ الاحتياطي حسب رغبة العميل (لكل جهاز): close | weekly | daily | off
+function fcBackupKey(k) { return k + '_' + (typeof currentUserEmail !== 'undefined' && currentUserEmail ? currentUserEmail : ''); }
+function fcBackupMode() { try { return localStorage.getItem(fcBackupKey('fcBackupMode')) || 'close'; } catch (e) { return 'close'; } }
+function fcSetBackupMode(m) {
+    try { localStorage.setItem(fcBackupKey('fcBackupMode'), m); } catch (e) { }
+    fcBackupInfo();
+    showToast(m === 'weekly' ? 'سيتم إنشاء نسخة احتياطية تلقائياً كل أسبوع عند فتح البرنامج' : m === 'daily' ? 'سيتم إنشاء نسخة احتياطية تلقائياً كل يوم عند فتح البرنامج' : m === 'off' ? 'تم إيقاف التذكير بالنسخ الاحتياطي' : 'سيتم سؤالك عند الخروج إذا وجدت تغييرات غير محفوظة');
+    if (m === 'weekly' || m === 'daily') setTimeout(fcAutoBackupIfDue, 800);
+}
+function fcLastBackupAt() { return Math.max(parseInt(localStorage.getItem('foodLastBackupTime') || '0'), parseInt(localStorage.getItem(fcBackupKey('fcAutoBackupAt')) || '0')); }
+function fcBackupInfo() {
+    const sel = document.getElementById('settingsBackupMode'); if (sel) sel.value = fcBackupMode();
+    const el = document.getElementById('settingsBackupLast'); if (!el) return;
+    const t = fcLastBackupAt();
+    el.textContent = t ? ('آخر نسخة احتياطية: ' + new Date(t).toLocaleString('ar-EG')) : 'لم يتم إنشاء نسخة احتياطية على هذا الجهاز بعد';
+}
+let fcAutoBusy = false;
+async function fcAutoBackupIfDue() {
+    const m = fcBackupMode(); if ((m !== 'weekly' && m !== 'daily') || fcAutoBusy || !currentUserEmail) return false;
+    if (typeof B !== 'undefined' && B.acc && B.acc.isOwner === false) return false;
+    const period = (m === 'weekly' ? 7 : 1) * 86400000, last = fcLastBackupAt();
+    if (last && Date.now() - last < period) return false;
+    fcAutoBusy = true;
+    try {
+        showToast('جاري إنشاء النسخة الاحتياطية التلقائية...');
+        const ok = await backupData(true);
+        if (ok) { localStorage.setItem(fcBackupKey('fcAutoBackupAt'), String(Date.now())); localStorage.setItem('foodLastBackupTime', String(Date.now())); showToast('تم إنشاء النسخة الاحتياطية التلقائية وتنزيلها على جهازك'); }
+        else showToast('تعذر إنشاء النسخة التلقائية، يمكنك إنشاؤها يدوياً من القائمة', true);
+        fcBackupInfo(); return ok;
+    } finally { fcAutoBusy = false; }
+}
 function checkPendingBackup() {
+    const m = fcBackupMode();
+    if (m === 'off') return;
+    if (m === 'weekly' || m === 'daily') { setTimeout(fcAutoBackupIfDue, 2500); return; }
     const lastChange = parseInt(localStorage.getItem('foodLastDataChange') || '0');
-    const lastBackup = parseInt(localStorage.getItem('foodLastBackupTime') || '0');
+    const lastBackup = fcLastBackupAt();
     if (lastChange > lastBackup && lastChange > 0) {
         const dt = new Date(lastChange).toLocaleString('ar-EG');
         setTimeout(() => {
@@ -414,8 +448,9 @@ function checkPendingBackup() {
 
 window.addEventListener('beforeunload', (e) => {
     if (!localStorage.getItem('foodUserToken')) return;
+    if (fcBackupMode() !== 'close') return;
     const lastChange = parseInt(localStorage.getItem('foodLastDataChange') || '0');
-    const lastBackup = parseInt(localStorage.getItem('foodLastBackupTime') || '0');
+    const lastBackup = fcLastBackupAt();
     if (lastChange > lastBackup) {
         const msg = '⚠️ لديك تغييرات غير محفوظة!\n\nهل أنت متأكد من المغادرة؟';
         e.preventDefault();
