@@ -719,9 +719,9 @@
     </div>
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="js/config.js?v=5.0.3"></script>
-<script src="js/i18n.js?v=5.0.3"></script>
-    <script src="js/plans-data.js?v=5.0.3"></script>
+    <script src="js/config.js?v=5.3.1"></script>
+<script src="js/i18n.js?v=5.3.1"></script>
+    <script src="js/plans-data.js?v=5.3.1"></script>
     <script>
     // ---- كود الحماية ومنع الوصول لأدوات المطور ----
     document.addEventListener('keydown', function(e) {
@@ -1052,7 +1052,7 @@
             const pk = { basic: 1, pro: 2, premium: 3 };
             g.innerHTML = FC_PLANS.map((p, i) => {
                 const prev = FC_PLANS[i - 1];
-                const own = FC_PLAN_ROWS.filter(r => r[pk[p.key]] && (!prev || !r[pk[prev.key]] || (typeof r[pk[p.key]] === 'string' && r[pk[p.key]] !== r[pk[prev.key]])));
+                const own = FC_PLAN_ROWS.filter(r => r[0] !== '#' && r[pk[p.key]] && (!prev || !r[pk[prev.key]] || (typeof r[pk[p.key]] === 'string' && r[pk[p.key]] !== r[pk[prev.key]])));
                 const li = (prev ? '<li class="inh"><i class="fas fa-plus"></i> كل ما في ' + prev.name + '، بالإضافة إلى:</li>' : '') +
                     own.map(r => '<li><i class="fas fa-check"></i> ' + r[0] + (typeof r[pk[p.key]] === 'string' ? ' · ' + r[pk[p.key]] : '') + '</li>').join('');
                 return '<div class="pl' + (p.popular ? ' pop' : '') + '">' + (p.popular ? '<span class="tagp">الأكثر طلباً</span>' : '') + '<h3>' + p.name + '</h3><div class="tg">' + p.tag + '</div><div class="pr">' + p.price + '$ <small>/ سنوياً</small></div><div class="br">' + p.branches + '</div><ul>' + li + '</ul>' +

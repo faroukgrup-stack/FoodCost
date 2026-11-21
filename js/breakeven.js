@@ -62,7 +62,7 @@ function calculateBreakeven() {
 
     const allProducts = [];
     allRecipes.forEach((r, i) => {
-        const units = parseInt(document.getElementById(`be_units_${i}`)?.value) || 0;
+        const units = Math.max(0, parseFloat(document.getElementById(`be_units_${i}`)?.value) || 0);
         if (units > 0) {
             const price = bePriceOf(r);
             const varCost = r.costPrice || 0;
@@ -77,7 +77,7 @@ function calculateBreakeven() {
     });
 
     (window.BE_EXTRA || []).forEach((x, j) => {
-        const units = parseInt(document.getElementById(`bex_units_${j}`)?.value) || 0;
+        const units = Math.max(0, parseFloat(document.getElementById(`bex_units_${j}`)?.value) || 0);
         const price = parseFloat(document.getElementById(`bex_price_${j}`)?.value) || 0;
         const varCost = parseFloat(document.getElementById(`bex_cost_${j}`)?.value) || 0;
         x.units = units; x.price = price; x.cost = varCost;

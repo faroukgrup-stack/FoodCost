@@ -4,7 +4,7 @@
 var POS = { boot: null, cat: '', q: '', o: null, root: null, shift: null };
 function posNewOrder() {
   const def = (POS.boot && POS.boot.settings.pos.defaultOrderType) || 'takeaway';
-  return { id: '', number: '', orderType: def, tableId: '', tableName: '', customerId: '', customerName: '', customerPhone: '', customerPoints: 0, items: [], discount: null, discountLabel: '', notes: '', deliveryAddress: null, deliveryFee: null };
+  return { id: '', number: '', orderType: def, tableId: '', tableName: '', customerId: '', customerName: '', customerPhone: '', customerPoints: 0, items: [], discount: null, discountLabel: '', notes: '', deliveryAddress: null, deliveryFee: null, channel: '' };
 }
 function posDeliveryOn() { return !!(POS.boot && POS.boot.settings.delivery && hasF('delivery')); }
 function posDeliveryFee() {
@@ -21,7 +21,7 @@ function posFromServer(o) {
     }),
     discount: o.discount_info && o.discount_info.discountId ? { discountId: o.discount_info.discountId } : (o.discount_info && o.discount_info.manual ? { kind: o.discount_info.kind, value: o.discount_info.value } : null),
     discountLabel: o.discount_info && (o.discount_info.name || (o.discount_info.manual ? ('خصم ' + o.discount_info.value + (o.discount_info.kind === 'percent' ? '%' : '')) : '')) || '',
-    notes: o.notes || '', total: o.total, deliveryAddress: o.delivery_address || null, deliveryFee: o.delivery_fee !== undefined && o.delivery_fee !== null ? +o.delivery_fee : null, deliveryStatus: o.delivery_status || ''
+    notes: o.notes || '', total: o.total, deliveryAddress: o.delivery_address || null, deliveryFee: o.delivery_fee !== undefined && o.delivery_fee !== null ? +o.delivery_fee : null, deliveryStatus: o.delivery_status || '', channel: o.channel || '', channelName: o.channel_name || '', channelRef: o.channel_ref || ''
   };
 }
 function posPayload() {
@@ -29,7 +29,7 @@ function posPayload() {
   return {
     id: o.id || undefined, orderType: o.orderType, tableId: o.orderType === 'dine_in' ? o.tableId : '', customerId: o.customerId, customerName: o.customerName, customerPhone: o.customerPhone,
     items: o.items.map(function (l) { return { lid: l.lid, productId: l.productId || undefined, name: l.name, variant: l.variant, extras: l.extras.map(function (e) { return { name: e.name, qty: e.qty, price: e.price }; }), qty: l.qty, note: l.note, unitPrice: l.base }; }),
-    discount: o.discount || {}, notes: o.notes,
+    discount: o.discount || {}, notes: o.notes, channel: o.channel || '', channelRef: o.channelRef || '',
     deliveryAddress: o.orderType === 'delivery' && o.deliveryAddress ? o.deliveryAddress : undefined, deliveryFee: o.orderType === 'delivery' && o.deliveryFee !== null && o.deliveryFee !== undefined ? o.deliveryFee : undefined
   };
 }
@@ -251,6 +251,7 @@ function posRenderCart() {
     '<div class="pos-meta">' +
       (o.orderType === 'dine_in' && hasF('tables') ? '<button data-a="table"><i class="fas fa-chair"></i> ' + (o.tableName ? h(o.tableName) : 'اختر طاولة') + '</button>' : '') +
       (o.orderType === 'delivery' && posDeliveryOn() ? '<button data-a="addr" class="' + (o.deliveryAddress ? '' : 'warn') + '"><i class="fas fa-map-marker-alt"></i> ' + (o.deliveryAddress ? h(dlAddrLine(o.deliveryAddress).slice(0, 26) || 'العنوان') : 'عنوان التوصيل') + '</button>' : '') +
+      ((b.channels || []).length || o.channel ? '<button data-a="chan" class="' + (o.channel ? 'active' : '') + '"><i class="fas fa-store-alt"></i> ' + (o.channel ? h(posChanName(o)) : 'القناة: مباشر') + '</button>' : '') +
       (hasF('customers') ? '<button data-a="cust"><i class="fas fa-user"></i> ' + (o.customerName ? h(o.customerName) + (o.customerPoints ? ' · ' + o.customerPoints + ' نقطة' : '') : 'العميل') + '</button>' : '') +
       (hasF('discounts') || b.canManage ? '<button data-a="disc"><i class="fas fa-tag"></i> ' + (o.discountLabel ? h(o.discountLabel) : 'خصم / عرض') + '</button>' : '') +
       '<button data-a="note"><i class="fas fa-sticky-note"></i> ' + (o.notes ? h(o.notes.slice(0, 18)) : 'ملاحظة') + '</button>' +
@@ -278,7 +279,7 @@ function posRenderCart() {
     const pl = e.target.closest('[data-p]'); if (pl) { o.items[+pl.dataset.p].qty++; posRenderCart(); return; }
     const mi = e.target.closest('[data-m]'); if (mi) { const l = o.items[+mi.dataset.m]; if (l.sent && !b.canManage) { showToast('الصنف أُرسل للمطبخ — يتطلب صلاحية إدارة الطلبات', true); return; } l.qty--; if (l.qty <= 0) o.items.splice(+mi.dataset.m, 1); posRenderCart(); return; }
     const a = e.target.closest('[data-a]'); if (!a || a.disabled) return;
-    const fn = { new: function () { POS.o = posNewOrder(); posRenderCart(); }, clear: function () { POS.o = posNewOrder(); posRenderCart(); }, table: posPickTable, cust: posPickCustomer, addr: posPickAddress, disc: posPickDiscount,
+    const fn = { new: function () { POS.o = posNewOrder(); posRenderCart(); }, clear: function () { POS.o = posNewOrder(); posRenderCart(); }, table: posPickTable, chan: posPickChannel, cust: posPickCustomer, addr: posPickAddress, disc: posPickDiscount,
       note: function () { bPrompt('ملاحظة الطلب', [{ k: 'notes', label: 'ملاحظة', type: 'textarea', full: true }], { notes: o.notes }, function (d) { o.notes = d.notes; posRenderCart(); }); },
       hold: function () { posSave(false); }, kitchen: function () { posSave(true); }, cancel: posCancel, pay: posPay, kot: function () { posPrintKot(o); } }[a.dataset.a];
     if (fn) fn();
@@ -431,6 +432,8 @@ async function posPay(preGift) {
   }
   if (hasF('customers') && POS.o.customerId) await loadWallet({ id: POS.o.customerId }).catch(function () {});
   const due = +saved.order.total;
+  // v5.2.0: الطلب من منصة توصيل ← إغلاق آجل على المنصة حتى مطابقة كشفها وتسويتها بعد العمولات
+  if (b.channelCredit && POS.o.channel && POS.o.channel !== 'online') { posChannelClose(saved.order, due); return; }
   const pays = [];
   const methods = [['cash', 'نقداً', 'money-bill'], ['card', 'بطاقة', 'credit-card'], ['transfer', 'تحويل', 'university']];
   if (hasF('gift_cards')) methods.push(['gift', 'بطاقة هدية', 'gift']);
@@ -676,4 +679,35 @@ function invoicesView(el) {
     el.querySelector('#invList').onclick = function (e) { const b = e.target.closest('[data-pi]'); if (b) printInvoice(b.dataset.pi); if (e.target.closest('#invX')) exportRowsExcel('الفواتير', ['الرقم', 'النوع', 'التاريخ', 'الطلب', 'العميل', 'المجموع', 'الخصم', 'الضريبة', 'الإجمالي', 'الموظف'], rows.map(function (i) { return [i.number, i.kind === 'refund' ? 'إشعار دائن' : 'بيع', dt(i.issued_at), i.order_number, i.customer_name, +i.subtotal, +i.discount_total, +i.tax_total, +i.total, i.staff_name]; })); };
   }
   load();
+}
+
+// v5.1.0: قناة / تطبيق التوصيل للطلب (العمولة تُحسب على السيرفر حسب عقد القناة)
+function posChanName(o) {
+  if (o.channel === 'online') return 'الطلب الإلكتروني';
+  const c = ((POS.boot && POS.boot.channels) || []).find(function (x) { return x.id === o.channel; });
+  return c ? c.name : (o.channelName || 'قناة');
+}
+function posChannelClose(order, due) {
+  const name = posChanName(POS.o);
+  bModal({ title: 'إغلاق آجل على منصة ' + name, icon: 'store-alt', sub: 'طلب #' + order.number,
+    body: '<div class="pay-due">' + money(due) + '</div><div class="biz-form" style="margin-top:10px"><div class="full"><label class="pro-label">رقم طلب المنصة</label><div class="pro-input-wrap"><input id="chRef" dir="ltr" value="' + h(POS.o.channelRef || '') + '" placeholder="مثال: HS-123456"></div><div class="biz-hint">يُستخدم لمطابقة كشف المنصة لاحقاً</div></div></div>' +
+      '<p class="muted" style="line-height:1.8;font-size:.85rem">لن يدخل المبلغ نقدية الوردية — يُسجّل ذمة على المنصة ويُغلق عند تسوية كشفها في «الذمم والتسويات» بعد خصم العمولة.</p>' +
+      '<label class="biz-check"><input type="checkbox" id="chPr" ' + (localStorage.getItem('fcAutoPrint') === '0' ? '' : 'checked') + '> <span>طباعة الفاتورة</span></label>',
+    foot: '<button class="btn btn-cancel" data-x>رجوع</button><button class="btn btn-success" data-act="ok"><i class="fas fa-check"></i> إغلاق الفاتورة آجلاً</button>',
+    actions: { ok: async function (mm, btn) {
+      btn.disabled = true;
+      try {
+        POS.o.channelRef = mm.$('#chRef').value.trim();
+        const doPrint = mm.$('#chPr').checked; localStorage.setItem('fcAutoPrint', doPrint ? '1' : '0');
+        const r = await bzOk('posCheckout', { order: posPayload(), payments: [{ method: 'channel', amount: due, ref: POS.o.channel }] });
+        mm.close(); showToast('أُغلقت الفاتورة #' + r.invoice.number + ' آجلاً على ' + name);
+        if (doPrint) printInvoice(r.invoice.id);
+        POS.o = posNewOrder(); await posLoad(); posRender();
+      } catch (e) { /* أُظهرت الرسالة */ } finally { btn.disabled = false; }
+    } } });
+}
+function posPickChannel() {
+  const o = POS.o, list = (POS.boot && POS.boot.channels) || [];
+  const opts = [['', 'مباشر (كاشير المطعم)']].concat(o.channel === 'online' ? [['online', 'الطلب الإلكتروني (المينيو/التطبيق)']] : []).concat(list.map(function (c) { return [c.id, c.name + (c.pct ? ' — عمولة ' + c.pct + '%' : '') + (c.fixed ? ' + ' + c.fixed : '')]; }));
+  bPrompt('قناة / تطبيق التوصيل', [{ k: 'channel', label: 'القناة', type: 'select', options: opts }, { k: 'channelRef', label: 'رقم طلب المنصة (اختياري)', ltr: true }], { channel: o.channel || '', channelRef: o.channelRef || '' }, function (d) { o.channel = d.channel; o.channelRef = d.channel && d.channel !== 'online' ? d.channelRef : ''; posRenderCart(); }, { icon: 'store-alt', saveText: 'اختيار' });
 }

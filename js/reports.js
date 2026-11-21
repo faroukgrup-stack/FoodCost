@@ -636,7 +636,7 @@ async function exportFullReportWord() {
     <div class="sub">مجموعة فاروق | FAROUK GRUP</div>
     <div class="sub">المطعم: <strong>${esc(data.restaurantName)}</strong></div>
     <div class="sub">${esc(data.dateStr)}</div>
-    <div class="badge">الإصدار 5.0.3</div>
+    <div class="badge">الإصدار 5.3.1</div>
   </div>
 
   <div class="summary-grid">

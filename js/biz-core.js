@@ -40,7 +40,7 @@ function isoLocalDT(v) { const d = v ? new Date(v) : new Date(); const z = new D
 function daysAgo(n) { return isoLocal(new Date(Date.now() - n * 864e5)); }
 function hasF(f) { return !!(B.acc && B.acc.features && B.acc.features.indexOf(f) >= 0); }
 function canP() { if (!B.acc) return false; if (B.acc.isOwner) return true; const p = (B.acc.staff && B.acc.staff.permissions) || []; for (let i = 0; i < arguments.length; i++) if (p.indexOf(arguments[i]) >= 0) return true; return false; }
-const PAY_NAMES = { cash: 'نقداً', card: 'بطاقة', transfer: 'تحويل', gift: 'بطاقة هدية', points: 'نقاط الولاء', credit: 'آجل' };
+const PAY_NAMES = { cash: 'نقداً', card: 'بطاقة', transfer: 'تحويل', gift: 'بطاقة هدية', points: 'نقاط الولاء', credit: 'آجل', channel: 'آجل على منصة توصيل' };
 const ORDER_TYPES = { dine_in: 'محلي', takeaway: 'سفري', delivery: 'توصيل' };
 const ORDER_STATUS = { open: ['مفتوح', 'badge-warning'], paid: ['مدفوع', 'badge-success'], cancelled: ['ملغى', 'badge-dog'], refunded: ['مسترجع', 'badge-question'] };
 function stBadge(map, k) { const x = map[k] || [k, 'badge-info']; return '<span class="badge ' + x[1] + '">' + h(x[0]) + '</span>'; }
@@ -130,10 +130,24 @@ function readForm(root, fields) {
 function bTable(cols, rows, o) {
   o = o || {};
   if (!rows || !rows.length) return '<div class="empty-state"><i class="fas fa-' + (o.emptyIcon || 'inbox') + '" style="font-size:2rem;opacity:.5"></i><p style="margin-top:10px">' + h(o.empty || 'لا توجد بيانات بعد') + '</p></div>';
-  return '<div class="table-container biz-table"><table><thead><tr>' + cols.map(function (c) { return '<th' + (c.num ? ' class="num"' : '') + '>' + h(c.label) + '</th>'; }).join('') + '</tr></thead><tbody>' +
-    rows.map(function (r, i) { return '<tr' + (o.rowAttr ? ' ' + o.rowAttr(r, i) : '') + '>' + cols.map(function (c) { return '<td' + (c.num ? ' class="num"' : '') + '>' + c.r(r, i) + '</td>'; }).join('') + '</tr>'; }).join('') +
+  return '<div class="table-container biz-table' + (cols.length >= 8 ? ' dense' : '') + '"><table><thead><tr>' + cols.map(function (c) { return '<th' + (c.num ? ' class="num"' : '') + '>' + h(c.label) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    rows.map(function (r, i) { return '<tr' + (o.rowAttr ? ' ' + o.rowAttr(r, i) : '') + '>' + cols.map(function (c) { return '<td' + (c.num ? ' class="num"' : c.wrap || /ملاحظ|البيان|السبب|الوصف|التفاصيل|العنوان|البنود|الأصناف|المحتوى/.test(c.label || '') ? ' class="wrap"' : '') + '>' + c.r(r, i) + '</td>'; }).join('') + '</tr>'; }).join('') +
     '</tbody>' + (o.foot ? '<tfoot>' + o.foot + '</tfoot>' : '') + '</table></div>';
 }
+// v5.2.1: قائمة دخل موحدة لكل الشاشات والتقارير (نفس البنود ونفس الترتيب ونفس المعادلة) — المجاميع تطابق صافي الربح دائماً
+function plLines(s, ex, all) {
+  s = s || {}; const z = function (v) { return +v || 0; };
+  const out = [['إجمالي المبيعات', z(s.grossSales), 'h'], ['(-) المرتجعات', -z(s.refunds)], ['= صافي المبيعات', z(s.netSales), 'b'], ['(-) ضريبة القيمة المضافة', -z(s.tax)]];
+  if (all || Math.abs(z(s.revenueAdj)) > 0.004) out.push(['= صافي المبيعات قبل الضريبة', z(s.netSales) - z(s.tax), 'b'], ['(+/-) خصومات نقاط الولاء وتعديلات الإيراد', z(s.revenueAdj)]);
+  out.push(['= صافي الإيرادات', z(s.netSalesExTax), 'b'], ['(-) تكلفة المبيعات', -z(s.cogs)], ['(-) الهدر وفروقات المخزون', -z(s.waste)], ['= مجمل الربح', z(s.grossProfit), 'b']);
+  (ex || []).forEach(function (x) { out.push(['    ' + x.category, -z(x.total), 'i']); });
+  out.push(['(-) المصروفات التشغيلية', -z(s.expenses)]);
+  if (s.labor !== undefined) out.push(['(-) الرواتب وتكاليف الموظفين', -z(s.labor)]);
+  out.push(['(-) إهلاك الأصول الثابتة', -z(s.depreciation)], ['(-) عمولات منصات التوصيل', -z(s.channelCommission)], ['(-) اشتراكات ورسوم وفروقات تسوية المنصات', -z(s.channelFees)],
+    ['(+/-) إيرادات ومصروفات أخرى (بيع أصول، فروقات صندوق)', z(s.otherIncome)], ['= الربح التشغيلي', z(s.operatingProfit), 'b'], ['(-) تكاليف التمويل', -z(s.finance)], ['(-) ضريبة الدخل', -z(s.incomeTax)], ['= صافي الربح / (الخسارة)', z(s.netProfit), 'n']);
+  return all ? out : out.filter(function (l) { return l[2] || Math.abs(l[1]) > 0.004 || /المصروفات التشغيلية|تكلفة المبيعات/.test(l[0]); });
+}
+function plSrc(r) { return r && r.source === 'gl' ? '<div class="muted" style="font-size:.78rem;margin:6px 0"><i class="fas fa-check-circle" style="color:#10b981"></i> الأرقام من الأستاذ العام — مطابقة تماماً لقائمة الدخل (IFRS)</div>' : ''; }
 function kpis(list) {
   return '<div class="biz-kpis">' + list.map(function (k) { return '<div class="dash-card"><div class="label">' + h(k[0]) + '</div><div class="value" style="' + (k[3] ? 'color:' + k[3] : '') + '">' + k[1] + '</div>' + (k[2] ? '<div class="sub">' + k[2] + '</div>' : '') + '</div>'; }).join('') + '</div>';
 }
@@ -299,14 +313,15 @@ function lockedView(root, feature, page) {
 // ---------- تسجيل الصفحات والقائمة الجانبية ----------
 // group, title, icon, feature, perms[], plan (المطلوبة)، render(root)
 function bizPage(key, def) { B.pages[key] = def; }
-const BIZ_GROUPS = [['ops', 'التشغيل'], ['stock', 'المخزون والمشتريات'], ['crm', 'العملاء والتسويق'], ['fin', 'المالية والتقارير'], ['admin', 'الإدارة'], ['acct', 'الحساب']];
+// v5.2.0: تقسيم المنصة وفق وحدات نظام ERP متكامل
+const BIZ_GROUPS = [['ops', 'المبيعات ونقاط البيع (SD)'], ['stock', 'سلسلة الإمداد: المخزون والمشتريات (MM)'], ['crm', 'إدارة علاقات العملاء (CRM)'], ['fin', 'المالية والمحاسبة (FI/CO)'], ['hcm', 'الموارد البشرية (HCM)'], ['admin', 'الإدارة والإعدادات'], ['acct', 'الحساب']];
 function buildBizSidebar() {
   const nav = document.querySelector('.sidebar-nav'); if (!nav) return;
   nav.querySelectorAll('.biz-nav, .biz-group-title').forEach(function (x) { x.remove(); });
   // إخفاء أقسام التكلفة لمن لا يملك صلاحيتها
   const legacy = { '0': 'costing', '1': 'costing', '2': 'costing', '3': 'costing', '5': 'digital_menu', '4': 'reviews', 'dashboard': null };
   nav.querySelectorAll('.nav-btn[data-tab]').forEach(function (b) { const p = legacy[b.dataset.tab]; if (p !== undefined) b.style.display = (!p || canP(p)) ? '' : 'none'; });
-  if (!nav.querySelector('.biz-costing-title')) { const t = document.createElement('div'); t.className = 'biz-group-title biz-costing-title'; t.textContent = 'التكلفة والمينيو'; const d = nav.querySelector('.nav-btn[data-tab="0"]'); if (d) nav.insertBefore(t, d); }
+  if (!nav.querySelector('.biz-costing-title')) { const t = document.createElement('div'); t.className = 'biz-group-title biz-costing-title'; t.textContent = 'هندسة التكلفة والمينيو'; const d = nav.querySelector('.nav-btn[data-tab="0"]'); if (d) nav.insertBefore(t, d); }
   const ct = nav.querySelector('.biz-costing-title');
   if (ct) ct.style.display = ['0', '1', '2', '3', '4', '5'].some(function (k) { const b = nav.querySelector('.nav-btn[data-tab="' + k + '"]'); return b && b.style.display !== 'none'; }) ? '' : 'none';
   BIZ_GROUPS.forEach(function (g) {
@@ -367,7 +382,7 @@ async function loadAccount() {
   if (hasF('notifications')) { refreshNotifications(); clearInterval(B.notifTimer); B.notifTimer = setInterval(refreshNotifications, 30000); }
   if (typeof bizLiveStart === 'function') bizLiveStart();
   setTimeout(bizPaymentReturn, 300);
-  const vb = document.querySelector('.version-badge'); if (vb) vb.innerHTML = '<i class="fas fa-code-branch"></i> الإصدار 5.0.3 · ' + planBadge(r.plan);
+  const vb = document.querySelector('.version-badge'); if (vb) vb.innerHTML = '<i class="fas fa-code-branch"></i> الإصدار 5.3.1 · ' + planBadge(r.plan);
   return r;
 }
 function renderHeaderExtras() {

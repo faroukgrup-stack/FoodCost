@@ -47,19 +47,9 @@ function escapeHtml(s) { const d = document.createElement('div'); d.textContent 
 async function callServer(fn, params = {}, showLoad = true) {
     if (showLoad) showLoading();
     try {
-        const url = new URL(COST_API_URL);
-        url.searchParams.set('fn', fn);
-        url.searchParams.set('restaurantEmail', currentUserEmail);
-
-        // ✅ إرسال التوكن مع كل طلب
         const token = localStorage.getItem('foodUserToken');
-        if (token) url.searchParams.set('token', token);
-
-        if (Object.keys(params).length) url.searchParams.set('params', JSON.stringify(params));
-
-        url.searchParams.set('_ts',String(Date.now()));
-        const write=/^(add|update|delete|save|rename|restore|upload)/.test(fn);
-        const res=write?await fetch(COST_API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(Object.assign({},params,{fn,restaurantEmail:currentUserEmail,token:token||''}))}):await fetch(url.toString(),{cache:'no-store',headers:{Accept:'application/json'}});
+        // v5.3.0: كل الطلبات عبر POST — التوكن لا يظهر أبداً في عنوان URL أو سجلات الخوادم/المتصفح
+        const res=await fetch(COST_API_URL,{method:'POST',cache:'no-store',headers:{'Content-Type':'text/plain;charset=UTF-8',Accept:'application/json'},body:JSON.stringify(Object.assign({},params,{fn,restaurantEmail:currentUserEmail,token:token||''}))});
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const result = await res.json();
 

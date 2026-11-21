@@ -85,7 +85,7 @@ async function opsSaveCfg(patch, quiet) {
 }
 
 // ---------- الصفحة ----------
-bizPage('opsmgmt', { group: 'admin', title: 'إدارة التشغيل والفريق', icon: 'clipboard-check', feature: 'ops_mgmt', perms: ['ops', 'ops_check'], plan: 'pro',
+bizPage('opsmgmt', { group: 'hcm', title: 'إدارة التشغيل والفريق', icon: 'clipboard-check', feature: 'ops_mgmt', perms: ['ops', 'ops_check'], plan: 'pro',
   sub: 'إجراءات التشغيل القياسية SOP، الاستلام والتسليم، جدول الورديات، تقييم الموظفين وتحليل العمالة — مع توصيات تساعدك على القرار',
   pitch: 'حوّل إدارة مطعمك إلى نظام: نماذج SOP قابلة للتعديل والطباعة، تدقيق يومي بنتيجة موزونة حسب الخطورة وإجراءات تصحيحية تلقائية، استلام وتسليم موثّق بين الورديات، جدول ورديات يكشف نقص التغطية وتكلفة العمالة، وتقييم شهري للموظفين.',
   render: async function (body) {

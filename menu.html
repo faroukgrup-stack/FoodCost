@@ -301,10 +301,10 @@ header.menu-head .head-line{display:none}
     <div class="sheet-box" id="cartSheetBox"></div>
   </div>
 
-<script src="js/config.js?v=5.0.3"></script>
-<script src="js/i18n.js?v=5.0.3"></script>
-<script src="js/domain.js?v=5.0.3"></script>
-<script src="js/cust-delivery.js?v=5.0.3"></script>
+<script src="js/config.js?v=5.3.1"></script>
+<script src="js/i18n.js?v=5.3.1"></script>
+<script src="js/domain.js?v=5.3.1"></script>
+<script src="js/cust-delivery.js?v=5.3.1"></script>
 <script>
 
 function menuImageUrl(value) {
@@ -613,7 +613,7 @@ function sendWhatsApp() {
 // ---------- الطلب المباشر إلى الكاشير (الباقات المتقدمة) ----------
 const tableNo = (params.get('t') || '').trim().slice(0, 20);
 function orderingOn() { return !!(menuData && menuData.ordering && menuData.ordering.enabled); }
-// ---------- v5.0.3: حالة المطعم (مفتوح/مغلق) وأوقات الدوام ----------
+// ---------- v5.3.1: حالة المطعم (مفتوح/مغلق) وأوقات الدوام ----------
 const DAYS_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 function storeStatusFor(bId) {
   if (!orderingOn()) return null;

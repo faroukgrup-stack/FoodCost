@@ -28,11 +28,14 @@ bizPage('statements', { group: 'fin', title: 'كشوف الحسابات', icon: 
   render: async function (body) {
     const tabs = [['customer', 'العملاء', 'users'], ['supplier', 'الموردون', 'truck', !hasF('purchasing')], ['employee', 'الموظفون', 'user-tie'], ['cashier', 'الكاشير والصناديق', 'cash-register', !hasF('shifts')],
       ['payroll', 'مسير الرواتب', 'money-check-alt', !hasF('payroll')], ['pnl', 'قائمة الدخل (الأرباح والخسائر)', 'chart-pie'], ['position', 'المركز المالي', 'balance-scale']];
-    body.innerHTML = subTabs('stSub', tabs, 'customer') + '<div id="stBody"></div>';
+    // v5.2.1: منع التكرار — مع المحاسبة العامة تُعرض كشوف العملاء والموردين في «الذمم والتسويات» والقوائم في «القوائم المالية (IFRS)»
+    const gl = hasF('gl'); let first = 'customer';
+    if (gl) { for (let i = tabs.length - 1; i >= 0; i--) if (['customer', 'supplier', 'pnl', 'position'].indexOf(tabs[i][0]) >= 0) tabs.splice(i, 1); first = 'employee'; }
+    body.innerHTML = (gl ? '<div class="biz-card" style="margin-bottom:10px"><p class="muted" style="margin:0;line-height:1.9"><i class="fas fa-info-circle"></i> كشوف العملاء والموردين ومنصات التوصيل موجودة في «الذمم والتسويات»، وقائمة الدخل والمركز المالي في «القوائم المالية (IFRS)» — من الأستاذ العام مباشرة دون تكرار.</p></div>' : '') + subTabs('stSub', tabs, first) + '<div id="stBody"></div>';
     const bar = body.querySelector('#stSub'); bar.querySelectorAll('.locked').forEach(function (b) { b.dataset.plan = b.dataset.sub === 'payroll' ? 'pro' : 'premium'; });
     const el = body.querySelector('#stBody');
     const go = function (k) { if (k === 'pnl') v5Pnl(el); else if (k === 'position') v5Position(el); else if (k === 'payroll') v5Payroll(el); else v5Parties(el, k); };
-    bindSubTabs(body, 'stSub', go); go('customer');
+    bindSubTabs(body, 'stSub', go); go(first);
   } });
 
 async function v5Parties(el, type) {
@@ -143,7 +146,7 @@ async function v5Payroll(el) {
   const draw = function () {
     const rows = R.rows;
     const tw = rows.reduce(function (s, x) { return s + (+x.wage || 0); }, 0), tn = rows.reduce(function (s, x) { return s + calc(x); }, 0), ti = rows.reduce(function (s, x) { return s + (+x.advanceInstallment || 0); }, 0);
-    el.querySelector('#v5PB').innerHTML = kpis([['عدد الموظفين', nf(rows.length, 0)], ['إجمالي الرواتب الأساسية', money(tw)], ['أقساط السلف المخصومة', money(ti), '', '#f59e0b'], ['صافي المستحق', money(tn), '', '#10b981']]) +
+    el.querySelector('#v5PB').innerHTML = kpis([['عدد الموظفين', nf(rows.length, 0)], ['إجمالي الرواتب الأساسية', money(tw)], ['أقساط السلف المخصومة', money(ti), '', '#f59e0b'], ['صافي المستحق', money(tn), '', '#10b981'], ['التكلفة الفعلية على المطعم (TCC)', money(rows.reduce(function (s, x) { return s + (+x.wage || 0) + (+x.additions || 0) - (+x.deductions || 0) + (+x.employerCost || 0); }, 0)), 'تشمل التأمينات والرسوم', '#f59e0b']]) +
       '<div class="biz-card"><p class="muted" style="margin:0;line-height:1.9">الإضافات = المكافآت والبدلات والعمل الإضافي المسجلة في الشهر. الخصومات = الخصومات والجزاءات وعجز الصندوق. يمكنك تعديل الأرقام قبل الاعتماد. الاعتماد يسجّل استحقاق الراتب في حساب كل موظف ويمكنه تسجيل الإجمالي في المصروفات وصرف الصافي.</p></div>' +
       bTable([{ label: 'الموظف', r: function (x) { return '<b>' + h(x.name) + '</b><div class="muted" style="font-size:.72rem">' + h(x.job || '') + '</div>'; } },
         { label: 'الراتب', num: true, r: function (x, i) { return '<input type="number" step="any" data-pi="' + i + '" data-pf="wage" value="' + x.wage + '" style="width:90px"' + (x.salaryPosted ? ' disabled' : '') + '>'; } },
@@ -152,7 +155,9 @@ async function v5Payroll(el) {
         { label: 'سلف قائمة', num: true, r: function (x) { return x.advanceOutstanding ? money(x.advanceOutstanding) : '—'; } },
         { label: 'قسط السلفة', num: true, r: function (x, i) { return '<input type="number" step="any" data-pi="' + i + '" data-pf="advanceInstallment" value="' + x.advanceInstallment + '" style="width:80px"' + (x.salaryPosted ? ' disabled title="معتمد — للتعديل سجّل حركة إضافة/خصم من كشف الموظف"' : '') + '>'; } },
         { label: 'الصافي', num: true, r: function (x, i) { return '<b data-net="' + i + '">' + money(calc(x)) + '</b>'; } },
-        { label: 'الحالة', r: function (x) { return x.salaryPosted ? '<span class="badge badge-success">معتمد' + (x.paid ? ' · مصروف ' + money(x.paid) : '') + '</span>' : '<span class="badge badge-warning">غير معتمد</span>'; } }], rows, { empty: 'لا يوجد موظفون نشطون بأجور — أضف الرواتب من فريق العمل' }) +
+        { label: 'تكاليف صاحب العمل', num: true, r: function (x) { return x.employerCost ? money(x.employerCost) : '—'; } },
+        { label: 'التكلفة الفعلية', num: true, r: function (x) { return '<b>' + money((+x.wage || 0) + (+x.additions || 0) - (+x.deductions || 0) + (+x.employerCost || 0)) + '</b>'; } },
+        { label: 'الحالة', r: function (x) { return x.salaryPosted ? '<span class="badge badge-success">معتمد</span>' + (x.paid ? '<div class="muted" style="font-size:.72rem;margin-top:3px">مصروف ' + money(x.paid) + '</div>' : '') : '<span class="badge badge-warning">غير معتمد</span>'; } }], rows, { empty: 'لا يوجد موظفون نشطون بأجور — أضف الرواتب من فريق العمل' }) +
       (rows.length ? '<div class="biz-card"><div class="biz-form"><label class="biz-check"><input type="checkbox" id="v5PE" checked> <span>تسجيل إجمالي الرواتب في المصروفات (بند رواتب)</span></label><label class="biz-check"><input type="checkbox" id="v5PY"> <span>صرف الصافي الآن (تسجيل دفعة لكل موظف)</span></label><div><label class="pro-label">طريقة الصرف</label><div class="pro-input-wrap"><select id="v5PMt">' + V5_METHODS.slice(0, 3).map(function (o) { return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('') + '</select></div></div></div><div style="margin-top:12px"><button class="btn btn-primary" id="v5PO"><i class="fas fa-check-double"></i> اعتماد مسير شهر ' + h(R.month) + '</button></div></div>' : '');
   };
   const load = async function () { el.querySelector('#v5PB').innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-pulse"></i></div>'; const r = await bz('payrollPreview', { month: el.querySelector('#v5PM').value }); if (!r.success) { el.querySelector('#v5PB').innerHTML = '<div class="empty-state">' + h(r.error) + '</div>'; return; } R = r; draw(); };
@@ -167,7 +172,7 @@ async function v5Payroll(el) {
   };
   rptBind(el, 'v5PP', function () {
     if (!R) throw new Error('أعدّ المسير أولاً');
-    return { title: 'مسير رواتب شهر ' + R.month, sections: [{ table: { headers: ['الموظف', 'المسمى', 'الراتب', 'إضافات', 'خصومات', 'قسط سلفة', 'الصافي', 'توقيع الموظف'], money: [2, 3, 4, 5, 6], foot: 'sum', rows: R.rows.map(function (x) { return [x.name, x.job || '', +x.wage || 0, +x.additions || 0, +x.deductions || 0, +x.advanceInstallment || 0, calc(x), '']; }) } }], signature: true };
+    return { title: 'مسير رواتب شهر ' + R.month, sections: [{ table: { headers: ['الموظف', 'المسمى', 'الراتب', 'إضافات', 'خصومات', 'قسط سلفة', 'الصافي', 'تكاليف صاحب العمل', 'التكلفة الفعلية', 'توقيع الموظف'], money: [2, 3, 4, 5, 6, 7, 8], foot: 'sum', rows: R.rows.map(function (x) { return [x.name, x.job || '', +x.wage || 0, +x.additions || 0, +x.deductions || 0, +x.advanceInstallment || 0, calc(x), +x.employerCost || 0, (+x.wage || 0) + (+x.additions || 0) - (+x.deductions || 0) + (+x.employerCost || 0), '']; }) } }], signature: true };
   });
   load();
 }
@@ -177,13 +182,7 @@ async function v5Pnl(el) {
   el.innerHTML = dateRangeBar('v5IR', isoLocal().slice(0, 8) + '01', isoLocal(), '<label class="biz-check" style="margin:0"><input type="checkbox" data-f="cmp" value="1" checked> <span>مقارنة بالفترة السابقة</span></label>') + '<div class="biz-toolbar"><span class="grow"></span>' + rptButtons('v5IP') + '</div><div id="v5IB"></div>';
   let L = null;
   const prevRange = function (f, t) { const a = new Date(f + 'T00:00:00'), b = new Date(t + 'T00:00:00'); const days = Math.round((b - a) / 864e5) + 1; return { from: isoLocal(new Date(a.getTime() - days * 864e5)), to: isoLocal(new Date(a.getTime() - 864e5)) }; };
-  const lines = function (s, ex) {
-    const out = [['المبيعات الإجمالية', s.grossSales, 'h'], ['(-) المرتجعات', -s.refunds], ['= صافي المبيعات', s.netSales, 'b'], ['(-) ضريبة القيمة المضافة', -s.tax], ['= صافي الإيرادات قبل الضريبة', s.netSalesExTax, 'b'],
-      ['(-) تكلفة المبيعات (تكلفة الأطباق والمواد)', -s.cogs], ['= مجمل الربح', s.grossProfit, 'b']];
-    (ex || []).forEach(function (x) { out.push(['(-) مصروف: ' + x.category, -x.total]); });
-    out.push(['(-) إجمالي المصروفات التشغيلية', -s.expenses, 'b'], ['(-) الهدر والتالف', -s.waste], ['= صافي الربح / (الخسارة)', s.netProfit, 'n']);
-    return out;
-  };
+  const lines = function (s, ex) { return plLines(s, ex, true).map(function (l) { return [l[0], l[1], l[2] === 'i' ? '' : l[2]]; }); };
   const load = async function (rg) {
     const box = el.querySelector('#v5IB'); box.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-pulse"></i></div>';
     const br = hasF('multi_branch') ? (B.branch || 'all') : '';
@@ -193,7 +192,9 @@ async function v5Pnl(el) {
     const s = r.summary, ps = p && p.success ? p.summary : null;
     const cats = {}; (r.expensesByCategory || []).forEach(function (x) { cats[x.category] = 1; }); ((p && p.expensesByCategory) || []).forEach(function (x) { cats[x.category] = 1; });
     const exOf = function (rr) { return Object.keys(cats).map(function (c) { const f = ((rr && rr.expensesByCategory) || []).find(function (x) { return x.category === c; }); return { category: c, total: f ? f.total : 0 }; }); };
-    const cur = lines(s, exOf(r)), prv = ps ? lines(ps, exOf(p)) : null;
+    let cur = lines(s, exOf(r)), prv = ps ? lines(ps, exOf(p)) : null;
+    const keep = cur.map(function (l, i) { return !!l[2] && !/خصومات نقاط|قبل الضريبة/.test(l[0]) || Math.abs(l[1]) > 0.004 || (prv && Math.abs(prv[i][1]) > 0.004) || /المصروفات التشغيلية|تكلفة المبيعات/.test(l[0]); });
+    cur = cur.filter(function (l, i) { return keep[i]; }); if (prv) prv = prv.filter(function (l, i) { return keep[i]; });
     const base = s.netSalesExTax || 0;
     L = { rg: rg, pr: pr, s: s, ps: ps, cur: cur, prv: prv, r: r };
     box.innerHTML = kpis([['صافي الإيرادات', money(s.netSalesExTax)], ['مجمل الربح', money(s.grossProfit), 'هامش ' + v5Pct(s.grossMargin)], ['المصروفات', money(s.expenses)], ['صافي الربح', money(s.netProfit), base ? 'هامش ' + v5Pct(s.netProfit / base * 100) : '', s.netProfit >= 0 ? '#10b981' : '#ef4444'], ['نسبة تكلفة الطعام', base ? v5Pct(s.cogs / base * 100) : '—'], ['الفواتير', nf(s.invoices, 0), 'متوسط ' + money(s.avgTicket)]]) +
@@ -221,10 +222,14 @@ async function v5Position(el) {
   if (!r.success) { box.innerHTML = '<div class="empty-state">' + h(r.error) + '</div>'; return; }
   const A = [['ذمم العملاء المدينة (' + r.debtors + ' عميل)', r.receivables], ['سلف وأرصدة مدينة على الموظفين', r.employeesOwe], ['قيمة المخزون الحالي بالتكلفة', r.stockValue], ['عُهد نقدية في الصناديق المفتوحة (' + r.openShifts + ' وردية)', r.openShiftsFloat]];
   const Lb = [['مستحقات الموردين (' + r.creditors + ' مورد)', r.payables], ['مستحقات للموظفين (رواتب غير مصروفة)', r.employeesOwed], ['دفعات مقدمة وأرصدة دائنة للعملاء', r.customerCredit]];
+  // v5.1.0: الأصول الثابتة بصافي القيمة الدفترية + القروض + حقوق الملكية
+  const AC = r.accounting || null;
+  if (AC) { A.push(['الأصول الثابتة — صافي القيمة الدفترية (التكلفة ' + nf(AC.fixedAssetsCost) + ' − مجمع الإهلاك ' + nf(AC.accumulatedDep) + ')', AC.fixedAssetsNbv]); if (AC.loanBalance) Lb.push(['القروض والتمويل القائم', AC.loanBalance]); }
   const sa = A.reduce(function (s, x) { return s + x[1]; }, 0), sl = Lb.reduce(function (s, x) { return s + x[1]; }, 0);
   box.innerHTML = kpis([['إجمالي الأصول المتداولة', money(sa), '', '#10b981'], ['إجمالي الالتزامات', money(sl), '', '#ef4444'], ['صافي المركز', money(sa - sl), '', sa - sl >= 0 ? '#10b981' : '#ef4444'], ['منها سلف موظفين قائمة', money(r.employeeAdvances)]]) +
     '<div class="biz-sec">الأصول المتداولة</div>' + bTable([{ label: 'البند', r: function (x) { return h(x[0]); } }, { label: 'المبلغ', num: true, r: function (x) { return money(x[1]); } }], A, { foot: '<tr><td><b>الإجمالي</b></td><td class="num"><b>' + money(sa) + '</b></td></tr>' }) +
-    '<div class="biz-sec">الالتزامات</div>' + bTable([{ label: 'البند', r: function (x) { return h(x[0]); } }, { label: 'المبلغ', num: true, r: function (x) { return money(x[1]); } }], Lb, { foot: '<tr><td><b>الإجمالي</b></td><td class="num"><b>' + money(sl) + '</b></td></tr>' });
+    '<div class="biz-sec">الالتزامات</div>' + bTable([{ label: 'البند', r: function (x) { return h(x[0]); } }, { label: 'المبلغ', num: true, r: function (x) { return money(x[1]); } }], Lb, { foot: '<tr><td><b>الإجمالي</b></td><td class="num"><b>' + money(sl) + '</b></td></tr>' }) +
+    (AC ? '<div class="biz-sec">حقوق الملكية</div>' + bTable([{ label: 'البند', r: function (x) { return h(x[0]); } }, { label: 'المبلغ', num: true, r: function (x) { return money(x[1]); } }], [['رأس المال المودع', AC.capitalIn], ['(-) المسحوبات وتوزيعات الأرباح', -AC.drawings], ['صافي رأس المال', AC.equity], ['الأرباح المحتجزة والفروقات (صافي المركز − صافي رأس المال)', (sa - sl) - AC.equity]]) : '');
   rptBind(el, 'v5XP', function () { return { title: 'المركز المالي المختصر', subtitle: 'كما في ' + dt(new Date()), kpis: [['الأصول المتداولة', money(sa)], ['الالتزامات', money(sl)], ['صافي المركز', money(sa - sl)]],
     sections: [{ title: 'الأصول المتداولة', table: { headers: ['البند', 'المبلغ'], money: [1], foot: 'sum', rows: A } }, { title: 'الالتزامات', table: { headers: ['البند', 'المبلغ'], money: [1], foot: 'sum', rows: Lb } }], signature: true }; });
 }
@@ -517,7 +522,7 @@ function v5FrView(id, rg, after) {
     box.innerHTML = '<div class="biz-card"><b style="font-size:1.05rem">' + h(v5FrName(f)) + '</b> ' + stBadge(V5_FR_STATUS, f.status) + '<div class="muted" style="line-height:1.9">' + h([f.clientName, f.company, f.city, f.country].filter(Boolean).join(' · ')) + ' · عقد <span dir="ltr">' + h(f.contractNo) + '</span> (' + h(f.contractStart || '') + ' ← ' + h(f.contractEnd || '') + ') · ' + (f.menuMode === 'linked' ? 'مينيو مرتبط' : 'مينيو مستقل') + '</div>' + (f.status === 'frozen' && f.frozenReason ? '<div style="color:#ef4444">سبب التجميد: ' + h(f.frozenReason) + '</div>' : '') + '</div>' +
       '<div class="biz-sec"><i class="fas fa-chart-line"></i> المبيعات والأداء</div>' +
       kpis([['المبيعات', money(k.sales), k.invoices + ' فاتورة'], ['متوسط الفاتورة', money(k.avgTicket)], ['الطلبات', nf(k.orders, 0), k.cancelled ? k.cancelled + ' ملغى' : ''], ['تكلفة الطعام', v5Pct(k.foodCostPct), money(k.cogs)], ['مجمل الربح', money(k.grossProfit)], ['المصروفات', money(k.expenses)], ['العملاء', nf(k.customers, 0)], ['الإتاوة المستحقة', money(k.sales * f.royaltyPct / 100), nf(f.royaltyPct, 1) + '%', '#10b981']]) +
-      (s ? '<div class="biz-sec"><i class="fas fa-file-invoice-dollar"></i> قائمة الدخل المختصرة</div>' + bTable([{ label: 'البند', r: function (x) { return h(x[0]); } }, { label: 'المبلغ', num: true, r: function (x) { return money(x[1]); } }], [['صافي المبيعات', s.netSales], ['الضريبة', s.tax], ['تكلفة المبيعات', s.cogs], ['مجمل الربح', s.grossProfit], ['المصروفات', s.expenses], ['الهدر', s.waste], ['صافي الربح', s.netProfit]]) : '') +
+      (s ? '<div class="biz-sec"><i class="fas fa-file-invoice-dollar"></i> قائمة الدخل المختصرة</div>' + bTable([{ label: 'البند', r: function (x) { return h(x[0]); } }, { label: 'المبلغ', num: true, r: function (x) { return x[2] === 'b' ? '<b>' + money(x[1]) + '</b>' : money(x[1]); } }], plLines(s).filter(function (l) { return l[2] !== 'i'; })) : '') +
       (P && P.success ? '<div class="biz-sec"><i class="fas fa-balance-scale"></i> الذمم والأرصدة</div>' + kpis([['ذمم العملاء', money(P.receivables)], ['مستحقات الموردين', money(P.payables)], ['مستحقات الموظفين', money(P.employeesOwed)], ['سلف الموظفين', money(P.employeeAdvances)]]) : '') +
       '<div class="biz-sec"><i class="fas fa-boxes"></i> المخزون ودورانه</div>' + kpis([['قيمة المخزون', money(k.stockValue)], ['معدل الدوران', nf(k.turnover, 2)], ['أيام التغطية', nf(k.stockDays, 0) + ' يوم'], ['أصناف تحت الحد', nf(r.stock.filter(function (x) { return x.low; }).length, 0)]]) +
       bTable([{ label: 'الصنف', r: function (x) { return h(x.name) + (x.low ? ' <span class="badge badge-warning">منخفض</span>' : ''); } }, { label: 'النوع', r: function (x) { return x.type === 'product' ? 'منتج' : 'مادة'; } }, { label: 'الكمية', num: true, r: function (x) { return nf(x.qty, 2); } }, { label: 'الحد الأدنى', num: true, r: function (x) { return x.min ? nf(x.min, 2) : '—'; } }, { label: 'القيمة', num: true, r: function (x) { return money(x.value); } }], r.stock.slice(0, 30), { empty: 'لا يوجد مخزون مسجل' }) +
@@ -530,7 +535,7 @@ function v5FrView(id, rg, after) {
     if (!R) throw new Error('لا توجد بيانات'); const f = R.franchise, k = R.kpi, s = R.finance && R.finance.summary;
     return { title: 'تقرير الفرع الممنوح: ' + v5FrName(f), subtitle: [f.city, f.country, 'عقد ' + f.contractNo].filter(Boolean).join(' · '), period: R.q.from + ' — ' + R.q.to,
       kpis: [['المبيعات', money(k.sales)], ['الطلبات', nf(k.orders, 0)], ['تكلفة الطعام', v5Pct(k.foodCostPct)], ['مجمل الربح', money(k.grossProfit)], ['الإتاوة', money(k.sales * f.royaltyPct / 100)], ['الالتزام', k.sopRuns ? nf(k.sopScore, 0) + '%' : '—']],
-      sections: [].concat(s ? [{ title: 'قائمة الدخل المختصرة', table: { headers: ['البند', 'المبلغ'], money: [1], rows: [['صافي المبيعات', s.netSales], ['الضريبة', s.tax], ['تكلفة المبيعات', s.cogs], ['مجمل الربح', s.grossProfit], ['المصروفات', s.expenses], ['الهدر', s.waste], ['صافي الربح', s.netProfit]] } }] : [],
+      sections: [].concat(s ? [{ title: 'قائمة الدخل المختصرة', table: { headers: ['البند', 'المبلغ'], money: [1], rows: plLines(s).filter(function (l) { return l[2] !== 'i'; }).map(function (l) { return [l[0].trim(), l[1]]; }) } }] : [],
         [{ title: 'المخزون', table: { headers: ['الصنف', 'الكمية', 'القيمة'], money: [2], foot: 'sum', rows: R.stock.map(function (x) { return [x.name, nf(x.qty, 2), x.value]; }) } },
           { title: 'تدقيقات المعايير', table: { headers: ['التاريخ', 'الإجراء', 'النتيجة', 'بواسطة'], rows: R.sops.map(function (x) { return [x.date, x.title, nf(x.score, 0) + '%', x.by]; }) } }]), signature: true };
   });
