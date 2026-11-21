@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" href="assets/favicon-64.png">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -282,7 +283,7 @@
         /* ===== قسم المعاينة (لقطات الشاشة) ===== */
         .screenshots-section { padding: 80px 0; background: var(--light); }
         .screenshots-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-top: 30px;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 30px;
         }
         .screenshot-item {
             position: relative; border-radius: 16px; overflow: hidden;
@@ -452,9 +453,10 @@
         @media (max-width: 992px) {
             .plans-grid { grid-template-columns: 1fr; max-width: 460px; margin-left: auto; margin-right: auto; }
             .plan-card.popular { order: -1; }
-            .screenshots-grid { grid-template-columns: 1fr; }
+            .screenshots-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 768px) {
+            .screenshots-grid { grid-template-columns: 1fr; }
             .hero-content h2 { font-size: 2.1rem; }
             .hero-image .screenshot-item { transform: none; }
             .section-title { font-size: 1.7rem; }
@@ -463,22 +465,112 @@
             .phone-mockup { transform: scale(0.9); }
             .plans-section { padding: 60px 0; }
         }
+        /* ===== v5.3.2: لغات + أقسام جديدة ===== */
+        html[dir="ltr"] body { font-family: 'Tajawal', 'Segoe UI', Arial, sans-serif; }
+        .landing-header h1 i { margin-left: 0; margin-inline-end: 8px; }
+        .plans-note i { margin-left: 0; margin-inline-end: 4px; }
+        .lh-row { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+        .lang-switch { display: inline-flex; background: var(--finance-bg); border: 1px solid var(--border-light); border-radius: 50px; padding: 3px; }
+        .lang-switch button { border: 0; background: transparent; font: inherit; font-weight: 700; font-size: .85rem; color: var(--text-muted); padding: 6px 14px; border-radius: 50px; cursor: pointer; min-height: 34px; }
+        .lang-switch button.active { background: var(--finance-green); color: #fff; }
+        .lang-switch button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+        html[dir="ltr"] .hero-content h2 { font-size: 2.5rem; }
+        .stats-strip { background: var(--finance-dark); padding: 28px 0; }
+        .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; text-align: center; }
+        .stat { color: #c9d3e6; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .stat i { color: var(--gold); font-size: 1.3rem; }
+        .stat b { font-family: 'Cairo', sans-serif; font-size: 2rem; color: #fff; line-height: 1.1; font-variant-numeric: tabular-nums; }
+        .stat span { font-size: .9rem; }
+        .mod-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 22px; }
+        .mod-card { background: var(--light); border: 1px solid var(--border-light); border-radius: 20px; padding: 24px; box-shadow: var(--shadow-sm); transition: transform .2s, box-shadow .2s; }
+        .mod-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        .mod-head { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
+        .mod-head .feature-icon { margin: 0; flex-shrink: 0; }
+        .mod-head h4 { font-size: 1.08rem; font-weight: 800; color: var(--finance-dark); line-height: 1.35; }
+        .mod-plan { display: inline-block; margin-top: 4px; font-size: .75rem; font-weight: 700; padding: 2px 10px; border-radius: 20px; background: rgba(13,92,59,.08); color: var(--finance-green); }
+        .mod-plan.basic { background: rgba(180,133,84,.14); color: #8a5f33; }
+        .mod-card ul { list-style: none; display: grid; gap: 8px; }
+        .mod-card li { display: flex; gap: 8px; align-items: flex-start; font-size: .93rem; color: var(--text-muted); }
+        .mod-card li i { color: var(--finance-green); margin-top: 5px; font-size: .8rem; }
+        .apps-section { padding: 80px 0; background: var(--light); }
+        .apps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .app-card { border: 1px solid var(--border-light); border-radius: 18px; padding: 24px; background: linear-gradient(160deg, #fff 0%, #f1f6f2 100%); }
+        .app-card i { font-size: 1.6rem; color: var(--gold); margin-bottom: 12px; }
+        .app-card h4 { font-weight: 800; margin-bottom: 6px; color: var(--finance-dark); }
+        .app-card p { color: var(--text-muted); font-size: .93rem; }
+        .acc-section { padding: 80px 0; background: linear-gradient(135deg, #0a0e17 0%, #0f2a1f 100%); color: #dfe7f1; }
+        .acc-grid { display: flex; gap: 50px; align-items: center; flex-wrap: wrap; }
+        .acc-content { flex: 1; min-width: 300px; }
+        .acc-content h3 { font-size: 2rem; font-weight: 900; color: var(--gold-light); line-height: 1.35; margin-bottom: 14px; }
+        .acc-content p { color: #b9c6d6; margin-bottom: 18px; font-size: 1.05rem; }
+        .acc-list { list-style: none; display: grid; gap: 10px; }
+        .acc-list li { display: flex; gap: 10px; align-items: flex-start; }
+        .acc-list li i { color: #34d399; margin-top: 5px; }
+        .acc-visual { flex: .9; min-width: 300px; }
+        .ledger-mock { background: #fff; color: var(--text-dark); border-radius: 18px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,.35); font-size: .9rem; }
+        .lm-head { background: var(--finance-green); color: #fff; padding: 12px 16px; font-weight: 800; }
+        .lm-row { display: grid; grid-template-columns: 2fr 1fr 1fr; padding: 10px 16px; border-bottom: 1px solid #eef2ef; gap: 8px; }
+        .lm-row span:not(:first-child) { text-align: end; font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: plaintext; }
+        .lm-th { background: #f3f6f4; font-weight: 800; color: var(--text-muted); }
+        .lm-tot { font-weight: 900; background: rgba(180,133,84,.1); }
+        .lm-foot { padding: 10px 16px; font-size: .8rem; color: var(--text-muted); }
+        .compare-section { padding: 80px 0; background: var(--light); }
+        .cmp-wrap { overflow-x: auto; border: 1px solid var(--border-light); border-radius: 18px; box-shadow: var(--shadow-sm); }
+        .cmp-table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: .92rem; }
+        .cmp-table th { background: var(--finance-dark); color: var(--gold-light); padding: 14px 10px; text-align: center; position: sticky; top: 0; }
+        .cmp-table th small { display: block; color: #aab7d4; font-weight: 500; font-size: .78rem; }
+        .cmp-table th.cmp-f { text-align: start; }
+        .cmp-table td { padding: 10px 12px; border-bottom: 1px solid #eef2ef; text-align: center; vertical-align: middle; }
+        .cmp-table td.cmp-f { text-align: start; color: var(--text-dark); }
+        .cmp-table td.cmp-pop, .cmp-table th.cmp-pop { background-color: rgba(180,133,84,.08); }
+        .cmp-table th.cmp-pop { background: #1c2333; }
+        .cmp-sec td { background: rgba(13,92,59,.08); color: var(--finance-green); font-weight: 800; text-align: start; }
+        .cmp-yes { color: #10b981; } .cmp-no { color: #b7c0bb; }
+        .cmp-val { font-size: .82rem; font-weight: 700; color: #8a5f33; white-space: nowrap; }
+        .new-section { padding: 80px 0; background: var(--light); }
+        .new-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+        .new-card { position: relative; border: 1px solid var(--border-light); border-radius: 16px; padding: 22px 20px; background: var(--finance-bg); }
+        .new-card i { color: var(--finance-green); font-size: 1.4rem; margin-bottom: 10px; }
+        .new-card h4 { font-weight: 800; margin-bottom: 6px; font-size: 1rem; color: var(--finance-dark); }
+        .new-card p { font-size: .88rem; color: var(--text-muted); }
+        .phone-screen .ps-points { display: flex; justify-content: space-between; align-items: center; background: rgba(180,133,84,.15); border-radius: 10px; padding: 8px 10px; font-size: .78rem; margin: 6px 0; }
+        .faq-grid { max-width: 900px; margin: 0 auto; }
+        .btn-plan i { margin-inline-end: 6px; }
+        @media (max-width: 992px) { .apps-grid { grid-template-columns: 1fr 1fr; } .new-grid { grid-template-columns: 1fr 1fr; } .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 768px) {
+            .screenshots-grid { grid-template-columns: 1fr; }
+            .hero-content h2, html[dir="ltr"] .hero-content h2 { font-size: 2rem; }
+            .header-nav { gap: 10px 14px; font-size: .82rem; }
+            .mod-grid { grid-template-columns: 1fr; }
+            .acc-content h3 { font-size: 1.6rem; }
+        }
+        @media (max-width: 560px) { .apps-grid, .new-grid { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: 1fr 1fr; } .stat b { font-size: 1.6rem; } .lm-row { font-size: .8rem; padding: 9px 10px; } }
     </style>
 </head>
 <body>
 
 <!-- هيدر -->
 <div class="landing-header">
-    <div class="logo-container">
-        <h1><i class="fas fa-utensils"></i> Mataami <span style="color:var(--gold-light);">Pro</span></h1>
+    <div class="lh-row">
+        <div class="logo-container">
+            <h1><i class="fas fa-utensils"></i> Mataami <span style="color:var(--gold-light);">Pro</span></h1>
+        </div>
+        <div class="lang-switch" role="group" aria-label="Language">
+            <button type="button" data-setlang="ar">العربية</button>
+            <button type="button" data-setlang="en">English</button>
+            <button type="button" data-setlang="tr">Türkçe</button>
+        </div>
     </div>
     <nav class="header-nav">
-        <a href="#features">الوحدات</a>
-        <a href="#screenshots">لقطات الشاشة</a>
-        <a href="#plans">الباقات</a>
-        <a href="#faq">أسئلة شائعة</a>
-        <a href="f-14-G-17.html" target="_blank">اشترك / جدّد</a>
-        <a href="index.html" target="_blank">تسجيل الدخول</a>
+        <a href="#features" data-t="nav_modules"></a>
+        <a href="#apps" data-t="nav_apps"></a>
+        <a href="#accounting" data-t="nav_acc"></a>
+        <a href="#screenshots" data-t="nav_shots"></a>
+        <a href="#plans" data-t="nav_plans"></a>
+        <a href="#compare" data-t="nav_compare"></a>
+        <a href="#faq" data-t="nav_faq"></a>
+        <a data-href="f-14-G-17.html" target="_blank" data-t="nav_sub"></a>
+        <a data-href="index.html" target="_blank" data-t="nav_login"></a>
     </nav>
 </div>
 
@@ -486,295 +578,158 @@
 <section class="hero">
     <div class="container hero-grid">
         <div class="hero-content">
-            <span class="hero-badge">منظومة إدارة مطاعم متكاملة</span>
-            <h2>أدر مطعمك من <span>التكلفة إلى العميل</span> في منصة واحدة</h2>
-            <p>Mataami Pro تجمع لك: حساب التكاليف، هندسة المينيو BCG، نقطة التعادل، المينيو الإلكتروني QR، نظام التقييمات، تطبيق عميل PWA، شاشة مطبخ، توصيل، برامج ولاء، وتقارير احترافية.</p>
-
-            <div class="hero-highlights">
-                <span><i class="fas fa-check-circle"></i> 7 تبويبات إدارية</span>
-                <span><i class="fas fa-check-circle"></i> تطبيق عميل مستقل</span>
-                <span><i class="fas fa-check-circle"></i> شاشة مطبخ (KDS)</span>
-                <span><i class="fas fa-check-circle"></i> تقارير Excel & Word</span>
-            </div>
-
+            <span class="hero-badge" data-t="hero_badge"></span>
+            <h2 data-t="hero_title"></h2>
+            <p data-t="hero_text"></p>
+            <div class="hero-highlights" id="heroHl"></div>
             <div class="price-tag">
-                من 99$ <small>/ سنوياً</small>
+                <span data-t="from"></span> 99$ <small data-t="per_year"></small>
                 &nbsp;·&nbsp;
-                <a href="#plans"><i class="fas fa-arrow-down"></i> قارن الباقات</a>
+                <a href="#plans"><i class="fas fa-arrow-down"></i> <span data-t="compare_plans"></span></a>
             </div>
             <div style="display:flex; gap:12px; flex-wrap:wrap;">
-                <a href="#plans" class="btn-gold"><i class="fas fa-rocket"></i> اختر باقتك</a>
-                <a href="#screenshots" class="btn-outline"><i class="fas fa-images"></i> شاهد البرنامج</a>
+                <a href="#plans" class="btn-gold"><i class="fas fa-rocket"></i> <span data-t="choose_plan"></span></a>
+                <a href="#screenshots" class="btn-outline"><i class="fas fa-images"></i> <span data-t="see_app"></span></a>
             </div>
             <div class="trust-badges">
-                <span><i class="fas fa-check-circle"></i> لا يتجدد تلقائياً</span>
-                <span><i class="fas fa-check-circle"></i> دفع آمن</span>
-                <span><i class="fas fa-check-circle"></i> وصول فوري</span>
+                <span><i class="fas fa-check-circle"></i> <span data-t="tb1"></span></span>
+                <span><i class="fas fa-check-circle"></i> <span data-t="tb2"></span></span>
+                <span><i class="fas fa-check-circle"></i> <span data-t="tb3"></span></span>
+                <span><i class="fas fa-check-circle"></i> <span data-t="tb4"></span></span>
             </div>
         </div>
-        
-        <!-- تم إصلاح هذا الجزء وإغلاق الوسوم بشكل صحيح -->
         <div class="hero-image">
-            <div class="screenshot-item" onclick="openLightbox('assets/Mataami.jpg')">
-                <img src="assets/Mataami.jpg" alt="منصة Mataami Pro" loading="lazy">
+            <div class="screenshot-item" onclick="openLightbox('assets/shots/dashboard-ar.jpg')">
+                <img src="assets/shots/dashboard-ar.jpg" data-img="dashboard" data-alt="hero_alt" alt="Mataami Pro" loading="lazy">
                 <div class="screenshot-overlay">
                     <i class="fas fa-search-plus"></i>
-                    <span>تكبير الصورة</span>
+                    <span data-t="zoom"></span>
                 </div>
             </div>
         </div>
-        <!-- ======================================= -->
-
     </div>
+</section>
+
+<!-- أرقام -->
+<section class="stats-strip">
+    <div class="container stats-grid" id="statsGrid"></div>
 </section>
 
 <!-- المشكلة -->
 <section class="problem-section">
     <div class="container">
-        <h3 class="section-title">المطاعم تُدار اليوم بأدوات متفرقة…</h3>
-        <p class="section-subtitle">Excel للتكاليف، تطبيق للطلبات، ورقة للتقييمات، ودفتر للحجوزات. النتيجة: فوضى، هدر، وربح غير واضح.</p>
-        <div class="problem-grid">
-            <div class="problem-card">
-                <i class="fas fa-calculator"></i>
-                <h4>تكلفة غير دقيقة</h4>
-                <p>جداول Excel لا تحسب الهدر ولا تحدّث الأسعار تلقائياً، فتصبح قرارات التسعير مبنية على أرقام قديمة.</p>
-            </div>
-            <div class="problem-card">
-                <i class="fas fa-chart-pie"></i>
-                <h4>قائمة طعام غير محسّنة</h4>
-                <p>لا تعرف أي الأطباق نجوم وأيها خاسرة، فتضيع فرصة مضاعفة الربح من نفس المطبخ.</p>
-            </div>
-            <div class="problem-card">
-                <i class="fas fa-star"></i>
-                <h4>تقييمات متفرقة</h4>
-                <p>آراء العملاء موزعة بين جوجل وواتساب والحديث المباشر، دون تحليل يربطها بالأطباق.</p>
-            </div>
-            <div class="problem-card">
-                <i class="fas fa-mobile-screen-button"></i>
-                <h4>تطبيق عميل مكلف</h4>
-                <p>تطبيقات iOS/Android تحتاج ميزانيات ووقت. مطعمك يحتاج حلاً فورياً بدون تعقيد.</p>
-            </div>
-        </div>
+        <h3 class="section-title" data-t="prob_title"></h3>
+        <p class="section-subtitle" data-t="prob_sub"></p>
+        <div class="problem-grid" id="probGrid"></div>
     </div>
 </section>
 
 <!-- الوحدات -->
 <section class="features-section" id="features">
     <div class="container">
-        <h3 class="section-title">كل ما يحتاجه مطعمك في منصة واحدة</h3>
-        <p class="section-subtitle">من حساب التكلفة إلى متابعة العميل — منظومة واحدة، بيانات مترابطة، وقرارات أذكى.</p>
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-clipboard-list"></i></div>
-                <h4>إدارة الأطباق والمواد</h4>
-                <p>أضف الأطباق والمواد الأولية، واحسب التكلفة الفعلية لكل طبق مع مراعاة الهدر ونسب الحصص.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-chart-pie"></i></div>
-                <h4>هندسة المينيو (BCG)</h4>
-                <p>تصنيف احترافي: نجوم، أبقار نقدية، علامات استفهام، كلاب — مع توصيات فورية لتحسين القائمة.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-balance-scale"></i></div>
-                <h4>نقطة التعادل</h4>
-                <p>احسب الوحدات والإيرادات اللازمة لتغطية التكاليف الثابتة، وخطط لأهدافك الشهرية بدقة.</p>
-            </div>
-            <div class="feature-card gold-accent">
-                <div class="badge-new">جديد</div>
-                <div class="feature-icon"><i class="fas fa-qrcode"></i></div>
-                <h4>المينيو الإلكتروني QR</h4>
-                <p>مينيو رقمي أنيق مع صور وأصناف وأسعار، تولّد كود QR فريد لمطعمك — جاهز للطباعة والتوزيع.</p>
-            </div>
-            <div class="feature-card gold-accent">
-                <div class="badge-new">جديد</div>
-                <div class="feature-icon"><i class="fas fa-star"></i></div>
-                <h4>نظام التقييمات</h4>
-                <p>عميلك يمسح QR ويقيّم (طعام، خدمة، نظافة، أسعار) خلال دقيقة — وتظهر النتائج في لوحتك فوراً.</p>
-            </div>
-            <div class="feature-card gold-accent">
-                <div class="badge-new">جديد</div>
-                <div class="feature-icon"><i class="fas fa-mobile-screen-button"></i></div>
-                <h4>تطبيق العميل PWA</h4>
-                <p>تطبيق جوال يُثبَّت مباشرة من المتصفح — مينيو، طلبات، حجوزات، نقاط ولاء، رمز QR شخصي.</p>
-            </div>
-            <div class="feature-card gold-accent">
-                <div class="badge-new">جديد</div>
-                <div class="feature-icon"><i class="fas fa-desktop"></i></div>
-                <h4>شاشة المطبخ (KDS)</h4>
-                <p>شاشة عرض حية لأرقام الطلبات قيد التحضير والجاهزة للاستلام — بدون ورق ولا صراخ.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-cash-register"></i></div>
-                <h4>نقاط البيع POS</h4>
-                <p>تسجيل الطلبات، إدارة الطاولات، طباعة الفواتير، ومزامنة مباشرة مع التكاليف والمخزون.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-users"></i></div>
-                <h4>CRM والولاء</h4>
-                <p>ملفات العملاء، نقاط الولاء، بطاقات الهدايا، العروض المستهدفة، وصندوق رسائل داخل التطبيق.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-motorcycle"></i></div>
-                <h4>إدارة التوصيل</h4>
-                <p>عناوين العملاء، حالة الطلب لحظياً (قيد التحضير / في الطريق / تم التسليم)، وتنبيهات السائقين.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-calendar-check"></i></div>
-                <h4>الحجوزات والطاولات</h4>
-                <p>حجز طاولة من التطبيق، اختيار الفرع والموعد وعدد الأشخاص — ومتابعة الحالة من لوحة التحكم.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-file-excel"></i></div>
-                <h4>تقارير احترافية</h4>
-                <p>تصدير شامل Excel وWord لكل البيانات: التكاليف، BCG، نقطة التعادل، التقييمات، KPIs.</p>
+        <h3 class="section-title" data-t="mod_title"></h3>
+        <p class="section-subtitle" data-t="mod_sub"></p>
+        <div class="mod-grid" id="modGrid"></div>
+    </div>
+</section>
+
+<!-- التطبيقات والشاشات -->
+<section class="apps-section" id="apps">
+    <div class="container">
+        <h3 class="section-title" data-t="apps_title"></h3>
+        <p class="section-subtitle" data-t="apps_sub"></p>
+        <div class="apps-grid" id="appsGrid"></div>
+    </div>
+</section>
+
+<!-- المحاسبة IFRS -->
+<section class="acc-section" id="accounting">
+    <div class="container acc-grid">
+        <div class="acc-content">
+            <span class="hero-badge" style="background:var(--finance-green);" data-t="acc_badge"></span>
+            <h3 data-t="acc_title"></h3>
+            <p data-t="acc_text"></p>
+            <ul class="acc-list" id="accList"></ul>
+        </div>
+        <div class="acc-visual">
+            <div class="ledger-mock">
+                <div class="lm-head"><i class="fas fa-book"></i> <span data-t="lm_title"></span></div>
+                <div class="lm-row lm-th"><span data-t="lm_acc"></span><span data-t="lm_dr"></span><span data-t="lm_cr"></span></div>
+                <div class="lm-row"><span>1110 · <b data-t="lm_a1"></b></span><span>12,450.00</span><span>—</span></div>
+                <div class="lm-row"><span>1210 · <b data-t="lm_a2"></b></span><span>3,227.50</span><span>—</span></div>
+                <div class="lm-row"><span>4100 · <b data-t="lm_a3"></b></span><span>—</span><span>14,350.00</span></div>
+                <div class="lm-row"><span>2310 · <b data-t="lm_a4"></b></span><span>—</span><span>1,327.50</span></div>
+                <div class="lm-row lm-tot"><span data-t="lm_tot"></span><span>15,677.50</span><span>15,677.50</span></div>
+                <div class="lm-foot"><i class="fas fa-lock"></i> <span data-t="lm_foot"></span></div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- ===== قسم المعاينة (لقطات الشاشة) ===== -->
+<!-- لقطات الشاشة -->
 <section class="screenshots-section" id="screenshots">
     <div class="container">
-        <h3 class="section-title">جولة بصرية داخل المنصة</h3>
-        <p class="section-subtitle">لقطات حقيقية من النظام تُظهر قوة ومرونة Mataami Pro في إدارة العمليات المالية، التشغيل، والكاشير.</p>
-        
+        <h3 class="section-title" data-t="shots_title"></h3>
+        <p class="section-subtitle" data-t="shots_sub"></p>
         <div class="screenshots-grid">
-            <!-- صورة 1: لوحة التحكم -->
-            <div class="screenshot-item" onclick="openLightbox('assets/dashboard.jpg')">
-                <img src="assets/dashboard.jpg" alt="لوحة التحكم والتشغيل اليومي" loading="lazy">
-                <div class="screenshot-overlay">
-                    <i class="fas fa-search-plus"></i>
-                    <span>تكبير الصورة</span>
-                </div>
-                <div class="screenshot-title">لوحة التحكم والتشغيل اليومي</div>
+            <div class="screenshot-item" onclick="openLightbox('assets/shots/pos-ar.jpg')">
+                <img src="assets/shots/pos-ar.jpg" data-img="pos" data-alt="shot1" alt="" loading="lazy">
+                <div class="screenshot-overlay"><i class="fas fa-search-plus"></i><span data-t="zoom"></span></div>
+                <div class="screenshot-title" data-t="shot1"></div>
             </div>
-
-            <!-- صورة 2: الكاشير -->
-            <div class="screenshot-item" onclick="openLightbox('assets/pos.jpg')">
-                <img src="assets/pos.jpg" alt="شاشة الكاشير ونقطة البيع" loading="lazy">
-                <div class="screenshot-overlay">
-                    <i class="fas fa-search-plus"></i>
-                    <span>تكبير الصورة</span>
-                </div>
-                <div class="screenshot-title">الكاشير ونقطة البيع (POS)</div>
+            <div class="screenshot-item" onclick="openLightbox('assets/shots/orders-ar.jpg')">
+                <img src="assets/shots/orders-ar.jpg" data-img="orders" data-alt="shot2" alt="" loading="lazy">
+                <div class="screenshot-overlay"><i class="fas fa-search-plus"></i><span data-t="zoom"></span></div>
+                <div class="screenshot-title" data-t="shot2"></div>
             </div>
-
-            <!-- صورة 3: التقارير المالية -->
-            <div class="screenshot-item" onclick="openLightbox('assets/reports.jpg')">
-                <img src="assets/reports.jpg" alt="التقارير المالية والتحليلات" loading="lazy">
-                <div class="screenshot-overlay">
-                    <i class="fas fa-search-plus"></i>
-                    <span>تكبير الصورة</span>
-                </div>
-                <div class="screenshot-title">التقارير المالية والتحليلات</div>
+            <div class="screenshot-item" onclick="openLightbox('assets/shots/reports-ar.jpg')">
+                <img src="assets/shots/reports-ar.jpg" data-img="reports" data-alt="shot3" alt="" loading="lazy">
+                <div class="screenshot-overlay"><i class="fas fa-search-plus"></i><span data-t="zoom"></span></div>
+                <div class="screenshot-title" data-t="shot3"></div>
             </div>
-
-            <!-- صورة 4: إدارة التشغيل -->
-            <div class="screenshot-item" onclick="openLightbox('assets/ops.jpg')">
-                <img src="assets/ops.jpg" alt="إدارة التشغيل والفريق" loading="lazy">
-                <div class="screenshot-overlay">
-                    <i class="fas fa-search-plus"></i>
-                    <span>تكبير الصورة</span>
-                </div>
-                <div class="screenshot-title">إدارة التشغيل والفريق (SOP)</div>
+            <div class="screenshot-item" onclick="openLightbox('assets/shots/menu-ar.jpg')">
+                <img src="assets/shots/menu-ar.jpg" data-img="menu" data-alt="shot4" alt="" loading="lazy">
+                <div class="screenshot-overlay"><i class="fas fa-search-plus"></i><span data-t="zoom"></span></div>
+                <div class="screenshot-title" data-t="shot4"></div>
+            </div>
+            <div class="screenshot-item" onclick="openLightbox('assets/shots/gl-ar.jpg')">
+                <img src="assets/shots/gl-ar.jpg" data-img="gl" data-alt="shot5" alt="" loading="lazy">
+                <div class="screenshot-overlay"><i class="fas fa-search-plus"></i><span data-t="zoom"></span></div>
+                <div class="screenshot-title" data-t="shot5"></div>
+            </div>
+            <div class="screenshot-item" onclick="openLightbox('assets/shots/customers-ar.jpg')">
+                <img src="assets/shots/customers-ar.jpg" data-img="customers" data-alt="shot6" alt="" loading="lazy">
+                <div class="screenshot-overlay"><i class="fas fa-search-plus"></i><span data-t="zoom"></span></div>
+                <div class="screenshot-title" data-t="shot6"></div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- نافذة تكبير الصورة -->
 <div class="lightbox" id="imageLightbox" onclick="closeLightbox(event)">
-    <button class="lightbox-close" onclick="closeLightbox(event)"><i class="fas fa-times"></i></button>
-    <img id="lightboxImg" src="" alt="صورة مكبرة">
+    <button class="lightbox-close" onclick="closeLightbox(event)" aria-label="Close"><i class="fas fa-times"></i></button>
+    <img id="lightboxImg" src="" alt="">
 </div>
 
-<!-- ===== الباقات ===== -->
+<!-- الباقات -->
 <section class="plans-section" id="plans">
     <div class="container">
-        <h3 class="section-title">الباقات والاشتراك</h3>
-        <p class="section-subtitle">ثلاث باقات سنوية تناسب جميع أحجام المطاعم — من الفرع الواحد إلى الفروع المتعددة. ادفع بأمان وفعّل باقتك فوراً.</p>
-
-        <div class="plans-grid">
-            <!-- الباقة الأساسية -->
-            <div class="plan-card">
-                <h4>الأساسية</h4>
-                <p class="plan-tag">هندسة المنيو والمينيو الإلكتروني</p>
-                <div class="plan-price">99$ <small>/ سنوياً</small></div>
-                <div class="plan-branch">فرع واحد</div>
-                <ul class="plan-features">
-                    <li><i class="fas fa-check"></i> حساب تكلفة الأطباق والمواد الأولية</li>
-                    <li><i class="fas fa-check"></i> هندسة المنيو ونقطة التعادل</li>
-                    <li><i class="fas fa-check"></i> المنيو الإلكتروني و QR</li>
-                    <li><i class="fas fa-check"></i> تقييمات العملاء</li>
-                </ul>
-                <a href="f-14-G-17.html?plan=basic" class="btn-plan">
-                    <i class="fas fa-rocket"></i> اشترك في الأساسية
-                </a>
-            </div>
-
-            <!-- باقة الإنطلاقة -->
-            <div class="plan-card popular">
-                <span class="popular-badge"><i class="fas fa-star"></i> الأكثر طلباً</span>
-                <h4>الإنطلاقة</h4>
-                <p class="plan-tag">كل ما تحتاجه لإدارة وتشغيل نشاطك بكفاءة</p>
-                <div class="plan-price">299$ <small>/ سنوياً</small></div>
-                <div class="plan-branch">فرع واحد · حتى 1,000 منتج</div>
-                <ul class="plan-features">
-                    <li class="inherit"><i class="fas fa-plus"></i> كل ما في الأساسية، بالإضافة إلى:</li>
-                    <li><i class="fas fa-check"></i> الكاشير ونقطة البيع</li>
-                    <li><i class="fas fa-check"></i> الطلب من المنيو الإلكتروني إلى الكاشير</li>
-                    <li><i class="fas fa-check"></i> الطاولات والحجوزات</li>
-                    <li><i class="fas fa-check"></i> الخصومات والعروض</li>
-                    <li><i class="fas fa-check"></i> المخزون والجرد والهدر</li>
-                    <li><i class="fas fa-check"></i> العملاء</li>
-                    <li><i class="fas fa-check"></i> برنامج الولاء (النقاط)</li>
-                    <li><i class="fas fa-check"></i> بطاقات الهدايا</li>
-                    <li><i class="fas fa-check"></i> الإشعارات الذكية</li>
-                    <li><i class="fas fa-check"></i> بطاقة تقييمات Google</li>
-                    <li><i class="fas fa-check"></i> الحسابات والفواتير الإلكترونية</li>
-                    <li><i class="fas fa-check"></i> المصروفات</li>
-                    <li><i class="fas fa-check"></i> التقارير المالية</li>
-                    <li><i class="fas fa-check"></i> حسابات الموظفين (غير محدودة)</li>
-                    <li><i class="fas fa-check"></i> الورديات وإدارة الفرع - فرع واحد</li>
-                    <li><i class="fas fa-check"></i> إدارة التشغيل: SOP والتدقيق، الاستلام والتسليم</li>
-                    <li><i class="fas fa-check"></i> جدول الورديات وتقييم الموظفين وتحليل العمالة</li>
-                </ul>
-                <a href="f-14-G-17.html?plan=pro" class="btn-plan primary">
-                    <i class="fas fa-rocket"></i> اشترك في الإنطلاقة
-                </a>
-            </div>
-
-            <!-- الباقة المتقدمة -->
-            <div class="plan-card">
-                <h4>المتقدمة</h4>
-                <p class="plan-tag">إمكانات أوسع للتشغيل والمخزون مع تطبيق خاص لنشاطك</p>
-                <div class="plan-price">499$ <small>/ سنوياً</small></div>
-                <div class="plan-branch">فروع متعددة · منتجات بلا حد</div>
-                <ul class="plan-features">
-                    <li class="inherit"><i class="fas fa-plus"></i> كل ما في الإنطلاقة، بالإضافة إلى:</li>
-                    <li><i class="fas fa-check"></i> الورديات وإدارة الفرع - عدة فروع</li>
-                    <li><i class="fas fa-check"></i> عدد المنتجات - بلا حد</li>
-                    <li><i class="fas fa-check"></i> شاشة المطبخ والتجهيز</li>
-                    <li><i class="fas fa-check"></i> شاشة حالة الطلبات للعملاء</li>
-                    <li><i class="fas fa-check"></i> الوصفات والتركيبات وأوامر الإنتاج</li>
-                    <li><i class="fas fa-check"></i> فواتير الشراء والموردون</li>
-                    <li><i class="fas fa-check"></i> تحويلات المخزون بين الفروع</li>
-                    <li><i class="fas fa-check"></i> تقارير الربحية</li>
-                    <li><i class="fas fa-check"></i> عروض الأسعار</li>
-                    <li><i class="fas fa-check"></i> دفتر الاجل</li>
-                    <li><i class="fas fa-check"></i> سجل النشاط</li>
-                    <li><i class="fas fa-check"></i> تطبيق خاص باسم نشاطك</li>
-                </ul>
-                <a href="f-14-G-17.html?plan=premium" class="btn-plan">
-                    <i class="fas fa-rocket"></i> اشترك في المتقدمة
-                </a>
-            </div>
-        </div>
-
+        <h3 class="section-title" data-t="plans_title"></h3>
+        <p class="section-subtitle" data-t="plans_sub"></p>
+        <div class="plans-grid" id="plansGrid"></div>
         <p class="plans-note">
-            <i class="fas fa-info-circle"></i> جميع الأسعار سنوية وبالدولار الأمريكي · <strong style="color:#d4b15a">لا يتجدد تلقائياً</strong> · تحصل على تذكير قبل الانتهاء<br>
-            <i class="fas fa-shield-alt"></i> بعد الدفع أدخل رقم العملية لتفعيل الباقة فوراً · <a href="f-14-G-17.html" target="_blank" style="color:#d4b15a">لديك حساب؟ جدّد هنا</a>
+            <i class="fas fa-info-circle"></i> <span data-t="pn1"></span> · <strong style="color:#d4b15a" data-t="tb1"></strong> · <span data-t="pn2"></span><br>
+            <i class="fas fa-shield-alt"></i> <span data-t="pn3"></span> · <a data-href="f-14-G-17.html" target="_blank" style="color:#d4b15a" data-t="pn4"></a>
         </p>
+    </div>
+</section>
+
+<!-- مقارنة الباقات -->
+<section class="compare-section" id="compare">
+    <div class="container">
+        <h3 class="section-title" data-t="cmp_title"></h3>
+        <p class="section-subtitle" data-t="cmp_sub"></p>
+        <div class="cmp-wrap"><table class="cmp-table" id="cmpTable"></table></div>
     </div>
 </section>
 
@@ -783,18 +738,13 @@
     <div class="container">
         <div class="qr-feature-grid">
             <div class="qr-feature-content">
-                <span class="hero-badge" style="background:var(--finance-green);">✨ ميزة مميزة</span>
-                <h3>مينيو إلكتروني + <span>تقييمات عبر QR</span></h3>
-                <p>أنشئ مينيو رقمياً كاملاً، وولّد كود QR فريداً لكل مطعم — للطلبات أو للتقييم — في ثوانٍ.</p>
-                <ul class="qr-feature-list">
-                    <li><i class="fas fa-qrcode"></i> <div><strong>رمز QR مخصص</strong><br>كود فريد للمينيو وآخر للتقييم — جاهز للطباعة ووضعه على الطاولات.</div></li>
-                    <li><i class="fas fa-book-open"></i> <div><strong>مينيو غني بالصور</strong><br>أصناف، أقسام، أحجام، إضافات، وطلب مباشر عبر واتساب أو التطبيق.</div></li>
-                    <li><i class="fas fa-star"></i> <div><strong>تقييم فوري</strong><br>العميل يمسح الكود ويقيّم (طعام، خدمة، نظافة، أسعار) في دقيقة.</div></li>
-                    <li><i class="fas fa-chart-bar"></i> <div><strong>تحليل ذكي للتقييمات</strong><br>لوحة تحكم بمتوسطات، توزيعات، وربط التقييم بكل طبق على حدة.</div></li>
-                </ul>
+                <span class="hero-badge" style="background:var(--finance-green);" data-t="qr_badge"></span>
+                <h3 data-t="qr_title"></h3>
+                <p data-t="qr_text"></p>
+                <ul class="qr-feature-list" id="qrList"></ul>
             </div>
             <div class="qr-feature-image">
-                <img src="https://lh3.googleusercontent.com/d/1JXxgzF9RE691VK3H12IXHcBcvC6MdbId" alt="QR Code المينيو والتقييم" style="max-width:350px;">
+                <img src="https://lh3.googleusercontent.com/d/1JXxgzF9RE691VK3H12IXHcBcvC6MdbId" alt="QR" style="max-width:350px;">
             </div>
         </div>
     </div>
@@ -805,33 +755,22 @@
     <div class="container">
         <div class="showcase-grid">
             <div class="showcase-content">
-                <span class="hero-badge">تطبيق العميل</span>
-                <h3>تطبيق جوال <span>يُثبَّت من المتصفح</span></h3>
-                <p>بدون App Store ولا Google Play — يفتح عميلك رابطاً، يثبّت التطبيق على جواله، ويبدأ بالطلب والولاء والحجز.</p>
-                <ul class="showcase-features">
-                    <li><i class="fas fa-check-circle"></i> تصفح المينيو واطلب</li>
-                    <li><i class="fas fa-check-circle"></i> رمز QR شخصي للولاء</li>
-                    <li><i class="fas fa-check-circle"></i> حجز طاولة</li>
-                    <li><i class="fas fa-check-circle"></i> تتبع حالة الطلب</li>
-                    <li><i class="fas fa-check-circle"></i> صندوق عروض ورسائل</li>
-                    <li><i class="fas fa-check-circle"></i> عناوين التوصيل</li>
-                    <li><i class="fas fa-check-circle"></i> بطاقات الهدايا</li>
-                    <li><i class="fas fa-check-circle"></i> تنبيهات Push</li>
-                </ul>
+                <span class="hero-badge" data-t="ca_badge"></span>
+                <h3 data-t="ca_title"></h3>
+                <p data-t="ca_text"></p>
+                <ul class="showcase-features" id="caList"></ul>
             </div>
             <div class="showcase-visual">
                 <div class="phone-mockup">
                     <div class="phone-screen">
-                        <div class="ps-header">
-                            <img src="" alt="">
-                            <b>مطعمي برو</b>
-                        </div>
-                        <div class="ps-big"><i class="fas fa-book-open"></i> المينيو واطلب الآن</div>
+                        <div class="ps-header"><img src="assets/icon-192.png" alt=""><b data-t="ps_name"></b></div>
+                        <div class="ps-points"><span data-t="ps_hi"></span><b>1,250 <small data-t="ps_pts"></small></b></div>
+                        <div class="ps-big"><i class="fas fa-book-open"></i> <span data-t="ps_menu"></span></div>
                         <div class="ps-tiles">
-                            <div class="ps-tile"><i class="fas fa-calendar-check"></i> احجز طاولة</div>
-                            <div class="ps-tile"><i class="fas fa-gift"></i> نقاطي</div>
-                            <div class="ps-tile"><i class="fas fa-receipt"></i> حالة طلبي</div>
-                            <div class="ps-tile"><i class="fas fa-id-card"></i> حسابي QR</div>
+                            <div class="ps-tile"><i class="fas fa-calendar-check"></i> <span data-t="ps_t1"></span></div>
+                            <div class="ps-tile"><i class="fas fa-gift"></i> <span data-t="ps_t2"></span></div>
+                            <div class="ps-tile"><i class="fas fa-receipt"></i> <span data-t="ps_t3"></span></div>
+                            <div class="ps-tile"><i class="fas fa-id-card"></i> <span data-t="ps_t4"></span></div>
                         </div>
                     </div>
                 </div>
@@ -846,142 +785,78 @@
         <div class="showcase-grid">
             <div class="showcase-visual">
                 <div class="kds-mockup">
-                    <div class="kds-header">
-                        <h4><i class="fas fa-desktop"></i> شاشة المطبخ</h4>
-                        <span>12:45</span>
-                    </div>
+                    <div class="kds-header"><h4><i class="fas fa-desktop"></i> <span data-t="kds_h"></span></h4><span>12:45</span></div>
                     <div class="kds-cols">
                         <div>
-                            <div class="kds-col-title prep">قيد التحضير</div>
-                            <div class="kds-nums">
-                                <div class="kds-num">102</div>
-                                <div class="kds-num">104</div>
-                                <div class="kds-num">107</div>
-                                <div class="kds-num">109</div>
-                            </div>
+                            <div class="kds-col-title prep" data-t="kds_prep"></div>
+                            <div class="kds-nums"><div class="kds-num">102</div><div class="kds-num">104</div><div class="kds-num">107</div><div class="kds-num">109</div></div>
                         </div>
                         <div>
-                            <div class="kds-col-title ready">جاهز للاستلام</div>
-                            <div class="kds-nums">
-                                <div class="kds-num green">98</div>
-                                <div class="kds-num green">101</div>
-                                <div class="kds-num green">105</div>
-                            </div>
+                            <div class="kds-col-title ready" data-t="kds_ready"></div>
+                            <div class="kds-nums"><div class="kds-num green">98</div><div class="kds-num green">101</div><div class="kds-num green">105</div></div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="showcase-content">
-                <span class="hero-badge">شاشة المطبخ KDS</span>
-                <h3>مطبخ بلا ورق <span>ولا صراخ</span></h3>
-                <p>شاشة عرض حية تُثبَّت في المطبخ أو الاستقبال — تعرض أرقام الطلبات قيد التحضير والجاهزة، وتُحدّث تلقائياً كل 5 ثوانٍ.</p>
-                <ul class="showcase-features">
-                    <li><i class="fas fa-check-circle"></i> عرض تلقائي متجدد</li>
-                    <li><i class="fas fa-check-circle"></i> تنبيه صوتي للطلبات الجديدة</li>
-                    <li><i class="fas fa-check-circle"></i> وضع ملء الشاشة</li>
-                    <li><i class="fas fa-check-circle"></i> شعار وألوان مطعمك</li>
-                </ul>
+                <span class="hero-badge" data-t="kds_badge"></span>
+                <h3 data-t="kds_title"></h3>
+                <p data-t="kds_text"></p>
+                <ul class="showcase-features" id="kdsList"></ul>
             </div>
         </div>
+    </div>
+</section>
+
+<!-- الجديد -->
+<section class="new-section" id="whatsnew">
+    <div class="container">
+        <h3 class="section-title" data-t="new_title"></h3>
+        <p class="section-subtitle" data-t="new_sub"></p>
+        <div class="new-grid" id="newGrid"></div>
     </div>
 </section>
 
 <!-- FAQ -->
 <section class="faq-section" id="faq">
     <div class="container">
-        <h3 class="section-title">أسئلة شائعة</h3>
-        <div class="faq-grid">
-            <div class="faq-item">
-                <div class="faq-question"><span>ما الفرق بين الباقات الثلاث؟</span> <i class="fas fa-chevron-down"></i></div>
-                <div class="faq-answer">الباقة الأساسية تشمل التكاليف + هندسة المينيو + نقطة التعادل + المينيو الإلكتروني + التقييمات. باقة الإنطلاقة تضيف كل وحدات التشغيل: الكاشير، المخزون، الموظفين، الولاء، والتقارير المالية. الباقة المتقدمة تفتح الفروع المتعددة، تحويلات المخزون، شاشة المطبخ، وتطبيق خاص باسم نشاطك.</div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question"><span>هل يمكنني الترقية من باقة لأخرى؟</span> <i class="fas fa-chevron-down"></i></div>
-                <div class="faq-answer">نعم، يمكنك الترقية في أي وقت عبر صفحة "تجديد الاشتراك" واختيار الباقة الأعلى. سيتم احتساب المتبقي من اشتراكك الحالي حسب سياسة الفروقات، وتُفعَّل الباقة الجديدة فوراً.</div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question"><span>هل المنصة مناسبة للمطاعم الصغيرة؟</span> <i class="fas fa-chevron-down"></i></div>
-                <div class="faq-answer">نعم، الباقة الأساسية 99$ مصممة خصيصاً لمطعم واحد صغير يريد إتقان التكاليف والمينيو أولاً، ثم الترقية لاحقاً عند التوسع. كل وحدة تعمل باستقلالية، فلا تدفع مقابل ما لا تحتاجه.</div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question"><span>هل الاشتراك يتجدد تلقائياً؟</span> <i class="fas fa-chevron-down"></i></div>
-                <div class="faq-answer">لا، جميع الباقات سنوية ولا تتجدد تلقائياً. ستتلقى تذكيراً قبل انتهاء الاشتراك، وتجدد يدوياً عند الحاجة.</div>
-            </div>
-        </div>
+        <h3 class="section-title" data-t="faq_title"></h3>
+        <div class="faq-grid" id="faqGrid"></div>
     </div>
 </section>
 
 <!-- CTA -->
 <section class="cta-section">
     <div class="container">
-        <h3>جاهز لتحويل مطعمك إلى منظومة رقمية؟</h3>
-        <p>اختر الباقة المناسبة، وادفع بأمان، وابدأ التشغيل خلال دقائق — بلا متاجر تطبيقات وبلا تعقيد.</p>
+        <h3 data-t="cta_title"></h3>
+        <p data-t="cta_text"></p>
         <div class="price-tag" style="background:rgba(255,255,255,0.1); color:var(--gold); display:inline-block; padding:10px 30px; border-radius:50px; font-size:1.5rem; margin-bottom:20px;">
-            من 99$ <small style="color:rgba(255,255,255,0.6);">/ سنوياً</small>
+            <span data-t="from"></span> 99$ <small style="color:rgba(255,255,255,0.6);" data-t="per_year"></small>
         </div><br>
         <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
-            <a href="f-14-G-17.html" class="btn-gold" target="_blank"><i class="fas fa-user-plus"></i> اشترك الآن</a>
-            <a href="f-14-G-17.html?renew=1" class="btn-outline" target="_blank" style="border-color:#d4b15a; color:#d4b15a;"><i class="fas fa-sync-alt"></i> تجديد الاشتراك</a>
+            <a data-href="f-14-G-17.html" class="btn-gold" target="_blank"><i class="fas fa-user-plus"></i> <span data-t="cta_sub"></span></a>
+            <a data-href="f-14-G-17.html?renew=1" class="btn-outline" target="_blank" style="border-color:#d4b15a; color:#d4b15a;"><i class="fas fa-sync-alt"></i> <span data-t="cta_renew"></span></a>
+            <a data-href="index.html" class="btn-outline" target="_blank" style="border-color:#d4b15a; color:#d4b15a;"><i class="fas fa-sign-in-alt"></i> <span data-t="nav_login"></span></a>
         </div>
-        <p style="margin-top:20px; font-size:0.9rem; opacity:0.7;"><i class="fas fa-lock"></i> دفع آمن – وصول فوري</p>
+        <p style="margin-top:20px; font-size:0.9rem; opacity:0.7;"><i class="fas fa-lock"></i> <span data-t="cta_secure"></span></p>
     </div>
 </section>
 
-<!-- Footer -->
 <footer>
     <div class="container">
-        <p>© 2026 <strong>FAROUK GRUP</strong>. جميع الحقوق محفوظة.</p>
-        <p style="margin-top:10px;"><span>Mataami Pro</span> – منظومة إدارة المطاعم المتكاملة: تكاليف، مينيو، تقييمات، تطبيق عميل، شاشة مطبخ، وتقارير.</p>
+        <p>© 2026 <strong>FAROUK GRUP</strong>. <span class="fr" data-t="rights"></span></p>
+        <p style="margin-top:10px;"><span>Mataami Pro</span> – <span class="fr" data-t="foot_text"></span></p>
     </div>
 </footer>
 
+<script src="landing-i18n.js?v=5.3.2"></script>
 <script>
-    // FAQ accordion
-    document.querySelectorAll('.faq-question').forEach(question => {
-        question.addEventListener('click', () => {
-            const item = question.closest('.faq-item');
-            document.querySelectorAll('.faq-item').forEach(faq => {
-                if (faq !== item) faq.classList.remove('active');
-            });
-            item.classList.toggle('active');
-        });
-    });
-
-    // Smooth scroll for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(a => {
-        a.addEventListener('click', e => {
-            const target = document.querySelector(a.getAttribute('href'));
-            if (target) {
-                e.preventDefault();
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        });
-    });
-
-    // Lightbox logic (نافذة تكبير الصور)
+    // Lightbox
     const lightbox = document.getElementById('imageLightbox');
     const lightboxImg = document.getElementById('lightboxImg');
-
-    function openLightbox(src) {
-        lightboxImg.src = src;
-        lightbox.classList.add('active');
-        document.body.style.overflow = 'hidden'; // منع التمرير
-    }
-
-    function closeLightbox(e) {
-        if (e) e.stopPropagation(); // منع إغلاق النافذة عند النقر على الصورة نفسها
-        lightbox.classList.remove('active');
-        document.body.style.overflow = ''; // استعادة التمرير
-        setTimeout(() => { lightboxImg.src = ''; }, 300);
-    }
-
-    // إغلاق النافذة عند الضغط على زر Esc
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && lightbox.classList.contains('active')) {
-            closeLightbox();
-        }
-    });
+    function openLightbox(src) { lightboxImg.src = src; lightbox.classList.add('active'); document.body.style.overflow = 'hidden'; }
+    function closeLightbox(e) { if (e) e.stopPropagation(); lightbox.classList.remove('active'); document.body.style.overflow = ''; setTimeout(() => { lightboxImg.src = ''; }, 300); }
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && lightbox.classList.contains('active')) closeLightbox(); });
 </script>
-
 </body>
 </html>

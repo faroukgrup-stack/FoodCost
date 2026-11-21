@@ -467,7 +467,7 @@ function mnVars() {
     stdRecipes: String((MG.srRows || []).filter(function (r) { return r.data.status === 'approved'; }).length), date: dOnly(new Date()) };
   return v;
 }
-function mnFill(s, v) { return String(s || '').replace(/\{\{(\w+)\}\}/g, function (a, k) { return v[k] !== undefined ? v[k] : a; }); }
+function mnFill(s, v) { return (window.fcI18n && window.fcI18n.lang() !== 'ar' ? mnTrText(s) : String(s || '')).replace(/\{\{(\w+)\}\}/g, function (a, k) { return v[k] !== undefined ? v[k] : a; }); }
 // تحويل النص المبسط إلى HTML
 function mnMd(text, v) {
   const lines = mnFill(text, v).split(/\r?\n/);
@@ -489,7 +489,22 @@ function mnMd(text, v) {
   flushL(); flushT();
   return out;
 }
-function mnTpl(key) { return (typeof MANUAL_TEMPLATES !== 'undefined' ? MANUAL_TEMPLATES : []).find(function (t) { return t.key === key; }); }
+function mnTpl(key) { const t = (typeof MANUAL_TEMPLATES !== 'undefined' ? MANUAL_TEMPLATES : []).find(function (t) { return t.key === key; }); return t ? mnTplLang(t) : t; }
+// v5.3.2: قوالب الأدلة بلغة الواجهة المختارة (العربية / English / Türkçe)
+function mnTrLine(line) {
+  const I = window.fcI18n, D = window.FC_I18N || {};
+  if (!I || I.lang() === 'ar' || !/[\u0600-\u06FF]/.test(line)) return line;
+  const one = function (x) { const n = String(x).replace(/\s+/g, ' ').trim(); if (!n) return x; if (D[n] !== undefined) return x.replace(n, D[n]); return I.t(x); };
+  if (/^\s*\|/.test(line)) return line.split('|').map(function (c) { return /[\u0600-\u06FF]/.test(c) ? ' ' + one(c).trim() + ' ' : c; }).join('|');
+  const m = line.match(/^(\s*(?:#|-|>|\d+\.)\s+)(.*)$/);
+  return (m ? m[1] + one(m[2]) : one(line)).replace(/←/g, '→');
+}
+function mnTrText(s) { return String(s || '').split('\n').map(mnTrLine).join('\n'); }
+function mnTplLang(t) {
+  if (!window.fcI18n || window.fcI18n.lang() === 'ar') return t;
+  if (!t.__l) t.__l = Object.assign({}, t, { title: mnTrLine(t.title), purpose: mnTrText(t.purpose), sections: (t.sections || []).map(function (x) { return [mnTrLine(x[0]), mnTrText(x[1])]; }) });
+  return t.__l;
+}
 function mnFromTpl(t) { return { key: t.key, code: t.code, purpose: t.purpose, status: 'draft', preparedBy: '', sections: t.sections.map(function (s) { return { id: mgUid(), title: s[0], body: s[1], reviewed: false }; }) }; }
 function mnProgress(row) { const s = (row && row.data.sections) || []; return s.length ? Math.round(s.filter(function (x) { return x.reviewed; }).length / s.length * 100) : 0; }
 
@@ -520,7 +535,7 @@ function mnRender(body, rows) {
       return '<label class="mn-chk ' + (v >= 1 ? 'ok' : v > 0 ? 'part' : '') + '">' + (manual ? '<input type="checkbox" data-ck="' + c[0] + '"' + (v >= 1 ? ' checked' : '') + '>' : '<i class="fas fa-' + (v >= 1 ? 'check-circle' : v > 0 ? 'adjust' : 'circle') + '"></i>') + ' <span>' + h(c[1]) + (c[0] === 'recipes' ? ' <small>(' + srAp + (recN ? ' / ' + recN : '') + ')</small>' : '') + '</span></label>'; }).join('') + '</div></div>' +
     '<div class="biz-toolbar"><span class="muted grow">أنشئ كل دليل من القالب الجاهز، عدّل بنوده بما يناسب مطعمك، علّم الأقسام التي راجعتها، ثم اعتمده واطبعه.</span>' +
     '<button class="btn btn-outline btn-sm" data-act="custom"><i class="fas fa-plus"></i> دليل مخصص</button><button class="btn btn-primary btn-sm" data-act="bundle"><i class="fas fa-print"></i> طباعة الحزمة الكاملة</button></div>' +
-    '<div class="mn-grid">' + MANUAL_TEMPLATES.map(function (t) { return mnCard(t, byKey[t.key]); }).join('') + custom.map(function (r) { return mnCard({ key: r.data.key, code: r.data.code, icon: 'file-lines', color: '#64748b', title: r.title }, r); }).join('') + '</div>';
+    '<div class="mn-grid">' + MANUAL_TEMPLATES.map(function (t) { return mnCard(mnTplLang(t), byKey[t.key]); }).join('') + custom.map(function (r) { return mnCard({ key: r.data.key, code: r.data.code, icon: 'file-lines', color: '#64748b', title: r.title }, r); }).join('') + '</div>';
   const reload = async function () { mnRender(body, await mgList('manual')); };
   body.onclick = async function (e) {
     const c = e.target.closest('[data-mn]'), cr = e.target.closest('[data-mnc]'), a = e.target.closest('[data-act]');

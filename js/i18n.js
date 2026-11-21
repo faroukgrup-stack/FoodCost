@@ -55,8 +55,17 @@
     var d = D(), k = norm(m); if (d[k] !== undefined) return d[k];
     // تجزئة إضافية عند علامات الترقيم
     var parts = m.split(/([،؛:.!؟«»\(\)\-–—\/|•·])/);
-    if (parts.length > 1) return parts.map(function (x) { var y = norm(x); return y && d[y] !== undefined ? x.replace(y, d[y]) : x; }).join('');
-    return m;
+    if (parts.length > 1) return parts.map(function (x) { var y = norm(x); return y && d[y] !== undefined ? x.replace(y, d[y]) : wordsFb(x); }).join('');
+    return wordsFb(m);
+  }
+  // v5.3.2: عنوان ثابت + اسم متغير (مثل «تسوية ترينديول» أو «كشف حساب مورد») — نترجم الجزء الثابت ونترك الاسم كما هو
+  var LBL = { 'تسوية': 1, 'أرصدة': 1, 'بطاقة': 1, 'تقييم': 1, 'تسليم': 1, 'قيد': 1, 'فاتورة': 1, 'طلب': 1, 'كشف': 1, 'فرع': 1, 'الفرع': 1, 'منصة': 1, 'عميل': 1, 'العميل': 1, 'مورد': 1, 'المورد': 1, 'موظف': 1, 'الموظف': 1, 'تقرير': 1, 'ملصقات': 1, 'تحويل': 1, 'إغلاق': 1, 'فتح': 1, 'دليل': 1, 'مسير': 1, 'حساب': 1, 'إقفال': 1, 'عكس': 1, 'سند': 1, 'أمر': 1, 'مطابقة': 1, 'سداد': 1, 'تحصيل': 1, 'وصفة': 1, 'دفعة': 1, 'جرد': 1, 'طاولة': 1, 'وردية': 1, 'صندوق': 1, 'سائق': 1, 'السائق': 1, 'قناة': 1, 'القناة': 1, 'عهدة': 1, 'باقة': 1 };
+  function wordsFb(x) {
+    var d = D(), y = norm(x); if (!y || y.indexOf(' ') < 0) return x;
+    var w = y.split(' '), i, k;
+    for (i = w.length - 1; i >= 1; i--) { k = w.slice(0, i).join(' '); if (d[k] !== undefined && (i >= 2 || LBL[k])) { var rest = w.slice(i).join(' '); var r2 = wordsFb(rest); return x.replace(y, d[k] + ' ' + r2); } }
+    for (i = 1; i < w.length - 0; i++) { k = w.slice(i).join(' '); if (d[k] !== undefined && (w.length - i >= 2 || LBL[k])) return x.replace(y, w.slice(0, i).join(' ') + ' ' + d[k]); }
+    return x;
   }
   function tr1(s) {
     var d = D(), n = norm(s), out;
@@ -71,7 +80,7 @@
     if (!HAS.test(s)) return s;
     if (cache[s0] !== undefined) return cache[s0];
     var out = s.indexOf('\n') >= 0 ? s.split('\n').map(tr1).join('\n') : tr1(s);
-    out = out.replace(/،/g, ',').replace(/؛/g, ';').replace(/؟/g, '?');
+    out = out.replace(/،/g, ',').replace(/؛/g, ';').replace(/؟/g, '?').replace(/←/g, '→');
     if (++cacheN > 20000) { cache = {}; cacheN = 0; }
     cache[s0] = out; return out;
   }
@@ -131,6 +140,119 @@
     Intl.DateTimeFormat = function (l, o) { return new DTF(fixL(l), o); }; Intl.DateTimeFormat.prototype = DTF.prototype; Intl.DateTimeFormat.supportedLocalesOf = DTF.supportedLocalesOf;
     Intl.NumberFormat = function (l, o) { return new NF(fixL(l, 1), o); }; Intl.NumberFormat.prototype = NF.prototype; Intl.NumberFormat.supportedLocalesOf = NF.supportedLocalesOf;
   } catch (e) { /* */ }
+  // ============================================================
+  // v5.3.2: كل المخرجات بلغة الواجهة — نوافذ الطباعة (الفواتير، التقارير، الملصقات، الأدلة)،
+  // ملفات Word/HTML/CSV، ملفات Excel، أسماء الملفات، ورسائل واتساب
+  // ============================================================
+  function mirrorCss(s) {
+    return s.replace(/(text-align|float|clear)\s*:\s*(right|left)/gi, function (m, p, v) { return p + ':' + (v.toLowerCase() === 'right' ? 'left' : 'right'); })
+      .replace(/(margin|padding|border)-(right|left)(?=[\s:-])/gi, function (m, p, v) { return p + '-' + (v.toLowerCase() === 'right' ? 'left' : 'right'); });
+  }
+  function trHtml(html) {
+    if (!html || !HASX.test(html)) return html;
+    try {
+      var full = /<html[\s>]/i.test(html), bom = html.charCodeAt(0) === 0xFEFF ? '\uFEFF' : '';
+      if (bom) html = html.slice(1);
+      var doc = new DOMParser().parseFromString(full ? html : '<!DOCTYPE html><html><head></head><body>' + html + '</body></html>', 'text/html');
+      var w = doc.createTreeWalker(doc.documentElement, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, null), n;
+      while ((n = w.nextNode())) {
+        if (n.nodeType === 3) { if (HASX.test(n.nodeValue) && !(n.parentNode && SKIP[n.parentNode.tagName])) n.nodeValue = tr(n.nodeValue); continue; }
+        if (n.tagName === 'STYLE') { n.textContent = mirrorCss(n.textContent); continue; }
+        var st = n.getAttribute('style'); if (st) n.setAttribute('style', mirrorCss(st));
+        if (n.getAttribute('dir') === 'rtl') n.setAttribute('dir', 'ltr');
+        for (var i = 0; i < ATTRS.length; i++) { var a = n.getAttribute(ATTRS[i]); if (a && HASX.test(a)) n.setAttribute(ATTRS[i], tr(a)); }
+        if (n.tagName === 'TEXTAREA' && HASX.test(n.textContent)) n.textContent = tr(n.textContent);
+      }
+      if (doc.title && HASX.test(doc.title)) doc.title = tr(doc.title);
+      doc.documentElement.setAttribute('dir', 'ltr'); doc.documentElement.setAttribute('lang', lang);
+      if (!full) return doc.body.innerHTML;
+      var dt = doc.doctype ? '<!DOCTYPE ' + doc.doctype.name + '>' : '';
+      return bom + dt + doc.documentElement.outerHTML;
+    } catch (e) { return html; }
+  }
+  function trPlain(s) { return s && HASX.test(s) ? s.split('\n').map(function (l) { return HASX.test(l) ? tr(l) : l; }).join('\n') : s; }
+  function trFileName(n) {
+    if (!n || !HASX.test(n)) return n;
+    var m = String(n).match(/^(.*?)(\.[A-Za-z0-9]{2,5})?$/), base = m[1], ext = m[2] || '';
+    base = base.replace(/[\u0600-\u06FF][\u0600-\u06FF_\- ]*[\u0600-\u06FF]|[\u0600-\u06FF]/g, function (run) { return tr(run.replace(/[_-]/g, ' ')).trim().replace(/\s+/g, '_'); });
+    return base.replace(/[\\/:*?"<>|]/g, '-') + ext;
+  }
+  api.html = trHtml; api.plain = trPlain; api.file = trFileName;
+  // 1) نوافذ الطباعة: نجمع ما يُكتب في النافذة ثم نترجمه دفعة واحدة
+  var WO = window.open;
+  window.open = function (url, name, feat) {
+    if (url && /wa\.me|api\.whatsapp|whatsapp:\/\//i.test(url)) {
+      try { url = String(url).replace(/([?&]text=)([^&]*)/, function (m, p, v) { return p + encodeURIComponent(trPlain(decodeURIComponent(v))); }); } catch (e) { /* */ }
+    }
+    var w = WO.call(window, url, name, feat);
+    if (w && (!url || url === 'about:blank')) {
+      try {
+        var d = w.document, ow = d.write, oc = d.close, buf = '', tm = null;
+        var flush = function () { tm = null; if (!buf) return; var x = buf; buf = ''; ow.call(d, trHtml(x)); };
+        d.write = function () { buf += Array.prototype.join.call(arguments, ''); if (!tm) tm = setTimeout(function () { flush(); try { oc.call(d); } catch (e) { /* */ } }, 0); };
+        d.writeln = function () { d.write(Array.prototype.join.call(arguments, '') + '\n'); };
+        d.close = function () { if (tm) { clearTimeout(tm); tm = null; } flush(); return oc.call(d); };
+      } catch (e) { /* */ }
+    }
+    return w;
+  };
+  // 2) ملفات Word / HTML / CSV / نص
+  try {
+    var OB = window.Blob;
+    var NB = function (parts, opt) {
+      try {
+        var ty = (opt && opt.type) || '';
+        if (parts && parts.length && /html|msword|csv|text\/plain/i.test(ty) && parts.every(function (p) { return typeof p === 'string'; })) {
+          var s = parts.join('');
+          if (HASX.test(s)) parts = [/html|msword/i.test(ty) ? trHtml(s) : trPlain(s)];
+        }
+      } catch (e) { /* */ }
+      return new OB(parts, opt);
+    };
+    NB.prototype = OB.prototype; window.Blob = NB;
+  } catch (e) { /* */ }
+  // 3) ملفات Excel (ExcelJS): أسماء الأوراق والخلايا والاتجاه
+  function trBook(wb) {
+    try {
+      var used = {};
+      (wb.worksheets || []).forEach(function (ws) {
+        if (HASX.test(ws.name || '')) { var nm = tr(ws.name).replace(/[\[\]:*?\/\\]/g, ' ').slice(0, 31).trim() || 'Sheet'; var b = nm, c = 2; while (used[nm]) nm = b.slice(0, 28) + ' ' + (c++); try { ws.name = nm; } catch (e) { /* */ } }
+        used[ws.name] = 1;
+        try { (ws.views || []).forEach(function (v) { if (v) v.rightToLeft = false; }); } catch (e) { /* */ }
+        ws.eachRow({ includeEmpty: false }, function (row) {
+          row.eachCell({ includeEmpty: false }, function (cell) {
+            var v = cell.value;
+            if (typeof v === 'string') { if (HASX.test(v)) cell.value = trPlain(v); }
+            else if (v && v.richText) { v.richText.forEach(function (t) { if (t && typeof t.text === 'string' && HASX.test(t.text)) t.text = trPlain(t.text); }); cell.value = v; }
+            else if (v && typeof v.text === 'string' && v.hyperlink) { if (HASX.test(v.text)) cell.value = { text: trPlain(v.text), hyperlink: v.hyperlink }; }
+            try { if (cell.alignment && /right|left/.test(cell.alignment.horizontal || '')) { var al = Object.assign({}, cell.alignment); al.horizontal = al.horizontal === 'right' ? 'left' : 'right'; if (al.readingOrder) al.readingOrder = 'ltr'; cell.alignment = al; } } catch (e) { /* */ }
+          });
+        });
+      });
+      if (wb.title && HASX.test(wb.title)) wb.title = tr(wb.title);
+    } catch (e) { /* */ }
+  }
+  function patchLibs() {
+    try {
+      if (window.ExcelJS && window.ExcelJS.Workbook && !window.ExcelJS.__fcI18n) {
+        var X = new window.ExcelJS.Workbook().xlsx, XP = Object.getPrototypeOf(X);
+        if (XP && XP.writeBuffer) {
+          var owb = XP.writeBuffer; XP.writeBuffer = function () { trBook(this.workbook || this._workbook); return owb.apply(this, arguments); };
+          if (XP.write) { var owr = XP.write; XP.write = function () { trBook(this.workbook || this._workbook); return owr.apply(this, arguments); }; }
+          window.ExcelJS.__fcI18n = 1;
+        }
+      }
+    } catch (e) { /* */ }
+    try {
+      if (typeof window.saveAs === 'function' && !window.saveAs.__fcI18n) { var osa = window.saveAs; window.saveAs = function (b, n, o) { return osa.call(this, b, trFileName(n), o); }; window.saveAs.__fcI18n = 1; }
+    } catch (e) { /* */ }
+  }
+  document.addEventListener('DOMContentLoaded', patchLibs); window.addEventListener('load', patchLibs);
+  document.addEventListener('click', patchLibs, true);
+  // روابط التنزيل المباشر <a download="...">
+  document.addEventListener('click', function (e) { var a = e.target.closest && e.target.closest('a[download]'); if (a) { var dn = a.getAttribute('download'); if (dn && HASX.test(dn)) a.setAttribute('download', trFileName(dn)); } }, true);
+  try { var oac = HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click = function () { var dn = this.getAttribute && this.getAttribute('download'); if (dn && HASX.test(dn)) this.setAttribute('download', trFileName(dn)); return oac.apply(this, arguments); }; } catch (e) { /* */ }
+
   // تنسيق إضافي للاتجاه من اليسار لليمين
   var st = document.createElement('style');
   st.textContent = 'html[dir=ltr] .restaurant-dropdown{left:auto!important;right:0!important}html[dir=ltr] .biz-page-tools{left:auto;right:0}html[dir=ltr] .toggle-password-btn{left:auto;right:12px}html[dir=ltr] .pro-input-wrap .pro-icon{left:auto;right:14px}html[dir=ltr] .bell-n{left:auto;right:-6px}html[dir=ltr] .ops-go{left:auto;right:12px}html[dir=ltr] .plan-card .pc-tag{left:auto;right:16px}html[dir=ltr] .currency-dropdown{direction:ltr}html[dir=ltr] body{direction:ltr}html[dir=ltr] .sidebar-nav,html[dir=ltr] .modal-box{text-align:left}html[dir=ltr] .card-name,html[dir=ltr] .cart-heading h2{text-align:left}';

@@ -21,7 +21,7 @@ const OPS_CRIT_DEF = [
 const OPS_CFG_DEF = { weekStart: 6, targetLabor: 25, monthHours: 208, workDays: 6, maxWeekHours: 48, ordersPerStaffHour: 8, criteria: OPS_CRIT_DEF };
 
 function opsUid() { return 'i' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3); }
-function opsCfg() { const d = (OPS.cfgRow && OPS.cfgRow.data) || {}; const o = Object.assign({}, OPS_CFG_DEF, d); if (!Array.isArray(o.criteria) || !o.criteria.length) o.criteria = OPS_CRIT_DEF; return o; }
+function opsCfg() { const d = (OPS.cfgRow && OPS.cfgRow.data) || {}; const o = Object.assign({}, OPS_CFG_DEF, d); if (!Array.isArray(o.criteria) || !o.criteria.length) o.criteria = opsTrDeep(OPS_CRIT_DEF); return o; }
 function opsRate(s) { s = +s || 0; return s >= 90 ? ['ممتاز', '#10b981'] : s >= 75 ? ['جيد', '#60a5fa'] : s >= 60 ? ['يحتاج تحسين', '#f59e0b'] : ['حرج', '#ef4444']; }
 function opsScoreBadge(s) { if (s === null || s === undefined) return '—'; const r = opsRate(s); return '<span class="ops-score" style="--c:' + r[1] + '">' + nf(s, 0) + '% · ' + r[0] + '</span>'; }
 function opsRiskBadge(r) { const x = OPS_RISK[r] || OPS_RISK.m; return '<span class="ops-risk" style="--c:' + x[1] + '">' + x[0] + '</span>'; }
@@ -44,7 +44,16 @@ async function opsD(id, label) { if (!(await bConfirm('هل تريد حذف ' + 
 
 // ---------- النماذج الافتراضية ----------
 function opsSecs(list) { return list.map(function (s) { return { id: opsUid(), title: s[0], items: s[1].map(function (i) { return { id: opsUid(), t: i[0], r: i[1] || 'm', a: i[2] || '', c: i[3] || '' }; }) }; }); }
-function opsDefaultTpls() {
+function opsDefaultTpls() { return opsTrDeep(opsDefaultTplsAr()); }
+// v5.3.2: النماذج الافتراضية بلغة الواجهة
+function opsTrDeep(x) {
+  if (!window.fcI18n || window.fcI18n.lang() === 'ar') return x;
+  const D = window.FC_I18N || {};
+  const t1 = function (v) { const n = String(v).replace(/\s+/g, ' ').trim(); return D[n] !== undefined ? D[n] : window.fcI18n.t(v); };
+  const go = function (v) { if (typeof v === 'string') return /[\u0600-\u06FF]/.test(v) ? t1(v) : v; if (Array.isArray(v)) return v.map(go); if (v && typeof v === 'object') { const o = {}; Object.keys(v).forEach(function (k) { o[k] = go(v[k]); }); return o; } return v; };
+  return go(x);
+}
+function opsDefaultTplsAr() {
   return [
     { title: 'تدقيق سلامة الغذاء اليومي (HACCP)', data: { cat: 'audit', icon: 'shield-virus', desc: 'تدقيق شامل من الاستلام حتى التوثيق — 10 أقسام وفق معايير سلامة الغذاء', sections: opsSecs(OPS_FOOD_SOP) } },
     { title: 'قائمة افتتاح الوردية', data: { cat: 'opening', icon: 'door-open', desc: 'تجهيز المطعم قبل استقبال العملاء', sections: opsSecs([
@@ -676,7 +685,7 @@ function opsCritModal(done) {
     foot: '<button class="btn btn-cancel" data-x>إلغاء</button><button class="btn btn-outline" data-act="reset">الافتراضي</button><button class="btn btn-primary" data-act="save"><i class="fas fa-check"></i> حفظ</button>',
     onOpen: function (m) { draw(m); m.el.addEventListener('input', function () { sum(m); }); },
     actions: { add: function (m) { sync(m); crit.push({ k: opsUid(), n: '', w: 10 }); draw(m); }, rm: function (m, b) { sync(m); crit.splice(+b.dataset.i, 1); draw(m); },
-      reset: function (m) { crit.length = 0; OPS_CRIT_DEF.forEach(function (c) { crit.push(Object.assign({}, c)); }); draw(m); },
+      reset: function (m) { crit.length = 0; opsTrDeep(OPS_CRIT_DEF).forEach(function (c) { crit.push(Object.assign({}, c)); }); draw(m); },
       save: async function (m) { sync(m); const l = crit.filter(function (c) { return c.n && c.w > 0; }); if (!l.length) { showToast('أضف معياراً واحداً على الأقل', true); return; } await opsSaveCfg({ criteria: l }); m.close(); if (done) done(); } } });
 }
 

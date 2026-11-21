@@ -170,8 +170,8 @@ function analyzeMenuEngineering() {
     if (maxMarginDish && maxMarginDish.margin > 0) {
         const targetBoost = Math.max(maxMarginDish.units, Math.ceil(avgPop / 100 * totalUnits));
         strategyHtml += `<div style="background:rgba(16,185,129,0.12); border:1px solid #10b981; color:#6ee7b7; border-radius:12px; padding:10px 14px; font-size:0.9rem;">
-            <strong>🎯 أعلى هامش مساهمة:</strong> ${escapeHtml(maxMarginDish.name)} (${maxMarginDish.margin.toFixed(0)} ${appCurrency}/قطعة).
-            زيادة مبيعاته إلى <strong>${targetBoost}</strong> قطعة تضيف تقريباً <strong>${((targetBoost - maxMarginDish.units) * maxMarginDish.margin).toFixed(0)} ${appCurrency}</strong> ربحاً إضافياً.
+            <strong>🎯 أعلى هامش مساهمة:</strong> ${escapeHtml(maxMarginDish.name)} (${maxMarginDish.margin.toFixed(0)} ${appCurrency}/<span>قطعة</span>).
+            <span>زيادة مبيعاته إلى</span> <strong>${targetBoost}</strong> <span>قطعة تضيف تقريباً</span> <strong>${((targetBoost - maxMarginDish.units) * maxMarginDish.margin).toFixed(0)} ${appCurrency}</strong> <span>ربحاً إضافياً.</span>
         </div>`;
     }
     if (cashCowsLowMargin.length) {
@@ -206,7 +206,7 @@ function analyzeMenuEngineering() {
         type: 'scatter',
         data: {
             datasets: [{
-                label: 'الأطباق',
+                label: ((window.FC_I18N && window.FC_I18N['الأطباق']) || 'الأطباق'),
                 data: results.map(r => ({ x: r.popularity, y: r.margin, label: r.name })),
                 backgroundColor: results.map(r => r.badge.includes('star') ? '#28a745' : r.badge.includes('question') ? '#ffc107' : r.badge.includes('cash') ? '#17a2b8' : '#dc3545'),
                 pointRadius: 8
@@ -216,8 +216,8 @@ function analyzeMenuEngineering() {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                x: { title: { display: true, text: 'الشعبية (%)', color: '#aab7d4' }, ticks: { color: '#aab7d4' } },
-                y: { title: { display: true, text: 'هامش المساهمة (' + appCurrency + ')', color: '#aab7d4' }, ticks: { color: '#aab7d4' } }
+                x: { title: { display: true, text: ((window.FC_I18N && window.FC_I18N['الشعبية (%)']) || 'الشعبية (%)'), color: '#aab7d4' }, ticks: { color: '#aab7d4' } },
+                y: { title: { display: true, text: ((window.FC_I18N && window.FC_I18N['هامش المساهمة (']) || 'هامش المساهمة (') + appCurrency + ')', color: '#aab7d4' }, ticks: { color: '#aab7d4' } }
             },
             plugins: {
                 tooltip: {

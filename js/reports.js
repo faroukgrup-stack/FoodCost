@@ -180,7 +180,7 @@ async function buildReportCharts(data) {
                     }]
                 },
                 options: {
-                    plugins: { title: { display: true, text: 'هامش المساهمة للأطباق', color: '#333' }, legend: { display: false } },
+                    plugins: { title: { display: true, text: ((window.FC_I18N && window.FC_I18N['هامش المساهمة للأطباق']) || 'هامش المساهمة للأطباق'), color: '#333' }, legend: { display: false } },
                     scales: { x: { ticks: { color: '#333', maxRotation: 45 } }, y: { ticks: { color: '#333' } } }
                 }
             }, 700, 380);
@@ -204,7 +204,7 @@ async function buildReportCharts(data) {
                     }]
                 },
                 options: {
-                    plugins: { title: { display: true, text: 'توزيع تصنيفات هندسة المنيو (BCG)', color: '#333' }, legend: { position: 'bottom', labels: { color: '#333' } } }
+                    plugins: { title: { display: true, text: ((window.FC_I18N && window.FC_I18N['توزيع تصنيفات هندسة المنيو (BCG)']) || 'توزيع تصنيفات هندسة المنيو (BCG)'), color: '#333' }, legend: { position: 'bottom', labels: { color: '#333' } } }
                 }
             }, 520, 400);
         }
@@ -221,7 +221,7 @@ async function buildReportCharts(data) {
                     }]
                 },
                 options: {
-                    plugins: { title: { display: true, text: 'وحدات نقطة التعادل لكل طبق', color: '#333' }, legend: { display: false } },
+                    plugins: { title: { display: true, text: ((window.FC_I18N && window.FC_I18N['وحدات نقطة التعادل لكل طبق']) || 'وحدات نقطة التعادل لكل طبق'), color: '#333' }, legend: { display: false } },
                     scales: { x: { ticks: { color: '#333', maxRotation: 45 } }, y: { ticks: { color: '#333' } } }
                 }
             }, 700, 380);
@@ -244,7 +244,7 @@ async function buildReportCharts(data) {
                     }]
                 },
                 options: {
-                    plugins: { title: { display: true, text: 'توزيع تقييمات العملاء', color: '#333' }, legend: { display: false } },
+                    plugins: { title: { display: true, text: ((window.FC_I18N && window.FC_I18N['توزيع تقييمات العملاء']) || 'توزيع تقييمات العملاء'), color: '#333' }, legend: { display: false } },
                     scales: { y: { beginAtZero: true, ticks: { stepSize: 1, color: '#333' } }, x: { ticks: { color: '#333' } } }
                 }
             }, 560, 360);
@@ -636,7 +636,7 @@ async function exportFullReportWord() {
     <div class="sub">مجموعة فاروق | FAROUK GRUP</div>
     <div class="sub">المطعم: <strong>${esc(data.restaurantName)}</strong></div>
     <div class="sub">${esc(data.dateStr)}</div>
-    <div class="badge">الإصدار 5.3.1</div>
+    <div class="badge">الإصدار 5.3.2</div>
   </div>
 
   <div class="summary-grid">
