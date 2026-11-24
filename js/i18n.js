@@ -79,9 +79,19 @@
     for (i = 1; i < w.length - 0; i++) { k = w.slice(i).join(' '); if (d[k] !== undefined && (w.length - i >= 2 || LBL[k])) return x.replace(y, w.slice(0, i).join(' ') + ' ' + d[k]); }
     return x;
   }
+  // v5.3.5: جمل فيها أرقام متغيرة — مفتاح القاموس يكتب الرقم {n} (مثل «{n} أصناف ارتفع سعرها أكثر من {n}% خلال {n} يوم»)
+  var NUM = /\d+(?:[.,]\d+)*/g;
+  function trNum(n) {
+    if (!/\d/.test(n)) return null;
+    var d = D(), vals = [], key = n.replace(NUM, function (m) { vals.push(m); return '{n}'; });
+    var t = d[key]; if (t === undefined) return null;
+    var i = 0; return t.replace(/\{n\}|\{(\d)\}/g, function (m, k) { return k !== undefined ? (vals[+k] !== undefined ? vals[+k] : '') : (vals[i++] !== undefined ? vals[i - 1] : ''); });
+  }
   function tr1(s) {
-    var d = D(), n = norm(s), out;
-    if (d[n] !== undefined) { var lead = s.match(/^\s*/)[0], tail = s.match(/\s*$/)[0]; out = lead + d[n] + tail; }
+    var d = D(), n = norm(s), out, x;
+    var lead = s.match(/^\s*/)[0], tail = s.match(/\s*$/)[0];
+    if (d[n] !== undefined) out = lead + d[n] + tail;
+    else if ((x = trNum(n)) !== null) out = lead + x + tail;
     else out = s.replace(SEG, seg);
     return out;
   }
@@ -119,7 +129,7 @@
     while ((n = w.nextNode())) { if (n.nodeType === 3) doText(n); else doEl(n); }
   }
   var queue = [], sched = false;
-  function flush() { sched = false; var q2 = queue; queue = []; for (var i = 0; i < q2.length; i++) walk(q2[i]); pickers(); }
+  function flush() { sched = false; var q2 = queue; queue = []; for (var i = 0; i < q2.length; i++) walk(q2[i]); pickers(); if (window.Chart && !window.Chart.__fcI18n) patchChart(); }
   function push(n) { queue.push(n); if (!sched) { sched = true; (window.requestAnimationFrame || setTimeout)(flush); } }
   var mo = new MutationObserver(function (list) {
     for (var i = 0; i < list.length; i++) {
@@ -244,7 +254,36 @@
       if (wb.title && HASX.test(wb.title)) wb.title = tr(wb.title);
     } catch (e) { /* */ }
   }
+  // v5.3.5: الرسوم البيانية (Chart.js) تُرسم على canvas — نترجم التسميات والعناوين والتلميحات قبل الرسم
+  function trAny(v) { if (typeof v === 'string') return HASX.test(v) ? tr(v) : v; if (Array.isArray(v)) return v.map(trAny); return v; }
+  function trChart(ch) {
+    try {
+      var dt = ch.data || {};
+      if (dt.labels) dt.labels = dt.labels.map(trAny);
+      (dt.datasets || []).forEach(function (ds) { if (ds && typeof ds.label === 'string' && HASX.test(ds.label)) ds.label = tr(ds.label); });
+      var o = ch.options || {}, pl = o.plugins || {};
+      if (pl.title && pl.title.text) pl.title.text = trAny(pl.title.text);
+      if (pl.subtitle && pl.subtitle.text) pl.subtitle.text = trAny(pl.subtitle.text);
+      Object.keys(o.scales || {}).forEach(function (k) { var sc = o.scales[k]; if (sc && sc.title && sc.title.text) sc.title.text = trAny(sc.title.text); });
+    } catch (e) { /* */ }
+  }
+  function patchChart() {
+    try {
+      var CH = window.Chart;
+      if (CH && CH.register && !CH.__fcI18n) {
+        CH.__fcI18n = 1;
+        CH.register({ id: 'fcI18n',
+          beforeInit: trChart, beforeUpdate: trChart,
+          beforeTooltipDraw: function (ch, args) {
+            try { var t = args.tooltip; if (t.title) t.title = t.title.map(trAny); (t.body || []).forEach(function (b) { b.lines = (b.lines || []).map(trAny); b.before = trAny(b.before || []); b.after = trAny(b.after || []); }); if (t.footer) t.footer = t.footer.map(trAny); if (t.beforeBody) t.beforeBody = t.beforeBody.map(trAny); if (t.afterBody) t.afterBody = t.afterBody.map(trAny); } catch (e) { /* */ }
+          } });
+        // تسميات المحاور التي تُولَّد عبر callback
+        var tk = CH.Ticks && CH.Ticks.formatters; if (tk && tk.values && !tk.__fc) { var ov = tk.values; tk.values = function (v) { return trAny(ov.apply(this, arguments)); }; tk.__fc = 1; }
+      }
+    } catch (e) { /* */ }
+  }
   function patchLibs() {
+    patchChart();
     try {
       if (window.ExcelJS && window.ExcelJS.Workbook && !window.ExcelJS.__fcI18n) {
         var X = new window.ExcelJS.Workbook().xlsx, XP = Object.getPrototypeOf(X);

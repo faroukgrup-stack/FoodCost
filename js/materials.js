@@ -32,7 +32,7 @@ function updateMatCostPreview() {
         let unitCost = 0;
         if (netQty > 0) unitCost = pp / netQty;
         document.getElementById('matUnitCostValue').textContent = unitCost.toFixed(2);
-        document.getElementById('matUnitCostLabel').textContent = 'لكل ' + unit + ' صافي:';
+        document.getElementById('matUnitCostLabel').textContent = (window.fcI18n && fcI18n.lang() !== 'ar' && fcI18n.t) ? (fcI18n.t('لكل وحدة صافية') + ' (' + fcI18n.t(unit) + '):') : ('لكل ' + unit + ' صافي:');
     }
 
 function showAddMaterialModal() {
