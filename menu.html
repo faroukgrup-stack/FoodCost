@@ -271,11 +271,15 @@ header.menu-head .head-line{display:none}
 .no-photo{font-size:.62rem}
 }
 @media(max-width:340px){.section-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+.menu-head{position:relative}
+.lang-btn{position:absolute;top:10px;inset-inline-end:10px;z-index:3;height:34px;min-width:34px;padding:0 10px;border-radius:999px;border:1px solid rgba(201,154,85,.45);background:rgba(0,0,0,.18);color:inherit;display:inline-flex;align-items:center;justify-content:center;font-family:inherit;font-size:.9rem;cursor:pointer}
+.lang-btn i{color:var(--gold,#c99a55)}
 </style>
 </head>
 <body>
   <main class="menu-main">
   <header class="menu-head">
+    <button class="lang-btn" data-lang-btn></button>
     <img id="restLogo" class="head-logo" alt="" style="display:none">
     <div class="head-txt"><div class="head-mark">أهلاً وسهلاً</div>
     <h1 id="restName">قائمة الطعام</h1>
@@ -301,10 +305,10 @@ header.menu-head .head-line{display:none}
     <div class="sheet-box" id="cartSheetBox"></div>
   </div>
 
-<script src="js/config.js?v=5.3.2"></script>
-<script src="js/i18n.js?v=5.3.2"></script>
-<script src="js/domain.js?v=5.3.2"></script>
-<script src="js/cust-delivery.js?v=5.3.2"></script>
+<script src="js/config.js?v=5.3.4"></script>
+<script src="js/i18n.js?v=5.3.4"></script>
+<script src="js/domain.js?v=5.3.4"></script>
+<script src="js/cust-delivery.js?v=5.3.4"></script>
 <script>
 
 function menuImageUrl(value) {

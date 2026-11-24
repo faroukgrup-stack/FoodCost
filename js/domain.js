@@ -3,7 +3,7 @@
   try {
     var host = location.hostname.toLowerCase().replace(/^www\./, '');
     var known = (typeof APP_HOSTS !== 'undefined' ? APP_HOSTS : []).map(function (x) { return String(x).toLowerCase().replace(/^www\./, ''); });
-    if (!host || known.indexOf(host) >= 0 || /^(\d+\.){3}\d+$/.test(host)) return;
+    if (!host || known.indexOf(host) >= 0 || /\.github\.io$/.test(host) || /^(\d+\.){3}\d+$/.test(host)) return;
     var q = new URLSearchParams(location.search);
     if (q.get('r') || q.get('restaurant') || q.get('nodomain')) return;
     var page = location.pathname.split('/').pop() || '';

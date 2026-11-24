@@ -10,7 +10,7 @@ const OPS_FOOD_SOP = [["استلام المواد الخام", [["فحص درج�
 var OPS = { owner: '', emps: null, types: null, cfgRow: null, tpls: null, week: null, evMonth: null };
 const OPS_DEPTS = { kitchen: 'المطبخ', service: 'الصالة والخدمة', cashier: 'الكاشير', delivery: 'التوصيل', cleaning: 'النظافة والإشراف', management: 'الإدارة' };
 const OPS_RISK = { h: ['مرتفع', '#ef4444', 3], m: ['متوسط', '#f59e0b', 2], l: ['منخفض', '#10b981', 1] };
-const OPS_TPL_CATS = { audit: 'تدقيق سلامة الغذاء', opening: 'افتتاح الوردية', closing: 'إغلاق الوردية', handover: 'الاستلام والتسليم', custom: 'نموذج مخصص' };
+const OPS_TPL_CATS = { audit: 'تدقيق سلامة الغذاء', opening: 'افتتاح الوردية', closing: 'إغلاق الوردية', handover: 'الاستلام والتسليم', maint: 'صيانة الآلات والمعدات', oil: 'اختبار جودة الزيت (TPM)', custom: 'نموذج مخصص' };
 const OPS_DAY_CODES = { off: ['راحة', '#475569'], leave: ['إجازة', '#8b5cf6'], sick: ['مرضية', '#ec4899'] };
 const OPS_DAYS = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 const OPS_CRIT_DEF = [
@@ -43,8 +43,8 @@ async function opsS(kind, data, quiet) { const r = await bzOk('opsSave', { kind:
 async function opsD(id, label) { if (!(await bConfirm('هل تريد حذف ' + (label || 'هذا السجل') + '؟ لا يمكن التراجع.'))) return false; await bzOk('opsDelete', { id: id }); showToast('تم الحذف'); return true; }
 
 // ---------- النماذج الافتراضية ----------
-function opsSecs(list) { return list.map(function (s) { return { id: opsUid(), title: s[0], items: s[1].map(function (i) { return { id: opsUid(), t: i[0], r: i[1] || 'm', a: i[2] || '', c: i[3] || '' }; }) }; }); }
-function opsDefaultTpls() { return opsTrDeep(opsDefaultTplsAr()); }
+function opsSecs(list) { return list.map(function (s) { return { id: opsUid(), title: s[0], items: s[1].map(function (i) { return Object.assign({ id: opsUid(), t: i[0], r: i[1] || 'm', a: i[2] || '', c: i[3] || '' }, i[4] || {}); }) }; }); }
+function opsDefaultTpls() { return opsTrDeep(opsDefaultTplsAr().concat(opsNewTpls504())); }
 // v5.3.2: النماذج الافتراضية بلغة الواجهة
 function opsTrDeep(x) {
   if (!window.fcI18n || window.fcI18n.lang() === 'ar') return x;
@@ -68,6 +68,121 @@ function opsDefaultTplsAr() {
       ['المطبخ والمخزون', [['المواد المحضّرة كافية للوردية التالية', 'm', 'تحضير الكميات الناقصة فوراً', 'قائمة كميات تحضير قياسية لكل وردية'], ['حرارة الثلاجات ضمن الحد المسموح', 'h', 'نقل المواد وإبلاغ الصيانة', 'تسجيل الحرارة عند كل تسليم'], ['النواقص والطلبات من المورد مسجلة', 'm', 'تسجيل النواقص في النظام', 'تفعيل تنبيهات الحد الأدنى للمخزون']]],
       ['المكان والمعدات', [['نظافة المطبخ والصالة عند التسليم', 'm', 'لا يُستلم المكان قبل تنظيفه', 'تحديد مسؤولية النظافة على الوردية المسلّمة'], ['المعدات تعمل ولا أعطال غير مُبلغ عنها', 'm', 'تسجيل العطل وإبلاغ الصيانة', 'سجل أعطال موحد'], ['شكاوى العملاء والملاحظات المهمة منقولة', 'l', 'تدوين الشكوى وطريقة معالجتها', 'متابعة الشكوى حتى إغلاقها']]]]) } }];
 }
+// ---------- v5.3.3: بنود القيم (نص/رقم/تاريخ/اختيار) واختبار قطبية الزيت TPM ----------
+// نوع البند k: 'chk' (افتراضي: مطابق/غير مطابق/لا ينطبق) · 'txt' · 'num' (u = الوحدة) · 'date' · 'opt' (o = الخيارات) · 'tpm' (قراءة جهاز المركبات القطبية الكلية %)
+const OPS_ITEM_KINDS = { chk: 'فحص (مطابق / غير مطابق)', txt: 'قيمة نصية', num: 'قيمة رقمية', date: 'تاريخ', opt: 'اختيار من قائمة', tpm: 'قراءة TPM% للزيت' };
+// حدود المركبات القطبية الكلية المعتمدة لدى معظم هيئات سلامة الغذاء: [الحد الأعلى، الاسم، اللون، التفسير، التوصية]
+const OPS_TPM = [
+  [14, 'ممتاز', '#10b981', 'أقل من 14%', 'زيت جديد أو في حالة ممتازة.'],
+  [20, 'صالح', '#3b82f6', 'من 14% إلى 20%', 'زيت صالح للاستخدام مع الاستمرار في الفلترة اليومية.'],
+  [24, 'تحذير', '#f59e0b', 'من 20% إلى 24%', 'منطقة التحذير: يُقترب من الحد الأقصى، يُنصح بتجهيز زيت بديل أو تغييره للأطعمة الحساسة للنكهة.'],
+  [101, 'غير صالح', '#ef4444', 'أكثر من 24% – 25%', 'غير صالح: يجب تغييره فوراً، حيث يبدأ الزيت بتكوين مركبات ضارة بالصحة ويؤثر سلباً على لون وطعم المنتج.']];
+function opsIsVal(i) { return !!(i && i.k && i.k !== 'chk' && i.k !== 'tpm'); }
+function opsTpmIdx(v) { if (v === '' || v === null || v === undefined || isNaN(+v)) return -1; v = +v; return v < 14 ? 0 : v < 20 ? 1 : v <= 24 ? 2 : 3; }
+function opsTpmBadge(v) { const x = OPS_TPM[opsTpmIdx(v)]; return x ? '<span class="ops-score" style="--c:' + x[2] + '">' + nf(+v, 1) + '% · ' + x[1] + '</span>' : '<span class="muted" style="font-size:.75rem">أدخل القراءة</span>'; }
+function opsTpmApply(r) { const ix = opsTpmIdx(r.v); if (ix < 0) { delete r.s; delete r.warn; return; } r.s = ix === 3 ? 'fail' : 'ok'; if (ix === 2) r.warn = true; else delete r.warn; }
+function opsHasTpm(sections) { return (sections || []).some(function (s) { return (s.items || []).some(function (i) { return i.k === 'tpm'; }); }); }
+function opsTpmGuide(print) {
+  if (print) return '<h2 class="st">دليل تفسير قراءة جهاز قياس قطبية الزيت (نسبة TPM%)</h2><p style="font-size:11px;margin:0 0 6px">تُقاس صلاحية الزيت بنسبة مئوية للمركبات القطبية الكلية، وتلتزم معظم هيئات سلامة الغذاء عالمياً بالحدود التالية:</p><table class="t"><thead><tr><th style="width:18%">القراءة</th><th style="width:12%">التصنيف</th><th>التفسير والإجراء</th></tr></thead><tbody>' +
+    OPS_TPM.map(function (x) { return '<tr><td><b>' + h(x[3]) + '</b></td><td style="color:' + x[2] + ';font-weight:700">' + h(x[1]) + '</td><td>' + h(x[4]) + '</td></tr>'; }).join('') + '</tbody></table>';
+  return '<div class="ops-tpm-guide"><b><i class="fas fa-vial"></i> كيف تُفسَّر قراءة الجهاز (نسبة TPM%)؟</b><p>تُقاس صلاحية الزيت بنسبة مئوية للمركبات القطبية الكلية، وتلتزم معظم هيئات سلامة الغذاء عالمياً بالحدود التالية:</p><div class="ops-tpm-bands">' +
+    OPS_TPM.map(function (x) { return '<div style="--c:' + x[2] + '"><span>' + h(x[3]) + '</span><b>' + h(x[1]) + '</b><small>' + h(x[4]) + '</small></div>'; }).join('') + '</div></div>';
+}
+function opsValText(i, r) {
+  r = r || {}; const v = r.v;
+  if (v === undefined || v === null || v === '') return '';
+  if (i.k === 'tpm') { const x = OPS_TPM[opsTpmIdx(v)]; return nf(+v, 1) + '%' + (x ? ' — ' + x[1] : ''); }
+  if (i.k === 'date') return dOnly(v);
+  return String(v) + (i.u ? ' ' + i.u : '');
+}
+function opsValInput(i, v) {
+  v = v === undefined || v === null ? '' : v;
+  if (i.k === 'opt') return '<select class="ops-val"><option value="">—</option>' + (i.o || []).map(function (o) { return '<option value="' + h(o) + '"' + (o === v ? ' selected' : '') + '>' + h(o) + '</option>'; }).join('') + '</select>';
+  const tp = i.k === 'num' || i.k === 'tpm' ? 'number' : i.k === 'date' ? 'date' : 'text';
+  return '<span class="ops-val-w"><input class="ops-val" type="' + tp + '"' + (tp === 'number' ? ' inputmode="decimal" step="' + (i.k === 'tpm' ? '0.5' : 'any') + '"' : '') + (i.k === 'tpm' ? ' min="0" max="100" placeholder="0.0"' : '') + ' value="' + h(v) + '">' + (i.k === 'tpm' ? '<em>%</em>' : i.u ? '<em>' + h(i.u) + '</em>' : '') + '</span>';
+}
+function opsValItemHtml(i, r) {
+  r = r || {};
+  const tpm = i.k === 'tpm', x = tpm ? OPS_TPM[opsTpmIdx(r.v)] : null;
+  return '<div class="ops-run-item val' + (tpm ? ' tpm ' + (r.s || '') + (r.warn ? ' warn' : '') : '') + '" data-id="' + i.id + '" data-k="' + i.k + '"><div class="ops-run-t"><span>' + h(i.t) + '</span>' + (tpm ? opsRiskBadge(i.r) : '') + '</div>' +
+    '<div class="ops-run-ctl">' + opsValInput(i, r.v) + (tpm ? '<span class="ops-tpm-b">' + opsTpmBadge(r.v) + '</span>' : '') + '<input class="ops-note" placeholder="ملاحظة" value="' + h(r.n || '') + '"></div>' +
+    (tpm ? '<div class="ops-tpm-rec"' + (x ? ' style="--c:' + x[2] + '"' : ' hidden') + '>' + (x ? '<b>' + h(x[1]) + ':</b> ' + h(x[4]) : '') + '</div>' : '') + '</div>';
+}
+
+// نموذج صيانة الآلات والمعدات الشامل — [القسم، [البنود]] حيث البند [النص، الخطورة، الإجراء الفوري، التوصية، {k,u,o}]
+function opsV(t, k, ex) { return [t, 'l', '', '', Object.assign({ k: k }, ex || {})]; }
+const OPS_MAINT_SOP = [
+  ['القلايات وفحص جودة الزيت (مهم جدا)', [opsV('رقم / اسم القلاية', 'txt'), opsV('تاريخ آخر تغيير للزيت', 'date'), opsV('عدد أيام استخدام الزيت الحالي', 'num', { u: 'يوم' }),
+    opsV('لون الزيت', 'opt', { o: ['ذهبي', 'داكن', 'أسود'] }), opsV('رائحة الزيت', 'opt', { o: ['طبيعية', 'محروقة', 'كريهة'] }), opsV('درجة حرارة الزيت أثناء التشغيل', 'num', { u: '°C' }),
+    ['قراءة جهاز قطبية الزيت TPM%', 'h', 'إذا تجاوزت القراءة 24%: أوقف القلي وغيّر الزيت فوراً.', 'قِس يومياً عند حرارة التشغيل وسجّل القراءة؛ عند 20% فأكثر جهّز زيتاً بديلاً.', { k: 'tpm' }],
+    opsV('مستوى الزيت', 'opt', { o: ['كامل', 'ناقص'] }), opsV('هل يحتاج الزيت إلى تغيير؟', 'opt', { o: ['نعم', 'لا'] }), opsV('كمية الزيت المضافة أو المستبدلة', 'num', { u: 'لتر' }), opsV('اسم ونوع الزيت المستخدم', 'txt'),
+    ['نظافة القلاية من الخارج والداخل (بدون بقايا)', 'h', 'إيقاف القلاية وتنظيفها قبل الاستخدام التالي.', 'تنظيف يومي وتنظيف عميق (Boil-out) أسبوعياً.'],
+    ['عناصر التسخين سليمة وتعمل بكفاءة', 'h', 'إيقاف القلاية وإبلاغ فني الصيانة فوراً.', 'فحص دوري للعناصر ضمن جدول الصيانة الوقائية.'],
+    ['عدم وجود تسريب زيت من القلاية', 'h', 'إيقاف القلاية وتجفيف المنطقة لمنع الانزلاق والحريق.', 'فحص الصمامات والوصلات وتغيير الحشوات التالفة.'],
+    ['غطاء القلاية وسلة القلي في حالة جيدة', 'm', 'استبدال السلة أو الغطاء التالف.', 'توفير سلال احتياطية.'],
+    ['ترموستات التحكم في الحرارة يعمل بدقة', 'h', 'مقارنة الحرارة بمقياس معاير وإيقاف القلاية إذا اختلفت.', 'معايرة الترموستات كل 3 أشهر.']]],
+  ['معدات الطهي (أفران – شوايات – مواقد)', [
+    ['تشغيل جميع الشعلات والأفران بشكل سليم', 'h', 'إيقاف المعدة المعطلة ووضع علامة «عطل».', 'جدول صيانة وقائية أسبوعي للمعدات.'],
+    ['عدم وجود تسرب غاز من المواقد أو الوصلات', 'h', 'إغلاق صمام الغاز الرئيسي وتهوية المكان وإبلاغ الفني فوراً.', 'اختبار التسرب بالماء والصابون أسبوعياً.'],
+    ['نظافة الشعلات والشوايات من الدهون وبقايا الطعام', 'm', 'تنظيف فوري قبل الاستخدام.', 'تنظيف يومي بنهاية الوردية.'],
+    ['أبواب الأفران والعوازل الحرارية سليمة', 'm', 'استبدال العازل التالف.', 'فحص العوازل شهرياً.'],
+    ['مراوح الأفران والمراوح الداخلية تعمل بكفاءة', 'm', 'إبلاغ الصيانة.', 'تنظيف المراوح دورياً.'],
+    ['أجهزة التحكم في الحرارة والوقت تعمل بدقة', 'h', 'استخدام مقياس حرارة يدوي حتى الإصلاح.', 'معايرة دورية لأجهزة التحكم.'],
+    ['عدم وجود صدأ أو تآكل يؤثر على السلامة', 'm', 'عزل الجزء المتآكل عن ملامسة الطعام.', 'خطة استبدال للأجزاء المتآكلة.']]],
+  ['معدات التبريد (ثلاجات – فريزرات – ثلاجات عرض)', [
+    ['درجة حرارة الثلاجات ≤ 4°C (مسجلة)', 'h', 'نقل المواد إلى ثلاجة سليمة وتقييم صلاحيتها.', 'تسجيل الحرارة مرتين يومياً.'],
+    ['درجة حرارة الفريزرات ≤ -18°C (مسجلة)', 'h', 'نقل المواد وفحص حالة التجميد.', 'تسجيل الحرارة مرتين يومياً.'],
+    ['صوت الضاغط طبيعي وبدون اهتزازات غير عادية', 'm', 'إبلاغ فني التبريد.', 'صيانة وقائية للضواغط كل 3 أشهر.'],
+    ['عدم وجود تراكم ثلج زائد على المبخرات', 'm', 'إذابة الثلج وفق تعليمات المصنع.', 'فحص دورة إذابة الثلج.'],
+    ['نظافة المكثفات والشبكات الخلفية من الغبار', 'm', 'تنظيف المكثف.', 'تنظيف المكثفات شهرياً.'],
+    ['أبواب الثلاجات تغلق بإحكام والعوازل سليمة', 'h', 'استبدال الجوان التالف.', 'فحص العوازل أسبوعياً.'],
+    ['الإضاءة الداخلية تعمل', 'l', 'استبدال المصباح.', 'توفير مصابيح احتياطية.'],
+    ['عدم وجود تسريب ماء أو رطوبة زائدة', 'm', 'تجفيف المكان وفحص مجرى التصريف.', 'فحص مجاري التصريف دورياً.']]],
+  ['الشفاطات ونظام التهوية', [
+    ['نظافة فلاتر الشفاط من الدهون (تغيير أو تنظيف)', 'h', 'تنظيف أو تغيير الفلاتر فوراً لتجنب خطر الحريق.', 'تنظيف الفلاتر أسبوعياً على الأقل.'],
+    ['كفاءة الشفط قوية وبدون ضعف ملحوظ', 'h', 'إبلاغ الصيانة وفحص المحرك والسير.', 'فحص دوري للمحرك.'],
+    ['عدم وجود تراكم دهون على مجاري الشفط', 'h', 'جدولة تنظيف المجاري.', 'تنظيف المجاري بشركة متخصصة كل 3–6 أشهر.'],
+    ['مراوح الشفط تعمل بدون ضوضاء غير طبيعية', 'm', 'إبلاغ الصيانة.', 'تشحيم وفحص المراوح دورياً.'],
+    ['إضاءة منطقة الشفاط تعمل', 'l', 'استبدال المصباح.', '']]],
+  ['غسالات الأطباق والمعدات الأخرى', [
+    ['درجة حرارة غسيل الأطباق ≥ 60°C', 'h', 'إعادة غسل الأطباق وإبلاغ الصيانة.', 'تسجيل حرارة الغسيل يومياً.'],
+    ['فلاتر غسالة الأطباق نظيفة وغير مسدودة', 'm', 'تنظيف الفلاتر.', 'تنظيف الفلاتر يومياً.'],
+    ['مضخات الغسيل والتجفيف تعمل بكفاءة', 'm', 'إبلاغ الصيانة.', 'صيانة دورية وفق المصنع.'],
+    ['خلاطات ومعدات التحضير تعمل بدون اهتزاز', 'm', 'إيقاف المعدة وفحصها.', 'فحص الشفرات والقواعد دورياً.'],
+    ['موازين الطعام معايرة وتعمل بدقة', 'm', 'إعادة المعايرة.', 'معايرة شهرية للموازين.'],
+    ['أجهزة الميكروويف والتسخين تعمل بشكل سليم', 'l', 'إيقاف الجهاز المعطل.', '']]],
+  ['السلامة الكهربائية والغاز', [
+    ['جميع التوصيلات الكهربائية سليمة ومعزولة', 'h', 'فصل التيار عن الجزء المتضرر وإبلاغ كهربائي معتمد.', 'فحص كهربائي دوري.'],
+    ['عدم وجود أسلاك مكشوفة أو تالفة', 'h', 'فصل التيار فوراً.', 'استبدال الأسلاك التالفة.'],
+    ['قواطع الحماية (قواطع التيار) تعمل', 'h', 'إبلاغ كهربائي معتمد.', 'اختبار القواطع شهرياً.'],
+    ['صمامات الغاز الرئيسية والفرعية تعمل بسهولة', 'h', 'إبلاغ فني الغاز.', 'تدريب الفريق على إغلاق الصمام الرئيسي.'],
+    ['عدم وجود رائحة غاز في أي منطقة', 'h', 'إغلاق الصمام الرئيسي والإخلاء وعدم تشغيل أي مفاتيح كهربائية.', 'تركيب كاشف تسرب غاز.'],
+    ['طفايات الحريق قريبة ومتاحة وفي تاريخ الصلاحية', 'h', 'استبدال أو تعبئة الطفاية فوراً.', 'فحص الطفايات شهرياً ونظام إطفاء الشفاط سنوياً.'],
+    ['مخرج الطوارئ خالٍ من العوائق', 'm', 'إزالة العوائق فوراً.', 'تمرين إخلاء دوري.']]],
+  ['النظافة العامة حول المعدات', [
+    ['المساحات خلف وتحت المعدات نظيفة من الدهون والغبار', 'm', 'تنظيف فوري.', 'جدول تنظيف عميق أسبوعي.'],
+    ['عدم وجود بقايا طعام أو نفايات حول المعدات', 'm', 'إزالة البقايا فوراً.', ''],
+    ['الأرضيات حول المعدات جافة وغير زلقة', 'h', 'تجفيف الأرضية ووضع لافتة تحذير.', 'استخدام حصائر مانعة للانزلاق.'],
+    ['عدم وجود آفات أو آثار حشرات قرب المعدات', 'h', 'إبلاغ شركة مكافحة الآفات.', 'سد الفتحات وفحص دوري.']]]];
+// نموذج اختبار قطبية الزيت TPM
+function opsFryerSec(n) {
+  return ['القلاية ' + n, [opsV('رقم / اسم القلاية', 'txt'), opsV('نوع الزيت', 'txt'), opsV('درجة حرارة الزيت أثناء القياس', 'num', { u: '°C' }), opsV('عدد أيام استخدام الزيت', 'num', { u: 'يوم' }),
+    ['قراءة جهاز قطبية الزيت TPM%', 'h', 'إذا تجاوزت القراءة 24%: يجب تغيير الزيت فوراً.', 'عند 20% فأكثر جهّز زيتاً بديلاً أو غيّره للأطعمة الحساسة للنكهة.', { k: 'tpm' }],
+    opsV('الإجراء المتخذ', 'opt', { o: ['استمرار مع فلترة يومية', 'فلترة الزيت', 'تجهيز زيت بديل', 'تغيير الزيت فوراً', 'تعويض نقص الزيت'] }),
+    opsV('كمية الزيت المضافة أو المستبدلة', 'num', { u: 'لتر' }),
+    ['تمت فلترة الزيت في نهاية اليوم', 'm', 'فلترة الزيت قبل بدء الوردية التالية.', 'الفلترة اليومية تطيل عمر الزيت وتخفض تكلفته.']]];
+}
+const OPS_TPM_SOP = [
+  ['بيانات جهاز القياس', [opsV('اسم / رقم جهاز القياس', 'txt'), opsV('تاريخ آخر معايرة للجهاز', 'date'),
+    ['معايرة الجهاز حسب تعليمات المصنع', 'm', 'إعادة المعايرة قبل القياس.', 'معايرة الجهاز دورياً وفق المصنع.'],
+    ['القياس عند حرارة التشغيل بعد إزالة الفتات', 'h', 'إعادة القياس بالطريقة الصحيحة.', 'القياس بعد 10 دقائق من آخر قلي وإزالة البقايا.'],
+    ['تنظيف حساس الجهاز بعد كل قياس', 'm', 'تنظيف الحساس بمنديل ورقي.', 'لا تستخدم الماء أو المنظفات على الحساس.']]],
+  opsFryerSec(1), opsFryerSec(2), opsFryerSec(3)];
+function opsNewTpls504() {
+  return [
+    { title: 'نموذج صيانة الآلات والمعدات الشامل', data: { key: 'maint', cat: 'maint', icon: 'screwdriver-wrench', desc: 'صيانة دورية للقلايات وجودة الزيت ومعدات الطهي والتبريد والشفاطات والسلامة الكهربائية والغاز — 7 أقسام', hdrOpt: { label: 'نوع الصيانة', o: ['يومية', 'أسبوعية', 'شهرية'] }, sections: opsSecs(OPS_MAINT_SOP) } },
+    { title: 'اختبار قطبية الزيت (TPM%)', data: { key: 'tpm', cat: 'oil', icon: 'oil-can', desc: 'قياس نسبة المركبات القطبية الكلية لزيت القلي مع تفسير تلقائي: أقل من 14% ممتاز · 14–20% صالح · 20–24% تحذير · أكثر من 24% غير صالح', sections: opsSecs(OPS_TPM_SOP) } }];
+}
 async function opsSeed() {
   for (const t of opsDefaultTpls()) await opsS('sop_tpl', t, true);
   OPS.tpls = await opsL('sop_tpl');
@@ -85,6 +200,12 @@ async function opsBase(force) {
   OPS.types = r[1].sort(function (a, b) { return opsMin(a.data.start) - opsMin(b.data.start); }); OPS.cfgRow = r[2][0] || null; OPS.tpls = r[3];
   if (canP('ops')) {
     if (!OPS.tpls.length && !(OPS.cfgRow && OPS.cfgRow.data.seeded)) { await opsSeed(); await opsSaveCfg({ seeded: true }, true); }
+    // v5.3.3: إضافة نموذجي الصيانة واختبار قطبية الزيت للحسابات القائمة مرة واحدة دون المساس بنماذجها
+    if (!(OPS.cfgRow && OPS.cfgRow.data.seeded504)) {
+      const have = OPS.tpls.map(function (t) { return t.data && t.data.key; });
+      for (const t of opsTrDeep(opsNewTpls504())) if (have.indexOf(t.data.key) < 0) await opsS('sop_tpl', t, true);
+      OPS.tpls = await opsL('sop_tpl'); await opsSaveCfg({ seeded504: true }, true);
+    }
     if (!OPS.types.length && !(OPS.cfgRow && OPS.cfgRow.data.typesSeeded)) { await opsSeedTypes(); await opsSaveCfg({ typesSeeded: true }, true); }
   }
 }
@@ -124,6 +245,9 @@ async function opsDash(el) {
   const sopAvg = runs.length ? runs.reduce(function (s, x) { return s + (+x.score || 0); }, 0) / runs.length : null;
   const fails = {}; runs.forEach(function (x) { (x.data.sections || []).forEach(function (s) { s.items.forEach(function (i) { const res = (x.data.results || {})[i.id]; if (res && res.s === 'fail') { const k = i.t; fails[k] = fails[k] || { t: i.t, r: i.r, a: i.a, c: i.c, n: 0 }; fails[k].n++; } }); }); });
   const topFails = Object.values(fails).sort(function (a, b) { return (b.n * OPS_RISK[b.r][2]) - (a.n * OPS_RISK[a.r][2]); }).slice(0, 5);
+  // v5.3.3: آخر قراءات قطبية الزيت
+  const tpmLast = {}; runs.slice().reverse().forEach(function (x) { (x.data.sections || []).forEach(function (s) { let fr = ''; (s.items || []).forEach(function (i) { const rr = (x.data.results || {})[i.id] || {}; if (i.k === 'txt' && /قلاية/.test(i.t) && rr.v) fr = rr.v; if (i.k === 'tpm' && opsTpmIdx(rr.v) >= 0) tpmLast[fr || s.title] = { v: +rr.v, d: x.period, ix: opsTpmIdx(rr.v) }; }); }); });
+  Object.keys(tpmLast).forEach(function (k) { const t = tpmLast[k]; if (t.ix >= 2) dec.push([t.ix === 3 ? 'danger' : 'warn', 'oil-can', 'زيت ' + k + ': قراءة TPM ' + nf(t.v, 1) + '% (' + OPS_TPM[t.ix][1] + ') بتاريخ ' + dOnly(t.d), OPS_TPM[t.ix][4], 'sop']); });
   const lastRun = runs[0], daysSinceAudit = lastRun ? Math.round((new Date(today) - new Date(lastRun.period)) / 864e5) : null;
   if (!runs.length) dec.push(['warn', 'clipboard-check', 'لا يوجد تدقيق SOP خلال آخر 30 يوماً', 'ابدأ تدقيقاً يومياً لسلامة الغذاء — التدقيق المنتظم يقلل المخالفات والهدر ويحمي سمعة المطعم.', 'sop']);
   else if (daysSinceAudit > 2) dec.push(['warn', 'calendar-times', 'آخر تدقيق كان قبل ' + daysSinceAudit + ' أيام', 'حدد مسؤولاً يومياً للتدقيق وأضفه في جدول الورديات.', 'sop']);
@@ -196,7 +320,7 @@ function opsPeaks(ins, n) {
 // ============================================================
 // SOP والتدقيق
 // ============================================================
-function opsTplIcon(t) { return t.data.icon || { audit: 'shield-virus', opening: 'door-open', closing: 'door-closed', handover: 'people-arrows' }[t.data.cat] || 'clipboard-list'; }
+function opsTplIcon(t) { return t.data.icon || { audit: 'shield-virus', opening: 'door-open', closing: 'door-closed', handover: 'people-arrows', maint: 'screwdriver-wrench', oil: 'oil-can' }[t.data.cat] || 'clipboard-list'; }
 function opsTplCount(t) { return (t.data.sections || []).reduce(function (s, x) { return s + (x.items || []).length; }, 0); }
 async function opsSop(el) {
   const full = canP('ops');
@@ -245,7 +369,7 @@ async function opsSop(el) {
   if (top) top.onclick = async function (e) {
     const a = e.target.closest('[data-a]'); if (!a) return;
     if (a.dataset.a === 'new') opsTplEdit({ title: '', data: { cat: 'custom', desc: '', sections: [{ id: opsUid(), title: 'القسم الأول', items: [{ id: opsUid(), t: '', r: 'm', a: '', c: '' }] }] } }, function () { opsSop(el); });
-    if (a.dataset.a === 'restore' && await bConfirm('ستُضاف النماذج الافتراضية (سلامة الغذاء، الافتتاح، الإغلاق، الاستلام والتسليم) كنسخ جديدة دون حذف نماذجك الحالية.')) { showLoading(); try { await opsSeed(); } finally { hideLoading(); } opsSop(el); }
+    if (a.dataset.a === 'restore' && await bConfirm('ستُضاف النماذج الافتراضية (سلامة الغذاء، الافتتاح، الإغلاق، الاستلام والتسليم، صيانة الآلات والمعدات، اختبار قطبية الزيت) كنسخ جديدة دون حذف نماذجك الحالية.')) { showLoading(); try { await opsSeed(); } finally { hideLoading(); } opsSop(el); }
   };
 }
 
@@ -261,6 +385,8 @@ function opsTplEdit(tpl, done) {
         s.items.map(function (i, ii) {
           return '<div class="ops-ed-item" data-ii="' + ii + '"><div class="ops-ed-ir"><textarea data-f="t" rows="2" placeholder="نص البند">' + h(i.t) + '</textarea><select data-f="r">' + Object.keys(OPS_RISK).map(function (k) { return '<option value="' + k + '"' + (i.r === k ? ' selected' : '') + '>' + OPS_RISK[k][0] + '</option>'; }).join('') + '</select>' +
             '<button class="btn btn-outline btn-sm" data-ed="idel" title="حذف البند"><i class="fas fa-times"></i></button></div>' +
+            '<div class="ops-ed-ir2 ops-ed-kind"><select data-f="k" title="نوع البند">' + Object.keys(OPS_ITEM_KINDS).map(function (k) { return '<option value="' + k + '"' + ((i.k || 'chk') === k ? ' selected' : '') + '>' + OPS_ITEM_KINDS[k] + '</option>'; }).join('') + '</select>' +
+            '<input data-f="x" value="' + h(i.k === 'opt' ? (i.o || []).join('، ') : (i.u || '')) + '" placeholder="الوحدة (للرقم) أو الخيارات مفصولة بفاصلة (للاختيار)"' + (i.k === 'num' || i.k === 'opt' ? '' : ' hidden') + '></div>' +
             '<div class="ops-ed-ir2"><input data-f="a" value="' + h(i.a) + '" placeholder="الإجراء الفوري عند عدم المطابقة"><input data-f="c" value="' + h(i.c) + '" placeholder="التوصية والتحسين"></div></div>';
         }).join('') + '<button class="btn btn-outline btn-sm" data-ed="iadd"><i class="fas fa-plus"></i> إضافة بند</button></div>';
     }).join('');
@@ -269,7 +395,15 @@ function opsTplEdit(tpl, done) {
     M.title = m.$('[data-k=title]').value.trim(); M.data.cat = m.$('[data-k=cat]').value; M.data.desc = m.$('[data-k=desc]').value.trim();
     m.$$('.ops-ed-sec').forEach(function (se) {
       const s = M.data.sections[+se.dataset.si]; s.title = se.querySelector('[data-f=stitle]').value.trim();
-      se.querySelectorAll('.ops-ed-item').forEach(function (ie) { const i = s.items[+ie.dataset.ii]; ['t', 'r', 'a', 'c'].forEach(function (f) { i[f] = ie.querySelector('[data-f=' + f + ']').value.trim(); }); });
+      se.querySelectorAll('.ops-ed-item').forEach(function (ie) {
+        const i = s.items[+ie.dataset.ii]; ['t', 'r', 'a', 'c'].forEach(function (f) { i[f] = ie.querySelector('[data-f=' + f + ']').value.trim(); });
+        const ks = ie.querySelector('[data-f=k]'), xs = ie.querySelector('[data-f=x]'); if (!ks) return;
+        const k = ks.value, x = xs ? xs.value.trim() : '';
+        delete i.u; delete i.o;
+        if (k === 'chk') delete i.k; else i.k = k;
+        if (k === 'num' && x) i.u = x;
+        if (k === 'opt') i.o = x.split(/[,،;\n]/).map(function (o) { return o.trim(); }).filter(Boolean);
+      });
     });
   };
   bModal({ title: tpl.id ? 'تعديل النموذج' : 'نموذج SOP جديد', icon: 'clipboard-list', xwide: true, print: false,
@@ -280,6 +414,7 @@ function opsTplEdit(tpl, done) {
     foot: '<button class="btn btn-cancel" data-x>إلغاء</button><button class="btn btn-primary" data-act="save"><i class="fas fa-check"></i> حفظ النموذج</button>',
     onOpen: function (m) {
       draw(m);
+      m.$('#opsTplSecs').addEventListener('change', function (e) { if (e.target.dataset.f !== 'k') return; const x = e.target.parentNode.querySelector('[data-f=x]'); if (x) x.hidden = !(e.target.value === 'num' || e.target.value === 'opt'); });
       m.$('#opsTplSecs').addEventListener('click', function (e) {
         const b = e.target.closest('[data-ed]'); if (!b) return; e.preventDefault(); sync(m);
         const si = +b.closest('.ops-ed-sec').dataset.si, s = M.data.sections[si];
@@ -296,6 +431,8 @@ function opsTplEdit(tpl, done) {
         sync(m);
         if (!M.title) { showToast('اسم النموذج مطلوب', true); return; }
         M.data.sections = M.data.sections.map(function (s) { s.items = s.items.filter(function (i) { return i.t; }); return s; }).filter(function (s) { return s.items.length; });
+        const badOpt = M.data.sections.some(function (s) { return s.items.some(function (i) { return i.k === 'opt' && !(i.o && i.o.length); }); });
+        if (badOpt) { showToast('أدخل خيارات بند «اختيار من قائمة» مفصولة بفاصلة', true); return; }
         if (!M.data.sections.length) { showToast('أضف بنداً واحداً على الأقل', true); return; }
         btn.disabled = true;
         try { await opsS('sop_tpl', { id: M.id, title: M.title, data: M.data }); OPS.tpls = await opsL('sop_tpl'); m.close(); if (done) done(); } catch (e) { /* */ } finally { btn.disabled = false; }
@@ -304,14 +441,15 @@ function opsTplEdit(tpl, done) {
 
 // حساب نتيجة التدقيق
 function opsCalc(sections, results) {
-  let tw = 0, okw = 0, ok = 0, fail = 0, na = 0, todo = 0, highFail = 0;
+  let tw = 0, okw = 0, ok = 0, fail = 0, na = 0, todo = 0, highFail = 0, warn = 0, vals = 0;
   sections.forEach(function (s) { s.items.forEach(function (i) {
     const r = results[i.id], w = OPS_RISK[i.r] ? OPS_RISK[i.r][2] : 2;
+    if (opsIsVal(i)) { if (r && r.v !== undefined && r.v !== '') vals++; return; } // بنود القيم لا تدخل في نسبة الالتزام
     if (!r || !r.s) { todo++; return; }
     if (r.s === 'na') { na++; return; }
-    tw += w; if (r.s === 'ok') { okw += w; ok++; } else { fail++; if (i.r === 'h') highFail++; }
+    tw += w; if (r.s === 'ok') { if (r.warn) { okw += w / 2; warn++; } else okw += w; ok++; } else { fail++; if (i.r === 'h') highFail++; }
   }); });
-  return { score: tw ? Math.round(okw / tw * 1000) / 10 : 0, ok: ok, fail: fail, na: na, todo: todo, highFail: highFail };
+  return { score: tw ? Math.round(okw / tw * 1000) / 10 : 0, ok: ok, fail: fail, na: na, todo: todo, highFail: highFail, warn: warn, vals: vals };
 }
 function opsRunModal(tpl, run, done) {
   const sections = run ? run.data.sections : JSON.parse(JSON.stringify(tpl.data.sections || []));
@@ -321,12 +459,15 @@ function opsRunModal(tpl, run, done) {
   const shifts = (OPS.types || []).map(function (t) { return [t.title, t.title]; });
   const head = [{ k: 'period', label: 'التاريخ', type: 'date', def: isoLocal() }, { k: 'shift', label: 'الوردية', type: shifts.length ? 'select' : 'text', options: [['', '—']].concat(shifts) },
     { k: 'responsible', label: 'المسؤول عن التدقيق', def: rptActor() }, { k: 'manager', label: 'المدير المعتمد' }];
-  const body = bForm(head, run ? { period: run.period, shift: run.data.shift, responsible: run.data.responsible, manager: run.data.manager } : {}) +
-    '<div class="ops-run-bar" id="opsRunBar"></div>' +
+  const hdrOpt = run ? run.data.hdrOpt : tpl.data.hdrOpt;
+  if (hdrOpt && hdrOpt.label) head.splice(2, 0, { k: 'hdrVal', label: hdrOpt.label, type: 'select', options: [['', '—']].concat((hdrOpt.o || []).map(function (o) { return [o, o]; })) });
+  const body = bForm(head, run ? { period: run.period, shift: run.data.shift, responsible: run.data.responsible, manager: run.data.manager, hdrVal: run.data.hdrVal } : {}) +
+    '<div class="ops-run-bar" id="opsRunBar"></div>' + (opsHasTpm(sections) ? opsTpmGuide() : '') +
     sections.map(function (s, si) {
       return '<div class="ops-run-sec"><div class="ops-run-st"><span>' + (si + 1) + '</span> ' + h(s.title) + '<button class="btn btn-outline btn-sm" data-allok="' + si + '" title="تحديد كل البنود مطابقة"><i class="fas fa-check-double"></i> الكل مطابق</button></div>' +
         s.items.map(function (i) {
           const r = results[i.id] || {};
+          if (i.k && i.k !== 'chk') return opsValItemHtml(i, r);
           return '<div class="ops-run-item ' + (r.s || '') + '" data-id="' + i.id + '"><div class="ops-run-t"><span>' + h(i.t) + '</span>' + opsRiskBadge(i.r) + '</div>' +
             '<div class="ops-run-ctl"><div class="ops-tri">' + [['ok', 'check', 'مطابق'], ['fail', 'times', 'غير مطابق'], ['na', 'minus', 'لا ينطبق']].map(function (b) { return '<button type="button" class="' + b[0] + (r.s === b[0] ? ' on' : '') + '" data-s="' + b[0] + '"><i class="fas fa-' + b[1] + '"></i> ' + b[2] + '</button>'; }).join('') + '</div>' +
             '<input class="ops-note" placeholder="ملاحظة" value="' + h(r.n || '') + '"></div>' +
@@ -338,28 +479,42 @@ function opsRunModal(tpl, run, done) {
     onOpen: function (m) {
       const bar = function () {
         const st = opsCalc(sections, results), rt = opsRate(st.score);
-        m.$('#opsRunBar').innerHTML = '<div class="ops-run-score" style="--c:' + rt[1] + '"><b>' + nf(st.score, 0) + '%</b><span>' + rt[0] + '</span></div><div class="ops-run-meta"><span class="ok"><i class="fas fa-check"></i> ' + st.ok + ' مطابق</span><span class="fail"><i class="fas fa-times"></i> ' + st.fail + ' غير مطابق' + (st.highFail ? ' (' + st.highFail + ' مرتفع)' : '') + '</span><span><i class="fas fa-minus"></i> ' + st.na + ' لا ينطبق</span><span class="todo"><i class="fas fa-hourglass-half"></i> ' + st.todo + ' متبقٍ</span></div><div class="ops-run-prog"><i style="width:' + Math.round((1 - st.todo / Math.max(1, st.ok + st.fail + st.na + st.todo)) * 100) + '%"></i></div>';
+        m.$('#opsRunBar').innerHTML = '<div class="ops-run-score" style="--c:' + rt[1] + '"><b>' + nf(st.score, 0) + '%</b><span>' + rt[0] + '</span></div><div class="ops-run-meta"><span class="ok"><i class="fas fa-check"></i> ' + st.ok + ' مطابق</span><span class="fail"><i class="fas fa-times"></i> ' + st.fail + ' غير مطابق' + (st.highFail ? ' (' + st.highFail + ' مرتفع)' : '') + '</span>' + (st.warn ? '<span class="warn"><i class="fas fa-exclamation-triangle"></i> ' + st.warn + ' تحذير</span>' : '') + '<span><i class="fas fa-minus"></i> ' + st.na + ' لا ينطبق</span><span class="todo"><i class="fas fa-hourglass-half"></i> ' + st.todo + ' متبقٍ</span></div><div class="ops-run-prog"><i style="width:' + Math.round((1 - st.todo / Math.max(1, st.ok + st.fail + st.na + st.todo)) * 100) + '%"></i></div>';
       };
       bar();
       m.el.addEventListener('click', function (e) {
         const b = e.target.closest('[data-s]'), all = e.target.closest('[data-allok]');
         if (b) { const it = b.closest('.ops-run-item'), id = it.dataset.id; results[id] = results[id] || {}; results[id].s = results[id].s === b.dataset.s ? '' : b.dataset.s;
           it.className = 'ops-run-item ' + (results[id].s || ''); it.querySelectorAll('[data-s]').forEach(function (x) { x.classList.toggle('on', x.dataset.s === results[id].s); }); bar(); }
-        if (all) { sections[+all.dataset.allok].items.forEach(function (i) { results[i.id] = results[i.id] || {}; if (!results[i.id].s) results[i.id].s = 'ok'; const it = m.el.querySelector('.ops-run-item[data-id="' + i.id + '"]'); it.className = 'ops-run-item ' + results[i.id].s; it.querySelectorAll('[data-s]').forEach(function (x) { x.classList.toggle('on', x.dataset.s === results[i.id].s); }); }); bar(); }
+        if (all) { sections[+all.dataset.allok].items.filter(function (i) { return !i.k || i.k === 'chk'; }).forEach(function (i) { results[i.id] = results[i.id] || {}; if (!results[i.id].s) results[i.id].s = 'ok'; const it = m.el.querySelector('.ops-run-item[data-id="' + i.id + '"]'); it.className = 'ops-run-item ' + results[i.id].s; it.querySelectorAll('[data-s]').forEach(function (x) { x.classList.toggle('on', x.dataset.s === results[i.id].s); }); }); bar(); }
       });
       m.el.addEventListener('input', function (e) { if (e.target.classList.contains('ops-note')) { const id = e.target.closest('.ops-run-item').dataset.id; results[id] = results[id] || {}; results[id].n = e.target.value; } });
+      const onVal = function (e) {
+        if (!e.target.classList.contains('ops-val')) return;
+        const it = e.target.closest('.ops-run-item'), id = it.dataset.id, r = (results[id] = results[id] || {});
+        r.v = e.target.value.trim();
+        if (it.dataset.k === 'tpm') {
+          opsTpmApply(r); const x = OPS_TPM[opsTpmIdx(r.v)], rec = it.querySelector('.ops-tpm-rec');
+          it.className = 'ops-run-item val tpm ' + (r.s || '') + (r.warn ? ' warn' : '');
+          it.querySelector('.ops-tpm-b').innerHTML = opsTpmBadge(r.v);
+          if (x) { rec.hidden = false; rec.style.setProperty('--c', x[2]); rec.innerHTML = '<b>' + h(x[1]) + ':</b> ' + h(x[4]); } else { rec.hidden = true; rec.innerHTML = ''; }
+          bar();
+        }
+      };
+      m.el.addEventListener('input', onVal); m.el.addEventListener('change', onVal);
     },
     actions: {
       print: function () { opsPrintRun(run); },
       save: async function (m, btn) {
         const f = readForm(m.el, head.concat([{ k: 'notes', type: 'textarea' }]));
+        if (!hdrOpt) delete f.hdrVal;
         if (!f.period) { showToast('التاريخ مطلوب', true); return; }
         const st = opsCalc(sections, results);
         if (st.ok + st.fail === 0) { showToast('قيّم بنداً واحداً على الأقل', true); return; }
         if (st.todo && !(await bConfirm('يوجد ' + st.todo + ' بنداً دون تقييم ولن تُحسب في النتيجة. هل تريد الحفظ؟'))) return;
         btn.disabled = true;
         try {
-          const row = await opsS('sop_run', { id: run && run.id, period: f.period, title: title, score: st.score, data: { tplId: run ? run.data.tplId : tpl.id, cat: cat, shift: f.shift, responsible: f.responsible, manager: f.manager, notes: f.notes, sections: sections, results: results, stats: st } });
+          const row = await opsS('sop_run', { id: run && run.id, period: f.period, title: title, score: st.score, data: { tplId: run ? run.data.tplId : tpl.id, cat: cat, hdrOpt: hdrOpt || undefined, hdrVal: f.hdrVal || undefined, shift: f.shift, responsible: f.responsible, manager: f.manager, notes: f.notes, sections: sections, results: results, stats: st } });
           m.close(); if (done) done();
           if (st.fail && await bConfirm('تم حفظ التدقيق بنتيجة ' + nf(st.score, 0) + '% مع ' + st.fail + ' بنود غير مطابقة. هل تريد طباعة التقرير مع الإجراءات التصحيحية؟', 'طباعة التقرير')) opsPrintRun(row);
         } catch (e) { /* */ } finally { btn.disabled = false; }
@@ -369,22 +524,48 @@ function opsSignHtml(labels) { return '<table class="sign"><tr>' + labels.map(fu
 function opsPrintRun(run) {
   if (!run) return;
   const res = run.data.results || {}, st = run.data.stats || opsCalc(run.data.sections || [], res), lbl = { ok: 'مطابق', fail: 'غير مطابق', na: 'لا ينطبق' };
-  const failRows = [];
+  const failRows = [], tpmRows = [];
   const secs = (run.data.sections || []).map(function (s) {
-    return { title: s.title, table: { headers: ['#', 'البند', 'الخطورة', 'النتيجة', 'ملاحظات'], rows: s.items.map(function (i, n) { const r = res[i.id] || {}; if (r.s === 'fail') failRows.push([s.title, i.t, OPS_RISK[i.r][0], i.a, i.c, r.n || '']); return [n + 1, i.t, OPS_RISK[i.r][0], lbl[r.s] || 'لم يُقيّم', r.n || '']; }) } };
+    let fryer = '';
+    return { title: s.title, table: { headers: ['#', 'البند', 'الخطورة', 'النتيجة / القيمة', 'ملاحظات'], rows: s.items.map(function (i, n) {
+      const r = res[i.id] || {}, risk = (OPS_RISK[i.r] || OPS_RISK.m)[0];
+      if (opsIsVal(i)) { if (i.k === 'txt' && /قلاية/.test(i.t) && r.v) fryer = r.v; return [n + 1, i.t, '—', opsValText(i, r) || '—', r.n || '']; }
+      if (i.k === 'tpm') {
+        const x = OPS_TPM[opsTpmIdx(r.v)];
+        if (x) tpmRows.push([s.title + (fryer ? ' — ' + fryer : ''), nf(+r.v, 1) + '%', x[1], x[4]]);
+        if (r.s === 'fail' || r.warn) failRows.push([s.title, i.t + ' (' + opsValText(i, r) + ')', risk, x ? x[4] : i.a, i.c, r.n || '']);
+        return [n + 1, i.t, risk, opsValText(i, r) || 'لم يُقيّم', (x ? x[4] + ' ' : '') + (r.n || '')];
+      }
+      if (r.s === 'fail') failRows.push([s.title, i.t, risk, i.a, i.c, r.n || '']);
+      return [n + 1, i.t, risk, lbl[r.s] || 'لم يُقيّم', r.n || ''];
+    }) } };
   });
+  if (tpmRows.length) secs.unshift({ title: 'نتائج اختبار قطبية الزيت (TPM%)', table: { headers: ['القلاية', 'القراءة', 'التصنيف', 'التفسير والإجراء'], rows: tpmRows } });
   const rt = opsRate(run.score);
-  rptPrint({ title: 'تقرير تدقيق: ' + run.title, subtitle: OPS_TPL_CATS[run.data.cat] || '', period: dOnly(run.period) + (run.data.shift ? ' · ' + run.data.shift : ''),
+  rptPrint({ title: 'تقرير تدقيق: ' + run.title, subtitle: OPS_TPL_CATS[run.data.cat] || '', period: dOnly(run.period) + (run.data.shift ? ' · ' + run.data.shift : '') + (run.data.hdrVal ? ' · ' + ((run.data.hdrOpt || {}).label || '') + ': ' + run.data.hdrVal : ''),
     kpis: [['نتيجة الالتزام', nf(run.score, 0) + '%', rt[0]], ['مطابق', nf(st.ok, 0)], ['غير مطابق', nf(st.fail, 0), st.highFail ? st.highFail + ' عالي الخطورة' : ''], ['المسؤول', h(run.data.responsible || run.createdBy)]],
     sections: [{ title: 'الإجراءات التصحيحية المطلوبة', intro: failRows.length ? 'البنود غير المطابقة مرتبة حسب الأقسام مع الإجراء الفوري والتوصية' : 'لا توجد بنود غير مطابقة — أداء ممتاز', table: failRows.length ? { headers: ['القسم', 'البند', 'الخطورة', 'الإجراء الفوري', 'التوصية', 'الملاحظة'], rows: failRows } : null }].concat(secs).concat(run.data.notes ? [{ title: 'ملاحظات عامة وخطة المتابعة', html: '<p>' + h(run.data.notes).replace(/\n/g, '<br>') + '</p>' }] : []),
-    bodyHtml: opsSignHtml(['المدقق: ' + (run.data.responsible || ''), 'المدير المعتمد: ' + (run.data.manager || ''), 'الختم']) });
+    bodyHtml: (opsHasTpm(run.data.sections) ? opsTpmGuide(true) : '') + opsSignHtml(['المدقق: ' + (run.data.responsible || ''), 'المدير المعتمد: ' + (run.data.manager || ''), 'الختم']) });
 }
 function opsPrintBlank(t) {
+  const ho = t.data.hdrOpt;
+  const dots = '........................', blankVal = function (i) {
+    if (i.k === 'opt') return (i.o || []).map(function (o) { return '☐ ' + h(o); }).join('&nbsp;&nbsp; ');
+    if (i.k === 'date') return '........ / ........ / ............';
+    if (i.k === 'tpm') return '............ %&nbsp;&nbsp; ☐ ممتاز ☐ صالح ☐ تحذير ☐ غير صالح';
+    if (i.k === 'num') return '............ ' + h(i.u || '');
+    return dots;
+  };
   rptPrint({ title: t.title, subtitle: 'نموذج ورقي للتعبئة — ' + (OPS_TPL_CATS[t.data.cat] || ''),
-    bodyHtml: '<table class="t"><tr><td style="width:25%">التاريخ: ..................</td><td style="width:25%">الوردية: ..................</td><td style="width:25%">الفرع: ..................</td><td>المسؤول: ..................</td></tr></table>' +
+    bodyHtml: '<table class="t"><tr><td style="width:25%">التاريخ: ..................</td><td style="width:25%">' + (ho && ho.label ? h(ho.label) + ': ' + (ho.o || []).map(function (o) { return '☐ ' + h(o); }).join(' ') : 'الوردية: ..................') + '</td><td style="width:25%">الفرع: ..................</td><td>المسؤول: ..................</td></tr></table>' +
+      (opsHasTpm(t.data.sections) ? opsTpmGuide(true) : '') +
       (t.data.sections || []).map(function (s, si) {
-        return '<h2 class="st">' + (si + 1) + '. ' + h(s.title) + '</h2><table class="t"><thead><tr><th style="width:4%">#</th><th>البند</th><th style="width:9%">الخطورة</th><th style="width:8%">مطابق</th><th style="width:9%">غير مطابق</th><th style="width:8%">لا ينطبق</th><th style="width:20%">ملاحظات</th></tr></thead><tbody>' +
-          s.items.map(function (i, n) { return '<tr><td>' + (n + 1) + '</td><td>' + h(i.t) + '</td><td>' + OPS_RISK[i.r][0] + '</td><td style="text-align:center">☐</td><td style="text-align:center">☐</td><td style="text-align:center">☐</td><td></td></tr>'; }).join('') + '</tbody></table>';
+        const vi = s.items.filter(function (i) { return i.k && i.k !== 'chk'; }), ci = s.items.filter(function (i) { return !i.k || i.k === 'chk'; });
+        return '<h2 class="st">' + (si + 1) + '. ' + h(s.title) + '</h2>' +
+          (vi.length ? '<table class="t"><thead><tr><th style="width:4%">#</th><th style="width:38%">البند</th><th>القيمة / الحالة</th><th style="width:20%">ملاحظات</th></tr></thead><tbody>' +
+            vi.map(function (i, n) { return '<tr><td>' + (n + 1) + '</td><td>' + h(i.t) + '</td><td>' + blankVal(i) + '</td><td></td></tr>'; }).join('') + '</tbody></table>' : '') +
+          (ci.length ? '<table class="t"><thead><tr><th style="width:4%">#</th><th>البند</th><th style="width:9%">الخطورة</th><th style="width:8%">مطابق</th><th style="width:9%">غير مطابق</th><th style="width:8%">لا ينطبق</th><th style="width:20%">ملاحظات</th></tr></thead><tbody>' +
+            ci.map(function (i, n) { return '<tr><td>' + (n + 1) + '</td><td>' + h(i.t) + '</td><td>' + (OPS_RISK[i.r] || OPS_RISK.m)[0] + '</td><td style="text-align:center">☐</td><td style="text-align:center">☐</td><td style="text-align:center">☐</td><td></td></tr>'; }).join('') + '</tbody></table>' : '');
       }).join('') + '<h2 class="st">الإجراءات التصحيحية وخطة المتابعة</h2><table class="t"><tbody>' + '<tr><td style="height:26px"></td></tr>'.repeat(4) + '</tbody></table>' + opsSignHtml(['توقيع المدقق', 'توقيع المدير', 'الختم']) });
 }
 
@@ -425,7 +606,7 @@ async function opsHand(el) {
   bindRange(el, 'opsHandR', load); load(cur);
 }
 function opsHandModal(row, done) {
-  const tpl = opsHandTpl(), sections = row ? (row.data.sections || []) : JSON.parse(JSON.stringify((tpl && tpl.data.sections) || []));
+  const tpl = opsHandTpl(), sections = row ? (row.data.sections || []) : JSON.parse(JSON.stringify((tpl && tpl.data.sections) || [])).map(function (s) { s.items = (s.items || []).filter(function (i) { return !i.k || i.k === 'chk'; }); return s; }).filter(function (s) { return s.items.length; });
   const results = row ? JSON.parse(JSON.stringify(row.data.results || {})) : {};
   const empOpts = [['', '—']].concat(opsActiveEmps().map(function (e) { return [e.title, e.title + ' — ' + (OPS_DEPTS[e.data.dept] || '')]; }));
   const shifts = (OPS.types || []).map(function (t) { return [t.title, t.title + ' (' + t.data.start + ' - ' + t.data.end + ')']; });
@@ -818,3 +999,44 @@ async function opsEmpModal(e, done) {
     await opsS('employee', { id: e && e.id, title: t, data: d }); if (done) done();
   }, { icon: 'user', wide: true });
 }
+
+// ---------- v5.3.3: أقسام إدارة التشغيل داخل التقرير الشامل (Word / Excel) ----------
+// SOP والتدقيق · صيانة المعدات · اختبار قطبية الزيت TPM · الاستلام والتسليم · تقييم الموظفين
+(function () {
+  if (typeof bizFullSections !== 'function') return;
+  const orig = bizFullSections;
+  window.bizFullSections = bizFullSections = async function () {
+    const out = await orig.apply(this, arguments); if (!out) return out;
+    try {
+      if (!hasF('ops_mgmt') || !canP('ops', 'ops_check')) return out;
+      const L = async function (kind, p) { try { const r = await bz('opsList', Object.assign({ kind: kind }, p || {}), { silentPlan: true }); return r && r.success ? (r.rows || []) : []; } catch (e) { return []; } };
+      const f = { from: daysAgo(29), to: isoLocal() };
+      const r = await Promise.all([L('sop_run', f), L('handover', f), L('eval', { from: opsMonthStart(daysAgo(60).slice(0, 7)) }), L('sop_tpl')]);
+      const runs = r[0], hands = r[1], evals = r[2], tpls = r[3];
+      if (tpls.length) out.sections.push({ title: 'نماذج الإجراءات القياسية SOP', sheet: 'نماذج SOP', pb: true, table: { headers: ['النموذج', 'النوع', 'الأقسام', 'البنود'], rows: tpls.map(function (t) { return [t.title, OPS_TPL_CATS[t.data.cat] || '', (t.data.sections || []).length, opsTplCount(t)]; }) } });
+      if (runs.length) {
+        const avg = runs.reduce(function (s, x) { return s + (+x.score || 0); }, 0) / runs.length;
+        out.sections.push({ title: 'SOP والتدقيق — آخر 30 يوماً', sheet: 'سجل التدقيق SOP', kpis: [['عمليات التدقيق', runs.length], ['متوسط الالتزام', nf(avg, 0) + '%'], ['مخالفات عالية الخطورة', runs.reduce(function (s, x) { return s + ((x.data.stats || {}).highFail || 0); }, 0)]],
+          table: { headers: ['التاريخ', 'النموذج', 'النوع', 'الوردية', 'المسؤول', 'النتيجة %', 'مطابق', 'غير مطابق', 'تحذير'], pct: [5], rows: runs.map(function (x) { const s = x.data.stats || {}; return [dOnly(x.period), x.title, (OPS_TPL_CATS[x.data.cat] || '') + (x.data.hdrVal ? ' · ' + x.data.hdrVal : ''), x.data.shift || '', x.data.responsible || x.createdBy || '', +x.score || 0, s.ok || 0, s.fail || 0, s.warn || 0]; }) } });
+        const fails = [], tpm = [];
+        runs.forEach(function (x) {
+          const res = x.data.results || {};
+          (x.data.sections || []).forEach(function (s) {
+            let fr = '';
+            (s.items || []).forEach(function (i) {
+              const rr = res[i.id] || {};
+              if (i.k === 'txt' && /قلاية/.test(i.t) && rr.v) fr = rr.v;
+              if (i.k === 'tpm' && opsTpmIdx(rr.v) >= 0) { const b = OPS_TPM[opsTpmIdx(rr.v)]; tpm.push([dOnly(x.period), x.title, s.title + (fr ? ' — ' + fr : ''), +rr.v, b[1], b[4]]); }
+              if (rr.s === 'fail' || rr.warn) fails.push([dOnly(x.period), x.title, s.title, i.t + (i.k === 'tpm' ? ' (' + opsValText(i, rr) + ')' : ''), (OPS_RISK[i.r] || OPS_RISK.m)[0], i.k === 'tpm' ? (OPS_TPM[opsTpmIdx(rr.v)] || [])[4] || '' : i.a || '', rr.n || '']);
+            });
+          });
+        });
+        if (tpm.length) out.sections.push({ title: 'اختبار قطبية زيت القلي (TPM%) — آخر 30 يوماً', sheet: 'اختبار الزيت TPM', intro: 'الحدود: أقل من 14% ممتاز · 14–20% صالح مع الفلترة اليومية · 20–24% تحذير · أكثر من 24% غير صالح ويجب تغييره فوراً', table: { headers: ['التاريخ', 'النموذج', 'القلاية', 'TPM %', 'التصنيف', 'التفسير والإجراء'], rows: tpm } });
+        if (fails.length) out.sections.push({ title: 'البنود غير المطابقة والإجراءات التصحيحية — آخر 30 يوماً', sheet: 'الإجراءات التصحيحية', table: { headers: ['التاريخ', 'النموذج', 'القسم', 'البند', 'الخطورة', 'الإجراء الفوري', 'الملاحظة'], rows: fails.slice(0, 500) } });
+      }
+      if (hands.length) out.sections.push({ title: 'الاستلام والتسليم بين الورديات — آخر 30 يوماً', sheet: 'الاستلام والتسليم', pb: true, table: { headers: ['التاريخ', 'الوقت', 'الوردية', 'المسلّم', 'المستلم', 'فرق النقد', 'اكتمال البنود %', 'ملاحظات'], money: [5], pct: [6], rows: hands.map(function (x) { return [dOnly(x.period), x.data.time || '', x.data.shift || '', x.data.from || '', x.data.to || '', +((x.data.cash || {}).diff) || 0, x.score == null ? '—' : +x.score, x.data.issues || '']; }) } });
+      if (evals.length) out.sections.push({ title: 'تقييم الموظفين — آخر شهرين', sheet: 'تقييم الموظفين', table: { headers: ['الشهر', 'الموظف', 'النتيجة %', 'التقدير'], pct: [2], rows: evals.map(function (x) { return [String(x.period || '').slice(0, 7), x.title, +x.score || 0, opsRate(x.score)[0]]; }) } });
+    } catch (e) { console.warn('ops report', e); }
+    return out;
+  };
+})();

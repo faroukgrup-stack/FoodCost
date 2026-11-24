@@ -34,6 +34,18 @@
       el.innerHTML = '<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">' + Object.keys(LANGS).map(function (k) { return '<button type="button" data-setlang="' + k + '" style="padding:6px 12px;border-radius:999px;border:1px solid ' + (k === lang ? '#b48554' : 'rgba(127,127,127,.35)') + ';background:' + (k === lang ? '#b48554' : 'transparent') + ';color:' + (k === lang ? '#0b0e17' : 'inherit') + ';font:inherit;font-size:.8rem;font-weight:700;cursor:pointer">' + LANGS[k] + '</button>'; }).join('') + '</div>';
     }
   }
+  // v5.3.3: زر اللغة المختصر (أيقونة الكرة الأرضية + رمز اللغة الحالية) لتطبيق العميل والمينيو وحالة الطلب
+  var SHORT = { ar: 'ع', en: 'EN', tr: 'TR' };
+  function langBtns() {
+    var els = document.querySelectorAll('[data-lang-btn]:not([data-ok])');
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i]; el.setAttribute('data-ok', '1'); el.setAttribute('data-i18n-skip', ''); el.setAttribute('type', 'button');
+      el.setAttribute('aria-label', 'اللغة · Language · Dil'); el.setAttribute('title', LANGS[lang]);
+      el.innerHTML = '<i class="fas fa-globe" aria-hidden="true"></i><span style="font-weight:800;font-size:.78rem;margin-inline-start:5px">' + SHORT[lang] + '</span>';
+      el.addEventListener('click', function (ev) { api.menu(ev); });
+    }
+  }
+  var pk0 = pickers; pickers = function () { pk0(); langBtns(); };
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-setlang]'); if (b) { e.preventDefault(); api.set(b.getAttribute('data-setlang')); } }, true);
   document.addEventListener('DOMContentLoaded', pickers);
 

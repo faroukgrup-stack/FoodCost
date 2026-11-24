@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+<meta name="robots" content="noindex, nofollow"><!-- v5.3.3: صفحة تشغيلية/خاصة بكل مطعم — لا تُفهرس -->
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>حالة الطلبات</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
@@ -28,18 +29,19 @@ h2{font-size:clamp(1.4rem,3vw,2.6rem);text-align:center;padding:1.5vh;border-rad
 .empty{color:#475569;font-size:clamp(1rem,2vw,1.6rem);text-align:center;margin-top:6vh}
 footer{text-align:center;padding:1.2vh;color:#64748b;font-size:clamp(.8rem,1.4vw,1.1rem)}
 #msg{position:fixed;inset:0;display:none;align-items:center;justify-content:center;text-align:center;background:#0b0e17;font-size:1.4rem;padding:30px;color:#aab7d4}
+.lang-btn{height:36px;min-width:36px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:inherit;display:inline-flex;align-items:center;justify-content:center;font-family:inherit;font-size:.95rem;cursor:pointer}
 </style>
 </head>
 <body>
-<header><div class="b"><img id="logo" alt="" style="display:none"><h1 id="name">حالة الطلبات</h1></div><div id="clock"></div></header>
+<header><div class="b"><img id="logo" alt="" style="display:none"><h1 id="name">حالة الطلبات</h1></div><div style="display:flex;align-items:center;gap:10px"><button class="lang-btn" data-lang-btn></button><div id="clock"></div></div></header>
 <main>
   <section class="prep"><h2>قيد التحضير</h2><div class="nums" id="prep"></div></section>
   <section class="ready"><h2>جاهز للاستلام</h2><div class="nums" id="ready"></div></section>
 </main>
 <footer>يرجى التوجه للاستلام عند ظهور رقم طلبك في قائمة «جاهز للاستلام»</footer>
 <div id="msg"></div>
-<script src="js/config.js?v=5.3.2"></script>
-<script src="js/i18n.js?v=5.3.2"></script>
+<script src="js/config.js?v=5.3.4"></script>
+<script src="js/i18n.js?v=5.3.4"></script>
 <script>
 const qs = new URLSearchParams(location.search), R = qs.get('r'), Bq = qs.get('b') || '';
 const $ = s => document.querySelector(s);

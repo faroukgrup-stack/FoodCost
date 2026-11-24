@@ -558,3 +558,27 @@ input[type=search]::-webkit-search-cancel-button{filter:invert(.8)}
 .biz-check{display:flex;gap:8px;align-items:flex-start;cursor:pointer;line-height:1.7}
 .biz-check input{width:auto!important;margin-top:5px}
 @media (max-width:640px){.gl-close-sum{grid-template-columns:1fr}}
+/* v5.3.3 — بنود القيم واختبار قطبية الزيت TPM */
+.ops-run-item.val .ops-run-ctl{align-items:center}
+.ops-val-w{display:inline-flex;align-items:center;gap:6px}
+.ops-val-w em{font-style:normal;font-size:.8rem;color:var(--text-muted)}
+.ops-run-item.val .ops-val{min-width:150px;max-width:240px;padding:7px 10px;border-radius:10px;border:1px solid var(--border);background:rgba(10,14,23,.6);color:var(--text);font:inherit;font-size:.85rem}
+.ops-run-item.val input[type=number].ops-val{max-width:130px;min-width:100px;font-family:var(--f-num)}
+.ops-run-item.warn{border-color:rgba(245,158,11,.65);background:rgba(245,158,11,.06)}
+.ops-run-meta .warn{color:#fbbf24}
+.ops-tpm-rec{margin-top:7px;font-size:.78rem;line-height:1.6;padding:7px 10px;border-radius:10px;border-inline-start:3px solid var(--c);background:rgba(127,127,127,.06)}
+.ops-tpm-rec b{color:var(--c)}
+.ops-tpm-guide{border:1px solid var(--border);border-radius:14px;padding:10px 12px;margin:0 0 12px;background:rgba(180,133,84,.06)}
+.ops-tpm-guide>b{color:var(--accent-soft);font-size:.86rem}
+.ops-tpm-guide p{font-size:.76rem;color:var(--text-muted);margin:4px 0 8px}
+.ops-tpm-bands{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ops-tpm-bands>div{border:1px solid var(--c);border-top-width:4px;border-radius:10px;padding:7px 8px;display:flex;flex-direction:column;gap:2px}
+.ops-tpm-bands span{font-family:var(--f-num);font-size:.74rem;font-weight:700}
+.ops-tpm-bands b{color:var(--c);font-size:.84rem}
+.ops-tpm-bands small{font-size:.7rem;color:var(--text-muted);line-height:1.5}
+
+@media (max-width:768px){.ops-tpm-bands{grid-template-columns:1fr 1fr}.ops-run-item.val .ops-val{max-width:none;width:100%}.ops-val-w{width:100%}}
+.ops-ed-ir2.ops-ed-kind{display:flex;gap:6px;align-items:center;margin:4px 0}
+.ops-ed-ir2.ops-ed-kind select{flex:0 0 220px;max-width:220px;padding:5px 10px!important;font-size:.76rem!important;height:auto!important;min-height:0!important;border-radius:10px!important}
+.ops-ed-ir2.ops-ed-kind input{flex:1}
+.ops-ed-ir2.ops-ed-kind input[hidden]{display:none}

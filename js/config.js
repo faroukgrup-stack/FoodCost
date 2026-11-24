@@ -17,7 +17,7 @@ const PAYMENT_LINKS={
 // رقم واتساب الدعم (يُستخدم عند عدم ضبط رابط دفع لباقة)
 const SUPPORT_WHATSAPP="905550196682";
 const CACHE_DURATION_MS=5*60*1000;
-const PUBLIC_APP_URL="https://rest-tools.farouk-grup.com/";
-const APP_VERSION="5.3.2";const APP_NAME="Mataami Pro";
-// نطاقات النظام نفسه (أي نطاق آخر يُعامل كدومين خاص لمطعم ويُحوَّل لمينيو المطعم)
-const APP_HOSTS=["rest-tools.farouk-grup.com","localhost","127.0.0.1"];
+const PUBLIC_APP_URL="https://mataami-pro.com/";
+const APP_VERSION="5.3.4";const APP_NAME="Mataami Pro";
+// نطاقات النظام نفسه (أي نطاق آخر يُعامل كدومين خاص لمطعم ويُحوَّل لمينيو المطعم) — v5.3.4: الدومين الرسمي mataami-pro.com، والقديم باقٍ لتعمل روابط QR القديمة
+const APP_HOSTS=["mataami-pro.com","www.mataami-pro.com","rest-tools.farouk-grup.com","localhost","127.0.0.1"];

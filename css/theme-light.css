@@ -1,0 +1,115 @@
+/* ============================================================
+   Mataami Pro v5.3.3 — الوضع الصباحي (فاتح) — لمسات نهائية
+   القواعد العامة تُولَّد تلقائياً من js/theme.js، وهذا الملف للمتغيرات والاستثناءات فقط.
+   كل القواعد مقيدة بـ html[data-theme="light"] — الوضع المسائي لا يتأثر.
+   الألوان وفق المعتمد في منصات SaaS: خلفية #f4f6fa، أسطح بيضاء، حدود #e2e8f0، نص #0f172a، نص ثانوي #64748b
+   ============================================================ */
+html[data-theme="light"] {
+    color-scheme: light;
+    --primary: #0b0e17;
+    --primary-light: #f1f5f9;
+    --accent: #b48554;
+    --accent-glow: #b48554;
+    --accent-soft: #8a5f2e;
+    --bg: #f4f6fa;
+    --bg-card: #ffffff;
+    --bg-panel: #ffffff;
+    --bg-input: #ffffff;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --nyala-primary: #ffffff;
+    --nyala-gold: #8a5f2e;
+}
+html[data-theme="light"] body { background: #f4f6fa; color: #0f172a; }
+html[data-theme="light"] .glow-bg { display: none; }
+
+/* الأسطح: ظل خفيف بدلاً من التوهج */
+html[data-theme="light"] .stat-card,
+html[data-theme="light"] .biz-card,
+html[data-theme="light"] .card,
+html[data-theme="light"] .chart-card,
+html[data-theme="light"] .dash-card,
+html[data-theme="light"] .panel,
+html[data-theme="light"] .sidebar,
+html[data-theme="light"] .top-header,
+html[data-theme="light"] .modal-box,
+html[data-theme="light"] .ops-tpl { box-shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 1px 3px rgba(15, 23, 42, .04); }
+
+/* الحقول */
+html[data-theme="light"] input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),
+html[data-theme="light"] select,
+html[data-theme="light"] textarea { color: #0f172a; }
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder { color: #94a3b8; }
+html[data-theme="light"] select option { background: #ffffff; color: #0f172a; }
+html[data-theme="light"] input:focus,
+html[data-theme="light"] select:focus,
+html[data-theme="light"] textarea:focus { border-color: #b48554 !important; box-shadow: 0 0 0 3px rgba(180, 133, 84, .18) !important; }
+
+/* الأزرار الذهبية: نص داكن واضح (تباين أعلى من 7:1) */
+html[data-theme="light"] .btn-primary, html[data-theme="light"] .btn-primary:hover { color: #1a1206; }
+html[data-theme="light"] .btn-primary i { color: inherit; }
+
+/* الإشعار المنبثق (Toast) يبقى داكناً مع نص أبيض */
+html[data-theme="light"] .toast, html[data-theme="light"] .toast * { color: #ffffff !important; }
+
+/* شريط التمرير */
+html[data-theme="light"] ::-webkit-scrollbar-track { background: #eef1f5; }
+html[data-theme="light"] ::-webkit-scrollbar-thumb { background: #cbd5e1; }
+
+/* نافذة اختيار اللغة (أنماط مكتوبة داخل السكربت) */
+html[data-theme="light"] #fcLangPop > div { background: #ffffff !important; color: #0f172a !important; border-color: #e2e8f0 !important; box-shadow: 0 20px 50px rgba(15, 23, 42, .18) !important; }
+html[data-theme="light"] #fcLangPop button:not([style*="background:#b48554"]) { color: #0f172a !important; border-color: #e2e8f0 !important; }
+html[data-theme="light"] #fcLangPop { background: rgba(15, 23, 42, .45) !important; }
+
+/* ألوان مكتوبة مباشرة داخل العناصر (inline) — نسخ أغمق تُقرأ على الأبيض */
+html[data-theme="light"] [style*="color:#6ee7b7"], html[data-theme="light"] [style*="color: #6ee7b7"],
+html[data-theme="light"] [style*="color:#34d399"], html[data-theme="light"] [style*="color: #34d399"],
+html[data-theme="light"] [style*="color:#86efac"] { color: #047857 !important; }
+html[data-theme="light"] [style*="color:#fca5a5"], html[data-theme="light"] [style*="color: #fca5a5"],
+html[data-theme="light"] [style*="color:#f87171"], html[data-theme="light"] [style*="color: #f87171"],
+html[data-theme="light"] [style*="color:#ffb4ab"] { color: #b91c1c !important; }
+html[data-theme="light"] [style*="color:#93c5fd"], html[data-theme="light"] [style*="color: #93c5fd"],
+html[data-theme="light"] [style*="color:#60a5fa"] { color: #1d4ed8 !important; }
+html[data-theme="light"] [style*="color:#fbbf24"], html[data-theme="light"] [style*="color: #fbbf24"],
+html[data-theme="light"] [style*="color:#fcd34d"], html[data-theme="light"] [style*="color: #fcd34d"] { color: #b45309 !important; }
+html[data-theme="light"] [style*="color:#cfa776"], html[data-theme="light"] [style*="color: #cfa776"],
+html[data-theme="light"] [style*="color:#e6c79c"], html[data-theme="light"] [style*="color:#e6c27a"],
+html[data-theme="light"] [style*="color:#e6c08f"], html[data-theme="light"] [style*="color:#f3d9b1"],
+html[data-theme="light"] [style*="color:#e8d6c2"] { color: #8a5f2e !important; }
+html[data-theme="light"] [style*="color:#cbd5e1"], html[data-theme="light"] [style*="color:#e2e8f0"],
+html[data-theme="light"] [style*="color:#e8ecf5"], html[data-theme="light"] [style*="color:#e8ecf3"],
+html[data-theme="light"] [style*="color:#cfd6e2"], html[data-theme="light"] [style*="color:#e5e7eb"] { color: #334155 !important; }
+html[data-theme="light"] [style*="color:#9aa6c2"], html[data-theme="light"] [style*="color:#aab7d4"],
+html[data-theme="light"] [style*="color:#94a3b8"], html[data-theme="light"] [style*="color:#8a9aad"],
+html[data-theme="light"] [style*="color: var(--text-muted)"] { color: #64748b !important; }
+html[data-theme="light"] [style*="background:rgba(10,14,23,0.8)"], html[data-theme="light"] [style*="background: rgba(10,14,23,0.8)"],
+html[data-theme="light"] [style*="background:#0b0e17"], html[data-theme="light"] [style*="background:#151e2d"],
+html[data-theme="light"] [style*="background:#223146"], html[data-theme="light"] [style*="background:#141c2b"],
+html[data-theme="light"] [style*="background:#1d2335"], html[data-theme="light"] [style*="background:#111522"],
+html[data-theme="light"] [style*="background:#0f1424"] { background: #ffffff !important; color: #0f172a; }
+html[data-theme="light"] [style*="background:#080e17"] { background: #f1f5f9 !important; }
+html[data-theme="light"] [style*="border:1px solid #394254"], html[data-theme="light"] [style*="border: 1px solid #394254"] { border-color: #e2e8f0 !important; }
+
+/* زر اختيار المظهر داخل الإعدادات */
+.fc-theme-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fc-theme-opt { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; border: 1.5px solid var(--border); background: transparent; color: var(--text); font: inherit; font-weight: 700; cursor: pointer; transition: border-color .2s, background .2s; text-align: start; }
+.fc-theme-opt:hover { border-color: var(--accent); }
+.fc-theme-opt.on { border-color: var(--accent); background: rgba(180, 133, 84, .12); }
+.fc-theme-opt .sw { width: 38px; height: 26px; border-radius: 8px; flex-shrink: 0; border: 1px solid rgba(127, 127, 127, .35); position: relative; overflow: hidden; }
+.fc-theme-opt .sw.day { background: linear-gradient(180deg, #ffffff 0 45%, #f4f6fa 45%); }
+.fc-theme-opt .sw.day::after { content: ''; position: absolute; inset: auto 5px 5px 5px; height: 5px; border-radius: 3px; background: #b48554; }
+.fc-theme-opt .sw.night { background: linear-gradient(180deg, #141c2b 0 45%, #0a0e16 45%); }
+.fc-theme-opt .sw.night::after { content: ''; position: absolute; inset: auto 5px 5px 5px; height: 5px; border-radius: 3px; background: #b48554; }
+.fc-theme-opt small { display: block; font-weight: 400; font-size: .74rem; color: var(--text-muted); }
+.fc-theme-opt i { color: var(--accent-soft); }
+
+/* نصوص متدرجة (العنوان والشعار) — تدرج داكن مقروء على الخلفية الفاتحة */
+html[data-theme="light"] .login-card h2,
+html[data-theme="light"] .logo { background: linear-gradient(135deg, #0f172a, #8a5f2e) !important; -webkit-background-clip: text !important; background-clip: text !important; -webkit-text-fill-color: transparent !important; }
+html[data-theme="light"] .logo i { -webkit-text-fill-color: #b48554 !important; color: #b48554 !important; }
+/* زر الدخول: زر أساسي ممتلئ وفق نمط SaaS */
+html[data-theme="light"] .login-btn { background: linear-gradient(135deg, #c9a06a, #b48554) !important; color: #1a1206 !important; border-color: #b48554 !important; }
+html[data-theme="light"] .login-btn:hover { background: linear-gradient(135deg, #d4b07a, #c9965e) !important; }
+html[data-theme="light"] .login-input { background: #ffffff !important; color: #0f172a !important; border-color: #e2e8f0 !important; }

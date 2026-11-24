@@ -1,0 +1,10 @@
+# Mataami Pro — robots.txt (v5.3.4) — https://mataami-pro.com
+User-agent: *
+Allow: /
+Allow: /Mataami-Pro.html
+Disallow: /activate.html
+# صفحات الإدارة الداخلية محمية بوسم noindex داخلها (لا تُذكر هنا حتى لا تُكشف روابطها)
+Disallow: /kitchen.html
+Disallow: /driver.html
+
+Sitemap: https://mataami-pro.com/sitemap.xml
