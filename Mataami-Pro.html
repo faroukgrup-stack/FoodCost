@@ -45,6 +45,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Cairo:wght@600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="preload" as="image" href="assets/chef/chef-hero.webp" type="image/webp">
 
     <style>
         /* --- الأساسيات والألوان --- */
@@ -434,6 +435,148 @@
             .lm-row{font-size:.8rem;padding:9px 10px}
             .lang-switch button{padding:5px 8px}
         }
+
+        /* ===== الشيف برو — شخصية الأفاتار ===== */
+        .chef-img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}
+        .chef-bubble{position:relative;background:#fff;color:var(--text-dark);border:1px solid rgba(180,133,84,.35);border-radius:16px;padding:12px 16px;box-shadow:0 18px 40px rgba(6,16,12,.18);font-size:.9rem;line-height:1.55}
+        .chef-bubble b{display:block;font-family:'Cairo',sans-serif;font-weight:800;color:var(--forest);font-size:.95rem;margin-bottom:2px}
+        .chef-bubble span{color:var(--text-muted)}
+
+        /* Hero stage */
+        .hero{padding-bottom:60px}
+        .hero-image.hero-stage{align-self:center;padding-bottom:150px;margin-top:30px}
+        .hero-stage .screenshot-item{width:84%;margin-right:auto!important;margin-left:0!important}
+        .hero-chef{position:absolute;right:-46px;bottom:-40px;width:42%;z-index:4;pointer-events:none}
+        .hero-chef .chef-img{-webkit-mask-image:linear-gradient(to bottom,#000 84%,transparent);mask-image:linear-gradient(to bottom,#000 84%,transparent)}
+        .hero-chef .chef-img{filter:drop-shadow(0 24px 40px rgba(0,0,0,.45));animation:chefIn .9s .15s cubic-bezier(.2,.7,.2,1) both}
+        .hero-bubble{position:absolute;top:2%;right:88%;width:250px;pointer-events:auto;animation:bubbleIn .6s .9s cubic-bezier(.2,.8,.3,1.2) both}
+        .hero-bubble:after{content:"";position:absolute;top:22px;right:-8px;width:16px;height:16px;background:#fff;border-top:1px solid rgba(180,133,84,.35);border-right:1px solid rgba(180,133,84,.35);transform:rotate(45deg)}
+        .hero-stage .hero-float-card{bottom:auto;top:-26px;left:-22px;right:auto;inset-inline-start:auto}
+        .btn-gold.sm{white-space:nowrap}
+        @keyframes chefIn{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+        @keyframes bubbleIn{from{opacity:0;transform:scale(.85) translateY(8px)}to{opacity:1;transform:none}}
+
+        /* Meet the chef / How it works */
+        .meet-section{padding:96px 0;background:#fff;border-bottom:1px solid var(--border-light);position:relative;overflow:hidden}
+        .meet-grid{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:60px;align-items:center}
+        .meet-visual{position:relative}
+        .meet-frame{position:relative;border-radius:24px;overflow:hidden;border:1px solid rgba(180,133,84,.35);box-shadow:var(--shadow-lg);aspect-ratio:1/1;background:var(--forest)}
+        .meet-frame img{width:100%;height:100%;object-fit:cover;display:block}
+        .meet-tag{position:absolute;bottom:-18px;inset-inline-start:24px;display:flex;align-items:center;gap:12px;background:var(--obsidian);color:#fff;border:1px solid rgba(217,184,105,.45);border-radius:14px;padding:10px 16px 10px 12px;box-shadow:0 18px 40px rgba(0,0,0,.35)}
+        .meet-tag img{width:44px;height:44px;border-radius:50%;border:2px solid var(--gold-light);object-fit:cover}
+        .meet-tag b{display:block;font-family:'Cairo',sans-serif;color:var(--gold-light);font-size:.98rem;line-height:1.2}
+        .meet-tag span{font-size:.78rem;color:#b6c2d6}
+        .meet-content .section-subtitle{margin-bottom:28px}
+        .steps{display:grid;gap:14px;margin-bottom:28px;counter-reset:st}
+        .step{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start;background:var(--bg-soft);border:1px solid var(--border-light);border-radius:var(--r-lg);padding:18px 20px;transition:border-color .2s,transform .2s,box-shadow .2s}
+        .step:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:var(--shadow-sm);background:#fff}
+        .step-ic{position:relative;width:48px;height:48px;border-radius:12px;background:var(--forest);color:var(--gold-light);display:grid;place-items:center;font-size:1.15rem;box-shadow:0 8px 20px rgba(9,51,35,.2)}
+        .step-ic:after{counter-increment:st;content:counter(st);position:absolute;top:-8px;inset-inline-end:-8px;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--gold-bright),var(--gold-light));color:var(--obsidian);font:900 .75rem/22px 'Cairo',sans-serif;text-align:center}
+        .step h4{font-size:1.06rem;font-weight:800;color:var(--obsidian);margin-bottom:4px}
+        .step p{color:var(--text-muted);font-size:.93rem}
+        .meet-actions{display:flex;gap:12px;flex-wrap:wrap}
+        .btn-outline.on-light{color:var(--forest);border-color:rgba(9,51,35,.3);background:transparent}
+        .btn-outline.on-light:hover{color:var(--finance-green);border-color:var(--gold);background:rgba(217,184,105,.08)}
+
+        /* Section intro with chef */
+        .sec-intro{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:36px;align-items:center;margin-bottom:40px}
+        .sec-intro .section-subtitle{margin-bottom:0}
+        .sec-chef{position:relative;align-self:end}
+        .sec-chef .chef-img{max-height:270px;width:auto;margin-inline:auto;filter:drop-shadow(0 18px 30px rgba(6,16,12,.22))}
+        .sec-chef .chef-bubble{position:absolute;top:4px;inset-inline-end:76%;width:220px;font-size:.84rem;padding:10px 14px;z-index:2}
+        .sec-chef .chef-bubble:after,.cta-chef .chef-bubble:after{content:"";position:absolute;top:16px;inset-inline-end:-9px;width:10px;height:14px;background:#fff;clip-path:polygon(0 0,100% 50%,0 100%)}
+        html[dir=rtl] .sec-chef .chef-bubble:after,html[dir=rtl] .cta-chef .chef-bubble:after{clip-path:polygon(100% 0,0 50%,100% 100%)}
+        .roi-section .sec-chef .chef-img{filter:drop-shadow(0 18px 30px rgba(0,0,0,.5))}
+        .roi-section .sec-intro{margin-bottom:36px}
+
+        /* Chef tip strip */
+        .chef-tip{display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,rgba(13,92,59,.06),rgba(217,184,105,.1));border:1px solid rgba(180,133,84,.3);border-radius:var(--r-lg);padding:14px 20px;margin:-18px 0 34px;max-width:860px}
+        .chef-tip img{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid var(--gold-light);flex-shrink:0;box-shadow:0 6px 16px rgba(9,51,35,.2)}
+        .chef-tip b{font-family:'Cairo',sans-serif;color:var(--forest);font-weight:800;margin-inline-end:6px}
+        .chef-tip p{color:var(--text-muted);font-size:.95rem;margin:0}
+        .chef-tip.dark{background:rgba(255,255,255,.04);border-color:rgba(217,184,105,.3)}
+        .chef-tip.dark b{color:var(--gold-light)}
+        .chef-tip.dark p{color:#c3cbe0}
+
+        /* FAQ with chef card */
+        .faq-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:40px;align-items:start}
+        .faq-layout .faq-grid{max-width:none}
+        .faq-chef{position:sticky;top:100px;background:linear-gradient(160deg,var(--forest),var(--forest-deep));border:1px solid rgba(217,184,105,.35);border-radius:20px;overflow:hidden;box-shadow:var(--shadow-md);color:#fff}
+        .faq-chef img{width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;object-position:50% 20%;display:block;-webkit-mask-image:linear-gradient(to bottom,#000 70%,transparent);mask-image:linear-gradient(to bottom,#000 70%,transparent)}
+        .faq-chef-body{padding:0 22px 22px;margin-top:-30px;position:relative}
+        .faq-chef-body b{display:block;font-family:'Cairo',sans-serif;font-size:1.12rem;color:var(--gold-light);margin-bottom:6px}
+        .faq-chef-body p{color:#c5dcd0;font-size:.92rem;margin-bottom:16px}
+        .faq-chef-body .btn-gold{width:100%}
+
+        /* CTA with chef */
+        .cta-section{position:relative;overflow:hidden;padding-bottom:0}
+        .cta-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:30px;align-items:end;text-align:start}
+        .cta-grid .cta-text{padding-bottom:90px}
+        .cta-grid .cta-text p{margin-inline:0}
+        .cta-grid .price-tag,.cta-grid .cta-actions{justify-content:flex-start}
+        .cta-chef{position:relative;max-width:360px;margin-inline:auto;width:100%}
+        .cta-chef .chef-img{filter:drop-shadow(0 24px 40px rgba(0,0,0,.45))}
+        .cta-chef .chef-bubble{position:absolute;top:6%;inset-inline-end:72%;width:210px;font-size:.86rem;text-align:start}
+
+        /* Floating guide */
+        .chef-guide{position:fixed;left:18px;bottom:18px;z-index:95;display:flex;align-items:flex-end;gap:10px;direction:inherit}
+        .cg-btn{position:relative;width:66px;height:66px;border-radius:50%;padding:0;border:2px solid var(--gold-light);background:var(--forest);cursor:pointer;box-shadow:0 12px 30px rgba(6,16,12,.35);overflow:visible;flex-shrink:0;transition:transform .2s}
+        .cg-btn:hover{transform:scale(1.06)}
+        .cg-dot{position:absolute;top:-4px;left:-4px;min-width:20px;height:20px;border-radius:99px;background:linear-gradient(135deg,var(--gold-bright),var(--gold-light));color:var(--obsidian);font:900 .7rem/20px 'Cairo',sans-serif;text-align:center;box-shadow:0 0 0 0 rgba(217,184,105,.6);animation:pulse 1.8s infinite;display:none}
+        .chef-guide.has-tip:not(.open) .cg-dot{display:block}
+        .cg-btn img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+        .cg-btn:after{content:"";position:absolute;bottom:2px;right:2px;width:13px;height:13px;border-radius:50%;background:#10b981;border:2px solid #fff}
+        .cg-bubble{position:absolute;bottom:78px;left:0;width:290px;background:#fff;border:1px solid rgba(180,133,84,.4);border-radius:16px 16px 16px 4px;padding:14px 16px 14px;box-shadow:0 20px 50px rgba(6,16,12,.25);opacity:0;transform:translateY(10px) scale(.96);transform-origin:bottom left;pointer-events:none;transition:opacity .25s,transform .25s}
+        .chef-guide.open .cg-bubble{opacity:1;transform:none;pointer-events:auto}
+        .cg-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+        .cg-head b{font-family:'Cairo',sans-serif;color:var(--forest);font-size:.92rem}
+        .cg-head small{display:block;color:var(--gold);font-weight:700;font-size:.72rem}
+        .cg-close{border:0;background:#f1f4f2;color:var(--text-muted);width:26px;height:26px;border-radius:50%;cursor:pointer;flex-shrink:0;font-size:.8rem}
+        .cg-close:hover{background:#e4ebe6}
+        .cg-text{color:var(--text-dark);font-size:.9rem;line-height:1.6;min-height:2.9em}
+        .cg-text.swap{animation:cgSwap .35s ease}
+        .cg-link{display:inline-flex;align-items:center;gap:6px;margin-top:8px;color:var(--finance-green);font-weight:800;font-size:.84rem;text-decoration:none}
+        .cg-link:hover{color:var(--gold)}
+        .cg-link[hidden]{display:none}
+        @keyframes cgSwap{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+        @media (max-width:1100px){.hero-bubble{width:210px;font-size:.82rem}.sec-intro{grid-template-columns:minmax(0,1fr) 210px}}
+        @media (max-width:992px){
+            .hero-image.hero-stage{padding-bottom:150px;max-width:640px;width:100%;margin-inline:auto}
+            .hero-chef{right:-8px;width:46%}
+            .meet-grid{grid-template-columns:1fr;gap:56px}
+            .meet-visual{max-width:520px;width:100%;margin-inline:auto}
+            .faq-layout{grid-template-columns:1fr}
+            .faq-chef{position:relative;top:0;max-width:420px}
+            .faq-chef img{height:auto;aspect-ratio:16/10;object-position:50% 12%}
+            .cta-grid{grid-template-columns:1fr;text-align:center}
+            .cta-grid .cta-text{padding-bottom:10px}
+            .cta-grid .cta-text p{margin-inline:auto}
+            .cta-grid .price-tag,.cta-grid .cta-actions{justify-content:center}
+            .cta-chef{max-width:280px}
+        }
+        @media (max-width:640px){
+            .hero{padding-bottom:64px}
+            .hero-chef{bottom:-30px;width:52%;right:-14px}
+            .hero-image.hero-stage{padding-bottom:120px}
+            .hero-stage .screenshot-item{width:100%}
+            .hero-bubble{right:calc(100% - 18px);left:auto;top:4%;width:158px;font-size:.74rem;padding:9px 11px;line-height:1.55}
+            .hero-bubble:after{display:none}
+            .hero-bubble b{font-size:.82rem}
+            .sec-intro{grid-template-columns:1fr;gap:12px}
+            .sec-chef{max-width:240px;margin-inline:auto 0}
+            .sec-chef .chef-img{max-height:230px}
+            .sec-chef .chef-bubble{inset-inline-end:62%;width:170px;font-size:.78rem}
+            .meet-section{padding:62px 0}
+            .chef-tip{align-items:flex-start;padding:12px 14px}
+            .chef-tip img{width:44px;height:44px}
+            .cta-chef{max-width:230px}
+            .cta-chef .chef-bubble{inset-inline-end:66%;width:160px;font-size:.78rem}
+            .chef-guide{left:12px;bottom:12px}
+            .cg-btn{width:56px;height:56px}
+            .cg-bubble{bottom:66px;width:min(280px,calc(100vw - 28px))}
+        }
+
         @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}html{scroll-behavior:auto}}
     </style>
 </head>
@@ -450,7 +593,7 @@
             <a href="#why" data-ui="nav_why">لماذا مطعمي برو</a>
             <a href="#features" data-t="nav_modules">المميزات</a>
             <a href="#roi" data-ui="nav_roi">حاسبة التوفير</a>
-            <a href="#testimonials" data-ui="nav_testi">آراء العملاء</a>
+            <a href="#how" data-ui="nav_how">كيف يعمل</a>
             <a href="#apps" data-t="nav_apps">التطبيقات</a>
             <a href="#accounting" data-t="nav_acc">المحاسبة</a>
             <a href="#screenshots" data-t="nav_shots">لقطات</a>
@@ -470,7 +613,7 @@
 </header>
 
 <!-- Hero -->
-<section class="hero">
+<section class="hero" data-guide="hero">
     <div class="container hero-grid">
         <div class="hero-content">
             <span class="hero-badge" data-t="hero_badge">أقوى نظام سحابي</span>
@@ -491,12 +634,12 @@
                 <a href="#screenshots" class="btn-outline"><i class="fas fa-images"></i> <span data-t="see_app">شاهد النظام</span></a>
             </div>
             <div class="trust-badges">
-                <span><i class="fas fa-check-circle"></i> <span data-t="tb1">ضمان استرداد 14 يوم</span></span>
-                <span><i class="fas fa-check-circle"></i> <span data-t="tb2">دعم فني 24/7</span></span>
-                <span><i class="fas fa-check-circle"></i> <span data-t="tb3">تحديثات مستمرة</span></span>
+                <span><i class="fas fa-check-circle"></i> <span data-t="tb1">لا يتجدد تلقائياً</span></span>
+                <span><i class="fas fa-check-circle"></i> <span data-t="tb2">دفع آمن</span></span>
+                <span><i class="fas fa-check-circle"></i> <span data-t="tb3">وصول فوري</span></span>
             </div>
         </div>
-        <div class="hero-image">
+        <div class="hero-image hero-stage">
             <div class="screenshot-item" onclick="openLightbox('assets/shots/dashboard-ar.jpg')">
                 <div class="frame-bar"><i></i><i></i><i></i><b>mataami-pro.com — Executive Dashboard</b></div>
                 <img src="assets/shots/dashboard-ar.jpg" data-img="dashboard" data-alt="hero_alt" alt="Mataami Pro Dashboard" fetchpriority="high">
@@ -504,6 +647,10 @@
                     <i class="fas fa-search-plus"></i>
                     <span data-t="zoom">تكبير</span>
                 </div>
+            </div>
+            <div class="hero-chef">
+                <div class="chef-bubble hero-bubble"><b data-ui="hero_chef_hi">أهلاً، أنا الشيف برو</b><span data-ui="hero_chef_msg">مرشدك في مطعمي برو. تعال أريك كيف تدير مطعمك كله من شاشة واحدة.</span></div>
+                <img class="chef-img" src="assets/chef/chef-hero.webp" width="820" height="1040" alt="الشيف برو يعرض لوحة تحكم مطعمي برو على جهاز لوحي" data-ui-alt="chef_hero_alt" fetchpriority="high">
             </div>
             <div class="hero-float-card">
                 <div class="hero-float-icon"><i class="fas fa-chart-line"></i></div>
@@ -546,8 +693,37 @@
     </div>
 </section>
 
+<!-- Meet Chef Pro / How it works -->
+<section class="meet-section reveal" id="how" data-guide="how">
+    <div class="container meet-grid">
+        <div class="meet-visual">
+            <div class="meet-frame">
+                <img src="assets/chef/chef-kitchen.webp" width="1100" height="1100" loading="lazy" alt="الشيف برو داخل مطعم يعمل بنظام مطعمي برو" data-ui-alt="chef_kitchen_alt">
+            </div>
+            <div class="meet-tag">
+                <img src="assets/chef/chef-face.webp" width="240" height="240" alt="" loading="lazy">
+                <div><b data-ui="meet_tag_t">الشيف برو</b><span data-ui="meet_tag_s">مرشدك داخل مطعمي برو</span></div>
+            </div>
+        </div>
+        <div class="meet-content">
+            <span class="eyebrow" data-ui="meet_badge">تعرّف على مرشدك</span>
+            <h3 class="section-title" data-ui="meet_title">من المطبخ إلى الأرباح.. في 3 خطوات بسيطة</h3>
+            <p class="section-subtitle" data-ui="meet_sub">الشيف برو يعرف يوم المطعم جيداً: طلبات، مخزون، موظفون، وأرقام لا تنتهي. لذلك صُمّم مطعمي برو ليجعل كل ذلك واضحاً وبسيطاً.</p>
+            <div class="steps">
+                <div class="step"><div class="step-ic"><i class="fas fa-book-open"></i></div><div><h4 data-ui="st1_t">أضف وصفاتك ومكوناتك</h4><p data-ui="st1_d">أدخل المواد الخام والوصفات مرة واحدة، والنظام يحسب تكلفة كل طبق وهامش ربحه تلقائياً.</p></div></div>
+                <div class="step"><div class="step-ic"><i class="fas fa-cash-register"></i></div><div><h4 data-ui="st2_t">شغّل الصالة والمطبخ</h4><p data-ui="st2_d">الكاشير، مينيو QR، شاشة المطبخ والتوصيل تعمل معاً، والطلب يصل إلى المطبخ لحظة تسجيله.</p></div></div>
+                <div class="step"><div class="step-ic"><i class="fas fa-chart-line"></i></div><div><h4 data-ui="st3_t">تابع أرباحك وقرّر بثقة</h4><p data-ui="st3_d">تقارير لحظية وقوائم مالية وفق IFRS تُظهر لك أين تربح وأين تتسرب أموالك.</p></div></div>
+            </div>
+            <div class="meet-actions">
+                <a href="#plans" class="btn-gold"><i class="fas fa-rocket"></i> <span data-t="choose_plan">اختر باقتك</span></a>
+                <a href="#screenshots" class="btn-outline on-light"><i class="fas fa-images"></i> <span data-t="see_app">شاهد النظام</span></a>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Why Mataami Pro (Value Pillars) -->
-<section class="pillars-section reveal" id="why">
+<section class="pillars-section reveal" id="why" data-guide="why">
     <div class="container">
         <span class="eyebrow" data-ui="why_badge">لماذا مطعمي برو؟</span>
         <h3 class="section-title" data-ui="why_title">أكثر من مجرد كاشير.. عقل مالي وتشغيلي يدير مطعمك</h3>
@@ -576,10 +752,18 @@
 </section>
 
 <!-- Problem -->
-<section class="problem-section reveal">
+<section class="problem-section reveal" data-guide="problem">
     <div class="container">
-        <h3 class="section-title" data-t="prob_title">هل تعاني من هذه المشاكل؟</h3>
-        <p class="section-subtitle" data-t="prob_sub">معظم المطاعم تخسر 10-15% من أرباحها بسبب عدم وجود نظام دقيق.</p>
+        <div class="sec-intro">
+            <div>
+                <h3 class="section-title" data-t="prob_title">هل تعاني من هذه المشاكل؟</h3>
+                <p class="section-subtitle" data-t="prob_sub">معظم المطاعم تخسر 10-15% من أرباحها بسبب عدم وجود نظام دقيق.</p>
+            </div>
+            <div class="sec-chef">
+                <div class="chef-bubble"><span data-ui="prob_chef">فواتير ورقية وأرقام متفرقة؟ مررت بهذا كثيراً.. وهنا الحل.</span></div>
+                <img class="chef-img" src="assets/chef/chef-thinking.webp" width="640" height="933" loading="lazy" alt="الشيف برو محتار وفي يده فواتير ورقية" data-ui-alt="chef_think_alt">
+            </div>
+        </div>
         <div class="problem-grid" id="probGrid">
             <!-- سيتم تعبئتها بالجافاسكريبت -->
         </div>
@@ -587,11 +771,19 @@
 </section>
 
 <!-- Interactive ROI Calculator -->
-<section class="roi-section reveal" id="roi">
+<section class="roi-section reveal" id="roi" data-guide="roi">
     <div class="container">
-        <span class="eyebrow dark-eyebrow" data-ui="roi_badge">حاسبة الأثر المالي الفوري</span>
-        <h3 class="section-title" style="color:#fff" data-ui="roi_title">كم يوفّر ضبط تكلفة الطعام لمطعمك سنوياً؟</h3>
-        <p class="section-subtitle" style="color:#a7b4cb" data-ui="roi_sub">حرّك المؤشرات وفق أرقام مطعمك التقريبية لترى حجم الربح الإضافي عند ضبط الهدر والتسعير.</p>
+        <div class="sec-intro">
+            <div>
+                <span class="eyebrow dark-eyebrow" data-ui="roi_badge">حاسبة الأثر المالي الفوري</span>
+                <h3 class="section-title" style="color:#fff" data-ui="roi_title">كم يوفّر ضبط تكلفة الطعام لمطعمك سنوياً؟</h3>
+                <p class="section-subtitle" style="color:#a7b4cb" data-ui="roi_sub">حرّك المؤشرات وفق أرقام مطعمك التقريبية لترى حجم الربح الإضافي عند ضبط الهدر والتسعير.</p>
+            </div>
+            <div class="sec-chef">
+                <div class="chef-bubble"><span data-ui="roi_chef">جرّب بأرقام مطعمك.. كل 1% توفير يصنع فرقاً كبيراً آخر السنة.</span></div>
+                <img class="chef-img" src="assets/chef/chef-calculator.webp" width="640" height="871" loading="lazy" alt="الشيف برو يحمل آلة حاسبة ويرفع إبهامه" data-ui-alt="chef_calc_alt">
+            </div>
+        </div>
         <div class="roi-box">
             <div class="roi-controls">
                 <div class="roi-field">
@@ -634,10 +826,14 @@
 </section>
 
 <!-- Modules -->
-<section class="features-section reveal" id="features">
+<section class="features-section reveal" id="features" data-guide="features">
     <div class="container">
         <h3 class="section-title" data-t="mod_title">وحدات النظام المتكاملة</h3>
         <p class="section-subtitle" data-t="mod_sub">كل ما تحتاجه لإدارة مطعمك في مكان واحد.</p>
+        <div class="chef-tip">
+            <img src="assets/chef/chef-face.webp" width="240" height="240" alt="" loading="lazy">
+            <p><b data-ui="tip_lbl">نصيحة الشيف:</b><span data-ui="mod_tip">ابدأ بوحدة التكاليف وهندسة المنيو، فهي أسرع طريق لرفع هامش ربحك. وبجانب كل وحدة ستجد الباقة التي تشملها.</span></p>
+        </div>
         <div class="mod-grid" id="modGrid">
             <!-- سيتم تعبئتها بالجافاسكريبت -->
         </div>
@@ -645,10 +841,18 @@
 </section>
 
 <!-- Apps & Screens -->
-<section class="apps-section reveal" id="apps">
+<section class="apps-section reveal" id="apps" data-guide="apps">
     <div class="container">
-        <h3 class="section-title" data-t="apps_title">تطبيقات متكاملة</h3>
-        <p class="section-subtitle" data-t="apps_sub">نظام واحد يشمل كل الأجهزة.</p>
+        <div class="sec-intro">
+            <div>
+                <h3 class="section-title" data-t="apps_title">تطبيقات متكاملة</h3>
+                <p class="section-subtitle" data-t="apps_sub">نظام واحد يشمل كل الأجهزة.</p>
+            </div>
+            <div class="sec-chef">
+                <div class="chef-bubble"><span data-ui="apps_chef">الكاشير والمطبخ والسائق والزبون.. كلهم متصلون في نفس اللحظة.</span></div>
+                <img class="chef-img" src="assets/chef/chef-phone.webp" width="640" height="941" loading="lazy" alt="الشيف برو يعرض تطبيق المطعم على الهاتف" data-ui-alt="chef_phone_alt">
+            </div>
+        </div>
         <div class="apps-grid" id="appsGrid">
             <!-- سيتم تعبئتها بالجافاسكريبت -->
         </div>
@@ -656,7 +860,7 @@
 </section>
 
 <!-- Accounting IFRS -->
-<section class="acc-section reveal" id="accounting">
+<section class="acc-section reveal" id="accounting" data-guide="accounting">
     <div class="container acc-grid">
         <div class="acc-content">
             <span class="hero-badge" data-t="acc_badge">المحاسبة المزدوجة</span>
@@ -682,7 +886,7 @@
 </section>
 
 <!-- Screenshots -->
-<section class="screenshots-section reveal" id="screenshots">
+<section class="screenshots-section reveal" id="screenshots" data-guide="shots">
     <div class="container">
         <h3 class="section-title" data-t="shots_title">لقطات من داخل النظام</h3>
         <p class="section-subtitle" data-t="shots_sub">واجهات نظيفة، سريعة، وسهلة الاستخدام.</p>
@@ -727,22 +931,26 @@
 </div>
 
 <!-- Plans -->
-<section class="plans-section reveal" id="plans">
+<section class="plans-section reveal" id="plans" data-guide="plans">
     <div class="container">
         <h3 class="section-title" data-t="plans_title">باقات تناسب جميع الأحجام</h3>
         <p class="section-subtitle" data-t="plans_sub">ابدأ رحلتك نحو الربحية اليوم.</p>
+        <div class="chef-tip dark">
+            <img src="assets/chef/chef-face.webp" width="240" height="240" alt="" loading="lazy">
+            <p><b data-ui="tip_lbl">نصيحة الشيف:</b><span data-ui="plans_tip">محتار؟ الباقة الأكثر طلباً تناسب أغلب المطاعم، والاشتراك لا يتجدد تلقائياً.</span></p>
+        </div>
         <div class="plans-grid" id="plansGrid">
             <!-- سيتم تعبئتها بالجافاسكريبت -->
         </div>
         <p class="plans-note">
-            <i class="fas fa-info-circle"></i> <span data-t="pn1">جميع الأسعار بالدولار الأمريكي.</span> · <strong style="color:#d9b869" data-t="tb1">ضمان استرداد 14 يوم</strong> · <span data-t="pn2">بدون عقود خفية.</span><br>
+            <i class="fas fa-info-circle"></i> <span data-t="pn1">جميع الأسعار بالدولار الأمريكي.</span> · <strong style="color:#d9b869" data-t="tb1">لا يتجدد تلقائياً</strong> · <span data-t="pn2">بدون عقود خفية.</span><br>
             <i class="fas fa-shield-alt"></i> <span data-t="pn3">دفع آمن 100%</span> · <a data-href="f-14-G-17.html" target="_blank" style="color:#d9b869" data-t="pn4">اشترك الآن</a>
         </p>
     </div>
 </section>
 
 <!-- Compare -->
-<section class="compare-section reveal" id="compare">
+<section class="compare-section reveal" id="compare" data-guide="compare">
     <div class="container">
         <h3 class="section-title" data-t="cmp_title">قارن بين الباقات</h3>
         <p class="section-subtitle" data-t="cmp_sub">اختر ما يناسب احتياجات مطعمك.</p>
@@ -753,7 +961,7 @@
 </section>
 
 <!-- QR Menu -->
-<section class="qr-feature-section reveal">
+<section class="qr-feature-section reveal" data-guide="qr">
     <div class="container">
         <div class="qr-feature-grid">
             <div class="qr-feature-content">
@@ -772,7 +980,7 @@
 </section>
 
 <!-- Customer App (Interactive) -->
-<section class="showcase-section reveal">
+<section class="showcase-section reveal" data-guide="customer">
     <div class="container">
         <div class="showcase-grid">
             <div class="showcase-content">
@@ -804,7 +1012,7 @@
 </section>
 
 <!-- Kitchen KDS (Interactive) -->
-<section class="showcase-section alt reveal">
+<section class="showcase-section alt reveal" data-guide="kds">
     <div class="container">
         <div class="showcase-grid">
             <div class="showcase-visual">
@@ -845,7 +1053,7 @@
 </section>
 
 <!-- What's New -->
-<section class="new-section reveal" id="whatsnew">
+<section class="new-section reveal" id="whatsnew" data-guide="news">
     <div class="container">
         <h3 class="section-title" data-t="new_title">أحدث التحديثات</h3>
         <p class="section-subtitle" data-t="new_sub">نطور النظام باستمرار لنبقى الأفضل.</p>
@@ -856,18 +1064,29 @@
 </section>
 
 <!-- FAQ -->
-<section class="faq-section reveal" id="faq">
+<section class="faq-section reveal" id="faq" data-guide="faq">
     <div class="container">
         <h3 class="section-title" data-t="faq_title">الأسئلة الشائعة</h3>
-        <div class="faq-grid" id="faqGrid">
-            <!-- سيتم تعبئتها بالجافاسكريبت -->
+        <div class="faq-layout">
+            <div class="faq-grid" id="faqGrid">
+                <!-- سيتم تعبئتها بالجافاسكريبت -->
+            </div>
+            <aside class="faq-chef">
+                <img src="assets/chef/chef-cta.webp" width="820" height="820" loading="lazy" alt="الشيف برو" data-ui-alt="chef_alt">
+                <div class="faq-chef-body">
+                    <b data-ui="faq_chef_t">عندك سؤال آخر؟</b>
+                    <p data-ui="faq_chef_d">أفضل طريقة لتعرف النظام هي أن تجربه بنفسك: دفع آمن، ووصول فوري، وبدون تجديد تلقائي.</p>
+                    <a data-href="f-14-G-17.html" target="_blank" class="btn-gold sm"><i class="fas fa-user-plus"></i> <span data-t="cta_sub">اشترك الآن</span></a>
+                </div>
+            </aside>
         </div>
     </div>
 </section>
 
 <!-- CTA -->
-<section class="cta-section reveal">
-    <div class="container">
+<section class="cta-section reveal" data-guide="cta">
+    <div class="container cta-grid">
+        <div class="cta-text">
         <h3 data-t="cta_title">جاهز لمضاعفة أرباح مطعمك؟</h3>
         <p data-t="cta_text">انضم إلى مئات المطاعم التي تدير أعمالها بذكاء.</p>
         <div class="price-tag"><span data-t="from">يبدأ من</span> 99$ <small data-t="per_year">/ سنوياً</small></div>
@@ -877,8 +1096,29 @@
             <a data-href="index.html" class="btn-outline" target="_blank"><i class="fas fa-sign-in-alt"></i> <span data-t="nav_login">دخول النظام</span></a>
         </div>
         <p class="cta-secure"><i class="fas fa-lock"></i> <span data-t="cta_secure">دفع آمن ومشفر 100%</span></p>
+        </div>
+        <div class="cta-chef">
+            <div class="chef-bubble"><span data-ui="cta_chef">أنا جاهز لأبدأ معك.. وأنت؟</span></div>
+            <img class="chef-img" src="assets/chef/chef-wave.webp" width="640" height="890" loading="lazy" alt="الشيف برو يلوّح مرحباً" data-ui-alt="chef_wave_alt">
+        </div>
     </div>
 </section>
+
+<!-- Floating chef guide -->
+<div class="chef-guide" id="chefGuide">
+    <div class="cg-bubble" role="status" aria-live="polite">
+        <div class="cg-head">
+            <div><b data-ui="meet_tag_t">الشيف برو</b><small data-ui="cg_role">مرشدك في الجولة</small></div>
+            <button type="button" class="cg-close" id="cgClose" aria-label="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="cg-text" id="cgText"></div>
+        <a href="#plans" class="cg-link" id="cgLink" hidden><span id="cgLinkTxt"></span> <i class="fas fa-arrow-left" id="cgArrow"></i></a>
+    </div>
+    <button type="button" class="cg-btn" id="cgBtn" aria-label="Chef Pro guide" aria-expanded="false">
+        <img src="assets/chef/chef-face.webp" width="240" height="240" alt="">
+        <span class="cg-dot" aria-hidden="true">1</span>
+    </button>
+</div>
 
 <footer>
     <div class="container">
@@ -1092,12 +1332,252 @@
         }
     };
 
+    // ===== الشيف برو: نصوص الشخصية بثلاث لغات =====
+    const chefUi = {
+        ar: {
+            nav_how: 'كيف يعمل',
+            hero_chef_hi: 'أهلاً، أنا الشيف برو',
+            hero_chef_msg: 'مرشدك في مطعمي برو. تعال أريك كيف تدير مطعمك كله من شاشة واحدة.',
+            chef_hero_alt: 'الشيف برو يعرض لوحة تحكم مطعمي برو على جهاز لوحي',
+            chef_kitchen_alt: 'الشيف برو داخل مطعم يعمل بنظام مطعمي برو',
+            chef_think_alt: 'الشيف برو محتار وفي يده فواتير ورقية',
+            chef_calc_alt: 'الشيف برو يحمل آلة حاسبة ويرفع إبهامه',
+            chef_phone_alt: 'الشيف برو يعرض تطبيق المطعم على الهاتف',
+            chef_wave_alt: 'الشيف برو يلوّح مرحباً',
+            chef_alt: 'الشيف برو',
+            meet_tag_t: 'الشيف برو',
+            meet_tag_s: 'مرشدك داخل مطعمي برو',
+            meet_badge: 'تعرّف على مرشدك',
+            meet_title: 'من المطبخ إلى الأرباح.. في 3 خطوات بسيطة',
+            meet_sub: 'الشيف برو يعرف يوم المطعم جيداً: طلبات، مخزون، موظفون، وأرقام لا تنتهي. لذلك صُمّم مطعمي برو ليجعل كل ذلك واضحاً وبسيطاً.',
+            st1_t: 'أضف وصفاتك ومكوناتك',
+            st1_d: 'أدخل المواد الخام والوصفات مرة واحدة، والنظام يحسب تكلفة كل طبق وهامش ربحه تلقائياً.',
+            st2_t: 'شغّل الصالة والمطبخ',
+            st2_d: 'الكاشير، مينيو QR، شاشة المطبخ والتوصيل تعمل معاً، والطلب يصل إلى المطبخ لحظة تسجيله.',
+            st3_t: 'تابع أرباحك وقرّر بثقة',
+            st3_d: 'تقارير لحظية وقوائم مالية وفق IFRS تُظهر لك أين تربح وأين تتسرب أموالك.',
+            prob_chef: 'فواتير ورقية وأرقام متفرقة؟ مررت بهذا كثيراً.. وهنا الحل.',
+            roi_chef: 'جرّب بأرقام مطعمك.. كل 1% توفير يصنع فرقاً كبيراً آخر السنة.',
+            apps_chef: 'الكاشير والمطبخ والسائق والزبون.. كلهم متصلون في نفس اللحظة.',
+            tip_lbl: 'نصيحة الشيف:',
+            mod_tip: 'ابدأ بوحدة التكاليف وهندسة المنيو، فهي أسرع طريق لرفع هامش ربحك. وبجانب كل وحدة ستجد الباقة التي تشملها.',
+            plans_tip: 'محتار؟ الباقة الأكثر طلباً تناسب أغلب المطاعم، والاشتراك لا يتجدد تلقائياً.',
+            faq_chef_t: 'عندك سؤال آخر؟',
+            faq_chef_d: 'أفضل طريقة لتعرف النظام هي أن تجربه بنفسك: دفع آمن، ووصول فوري، وبدون تجديد تلقائي.',
+            cta_chef: 'أنا جاهز لأبدأ معك.. وأنت؟',
+            cg_role: 'مرشدك في الجولة'
+        },
+        en: {
+            nav_how: 'How It Works',
+            hero_chef_hi: "Hi, I'm Chef Pro",
+            hero_chef_msg: 'Your guide to Mataami Pro. Let me show you how to run your whole restaurant from one screen.',
+            chef_hero_alt: 'Chef Pro showing the Mataami Pro dashboard on a tablet',
+            chef_kitchen_alt: 'Chef Pro inside a restaurant running on Mataami Pro',
+            chef_think_alt: 'Chef Pro puzzled, holding a pile of paper receipts',
+            chef_calc_alt: 'Chef Pro holding a calculator and giving a thumbs-up',
+            chef_phone_alt: 'Chef Pro showing the restaurant app on a phone',
+            chef_wave_alt: 'Chef Pro waving hello',
+            chef_alt: 'Chef Pro',
+            meet_tag_t: 'Chef Pro',
+            meet_tag_s: 'Your guide inside Mataami Pro',
+            meet_badge: 'Meet Your Guide',
+            meet_title: 'From Kitchen to Profit.. in 3 Simple Steps',
+            meet_sub: 'Chef Pro knows a restaurant day well: orders, stock, staff and endless numbers. That is why Mataami Pro was built to make all of it clear and simple.',
+            st1_t: 'Add Your Recipes & Ingredients',
+            st1_d: 'Enter raw materials and recipes once, and the system calculates every dish cost and margin automatically.',
+            st2_t: 'Run the Floor & Kitchen',
+            st2_d: 'POS, QR menu, kitchen display and delivery work together, and every order reaches the kitchen the moment it is placed.',
+            st3_t: 'Track Profit & Decide with Confidence',
+            st3_d: 'Live reports and IFRS financial statements show where you earn and where money leaks.',
+            prob_chef: "Paper receipts and scattered numbers? I've been there.. here's the fix.",
+            roi_chef: 'Try it with your numbers.. every 1% saved makes a big difference by year end.',
+            apps_chef: 'Cashier, kitchen, driver and guest.. all connected in the same moment.',
+            tip_lbl: "Chef's tip:",
+            mod_tip: 'Start with Food Cost and Menu Engineering, the fastest way to lift your margin. Each module shows the plan that includes it.',
+            plans_tip: 'Not sure? The most popular plan fits most restaurants, and there is no auto-renewal.',
+            faq_chef_t: 'Have another question?',
+            faq_chef_d: 'The best way to know the system is to try it yourself: secure payment, instant access and no auto-renewal.',
+            cta_chef: "I'm ready to start with you.. are you?",
+            cg_role: 'Your tour guide'
+        },
+        tr: {
+            nav_how: 'Nasıl Çalışır',
+            hero_chef_hi: 'Merhaba, ben Şef Pro',
+            hero_chef_msg: 'Mataami Pro rehberiniz. Restoranınızın tamamını tek ekrandan nasıl yöneteceğinizi göstereyim.',
+            chef_hero_alt: 'Şef Pro, tablette Mataami Pro panelini gösteriyor',
+            chef_kitchen_alt: 'Mataami Pro ile çalışan bir restoranda Şef Pro',
+            chef_think_alt: 'Elinde kağıt fişlerle düşünceli Şef Pro',
+            chef_calc_alt: 'Hesap makinesi tutan ve başparmağını kaldıran Şef Pro',
+            chef_phone_alt: 'Telefonda restoran uygulamasını gösteren Şef Pro',
+            chef_wave_alt: 'El sallayan Şef Pro',
+            chef_alt: 'Şef Pro',
+            meet_tag_t: 'Şef Pro',
+            meet_tag_s: 'Mataami Pro içindeki rehberiniz',
+            meet_badge: 'Rehberinizle Tanışın',
+            meet_title: 'Mutfaktan Kâra.. 3 Basit Adımda',
+            meet_sub: 'Şef Pro bir restoran gününü iyi bilir: siparişler, stok, personel ve bitmeyen rakamlar. Mataami Pro tüm bunları net ve basit hale getirmek için tasarlandı.',
+            st1_t: 'Reçetelerinizi ve Malzemelerinizi Ekleyin',
+            st1_d: 'Hammaddeleri ve reçeteleri bir kez girin; sistem her yemeğin maliyetini ve kâr marjını otomatik hesaplar.',
+            st2_t: 'Salonu ve Mutfağı Çalıştırın',
+            st2_d: 'POS, QR menü, mutfak ekranı ve teslimat birlikte çalışır; sipariş girildiği anda mutfağa ulaşır.',
+            st3_t: 'Kârınızı İzleyin, Güvenle Karar Verin',
+            st3_d: 'Anlık raporlar ve UFRS finansal tablolar nerede kazandığınızı ve paranın nereden sızdığını gösterir.',
+            prob_chef: 'Kağıt fişler ve dağınık rakamlar mı? Bunu çok yaşadım.. çözüm burada.',
+            roi_chef: 'Kendi rakamlarınızla deneyin.. her %1 tasarruf yıl sonunda büyük fark yaratır.',
+            apps_chef: 'Kasa, mutfak, kurye ve misafir.. hepsi aynı anda bağlı.',
+            tip_lbl: 'Şefin önerisi:',
+            mod_tip: 'Maliyet ve Menü Mühendisliği ile başlayın; marjınızı yükseltmenin en hızlı yolu budur. Her modülün yanında onu içeren paket yazar.',
+            plans_tip: 'Kararsız mısınız? En popüler paket çoğu restorana uyar ve otomatik yenileme yok.',
+            faq_chef_t: 'Başka bir sorunuz mu var?',
+            faq_chef_d: 'Sistemi tanımanın en iyi yolu kendiniz denemek: güvenli ödeme, anında erişim ve otomatik yenileme yok.',
+            cta_chef: 'Sizinle başlamaya hazırım.. ya siz?',
+            cg_role: 'Tur rehberiniz'
+        }
+    };
+
+    // ===== المرشد العائم: نصيحة حسب القسم الظاهر =====
+    const chefTips = {
+        ar: {
+            hero: ['أهلاً بك! أنا الشيف برو، وسأرافقك في جولة سريعة على النظام. انزل للأسفل وسأشرح لك كل قسم.'],
+            how: ['هذه هي الفكرة كلها: وصفات، تشغيل، ثم أرباح واضحة. بسيطة، صح؟'],
+            why: ['السر هنا: كل حركة في الصالة والمطبخ تتحول مباشرة إلى أرقام ربح حقيقية.'],
+            problem: ['هل تعرف كم يضيع من أرباحك في الهدر والتسعير الخاطئ؟ أغلب المطاعم لا تعرف.'],
+            roi: ['حرّك المؤشرات بأرقام مطعمك، وشاهد كم يمكن أن توفّر سنوياً.', 'اختر باقتك', '#plans'],
+            features: ['كل وحدة مكتوب عليها الباقة التي تشملها، حتى تعرف ما تحتاجه بالضبط.'],
+            apps: ['تطبيق للفريق، وشاشة للمطبخ، وتطبيق للسائق، وآخر للزبون. كلها نظام واحد.'],
+            accounting: ['القيود المحاسبية تُسجَّل تلقائياً مع كل عملية بيع وشراء، بدون إدخال يدوي.'],
+            shots: ['اضغط على أي لقطة لتكبيرها ومشاهدة التفاصيل عن قرب.'],
+            plans: ['نصيحتي: ابدأ بالباقة التي تناسب حجم مطعمك اليوم، ويمكنك الترقية لاحقاً.', 'قارن الباقات', '#compare'],
+            compare: ['قارن بهدوء.. كل علامة خضراء تعني ميزة جاهزة في تلك الباقة.'],
+            qr: ['زبونك يمسح الكود ويطلب من طاولته، والطلب يصل إلى المطبخ مباشرة.'],
+            customer: ['جرّب الضغط على الخدمات داخل شاشة الهاتف لترى ما يراه زبونك.'],
+            kds: ['جرّب: اضغط على رقم أي طلب لتنقله من التحضير إلى جاهز.'],
+            news: ['نحدّث النظام باستمرار، وكل التحديثات تصلك تلقائياً.'],
+            faq: ['اضغط على أي سؤال لتظهر إجابته.'],
+            cta: ['أنا جاهز.. وأنت؟ لنبدأ معاً.', 'اشترك الآن', 'f-14-G-17.html']
+        },
+        en: {
+            hero: ["Welcome! I'm Chef Pro and I'll guide you on a quick tour. Scroll down and I'll explain each section."],
+            how: ["That's the whole idea: recipes, operations, then clear profit. Simple, right?"],
+            why: ['The secret: every move on the floor and in the kitchen turns straight into real profit numbers.'],
+            problem: ['Do you know how much profit you lose to waste and wrong pricing? Most restaurants do not.'],
+            roi: ['Move the sliders with your own numbers and see how much you could save each year.', 'Choose your plan', '#plans'],
+            features: ['Every module shows the plan that includes it, so you know exactly what you need.'],
+            apps: ['An app for the team, a kitchen screen, a driver app and a guest app. All one system.'],
+            accounting: ['Journal entries are posted automatically with every sale and purchase, no manual entry.'],
+            shots: ['Click any screenshot to zoom in and see the details.'],
+            plans: ['My advice: start with the plan that fits your size today; you can upgrade later.', 'Compare plans', '#compare'],
+            compare: ['Take your time.. every green check is a feature ready in that plan.'],
+            qr: ['Guests scan the code and order from their table, and it goes straight to the kitchen.'],
+            customer: ['Tap the services on the phone screen to see what your guests see.'],
+            kds: ['Try it: click any order number to move it from Preparing to Ready.'],
+            news: ['We keep improving the system, and every update reaches you automatically.'],
+            faq: ['Click any question to reveal its answer.'],
+            cta: ["I'm ready.. are you? Let's start together.", 'Subscribe now', 'f-14-G-17.html']
+        },
+        tr: {
+            hero: ['Hoş geldiniz! Ben Şef Pro, size kısa bir tur attıracağım. Aşağı kaydırın, her bölümü anlatayım.'],
+            how: ['Bütün fikir bu: reçeteler, operasyon, sonra net kâr. Basit, değil mi?'],
+            why: ['Sır şu: salon ve mutfaktaki her hareket doğrudan gerçek kâr rakamlarına dönüşür.'],
+            problem: ['İsraf ve yanlış fiyatlama yüzünden ne kadar kâr kaybettiğinizi biliyor musunuz? Çoğu restoran bilmiyor.'],
+            roi: ['Kaydırıcıları kendi rakamlarınızla ayarlayın ve yılda ne kadar tasarruf edebileceğinizi görün.', 'Paketinizi seçin', '#plans'],
+            features: ['Her modülün yanında onu içeren paket yazar; tam olarak neye ihtiyacınız olduğunu bilirsiniz.'],
+            apps: ['Ekip uygulaması, mutfak ekranı, kurye ve misafir uygulaması. Hepsi tek sistem.'],
+            accounting: ['Yevmiye kayıtları her satış ve alışta otomatik oluşur, elle giriş yok.'],
+            shots: ['Ayrıntıları görmek için herhangi bir ekran görüntüsüne tıklayın.'],
+            plans: ['Önerim: bugün büyüklüğünüze uyan paketle başlayın; daha sonra yükseltebilirsiniz.', 'Paketleri karşılaştır', '#compare'],
+            compare: ['Acele etmeyin.. her yeşil işaret o pakette hazır bir özellik demektir.'],
+            qr: ['Misafir kodu okutup masasından sipariş verir, sipariş doğrudan mutfağa gider.'],
+            customer: ['Misafirlerinizin ne gördüğünü görmek için telefon ekranındaki hizmetlere dokunun.'],
+            kds: ['Deneyin: bir sipariş numarasına tıklayıp Hazırlanıyor\'dan Hazır\'a taşıyın.'],
+            news: ['Sistemi sürekli geliştiriyoruz, tüm güncellemeler size otomatik ulaşır.'],
+            faq: ['Cevabını görmek için herhangi bir soruya tıklayın.'],
+            cta: ['Ben hazırım.. ya siz? Birlikte başlayalım.', 'Abone ol', 'f-14-G-17.html']
+        }
+    };
+
+    function initChefGuide() {
+        const guide = document.getElementById('chefGuide');
+        if (!guide) return;
+        const btn = document.getElementById('cgBtn');
+        const txt = document.getElementById('cgText');
+        const link = document.getElementById('cgLink');
+        const linkTxt = document.getElementById('cgLinkTxt');
+        const arrow = document.getElementById('cgArrow');
+        let current = 'hero';
+        let closed = false;
+        // close state kept in memory for this visit
+
+        const setOpen = (open) => {
+            guide.classList.toggle('open', open);
+            if (open) guide.classList.remove('has-tip');
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        };
+        const render = (animate) => {
+            const lang = document.documentElement.lang || 'ar';
+            const tip = (chefTips[lang] || chefTips.ar)[current] || chefTips.ar.hero;
+            txt.textContent = tip[0];
+            if (tip[1]) {
+                linkTxt.textContent = tip[1];
+                const href = tip[2];
+                if (href.charAt(0) === '#') { link.href = href; link.removeAttribute('target'); }
+                else {
+                    link.href = href + (href.indexOf('?') < 0 ? '?' : '&') + 'lang=' + lang;
+                    link.target = '_blank';
+                }
+                arrow.className = 'fas ' + (lang === 'ar' ? 'fa-arrow-left' : 'fa-arrow-right');
+                link.hidden = false;
+            } else link.hidden = true;
+            if (animate) { txt.classList.remove('swap'); void txt.offsetWidth; txt.classList.add('swap'); }
+        };
+        window.chefGuideRefresh = () => render(false);
+        let hideTimer = null, hovering = false;
+        const isSmall = () => window.matchMedia('(max-width:640px)').matches;
+        const peek = () => {
+            setOpen(true);
+            clearTimeout(hideTimer);
+            hideTimer = setTimeout(() => { if (!hovering) setOpen(false); }, 7000);
+        };
+        guide.addEventListener('mouseenter', () => { hovering = true; clearTimeout(hideTimer); });
+        guide.addEventListener('mouseleave', () => { hovering = false; if (guide.classList.contains('open') && !closed) hideTimer = setTimeout(() => setOpen(false), 2500); });
+
+        btn.addEventListener('click', () => {
+            const willOpen = !guide.classList.contains('open');
+            clearTimeout(hideTimer);
+            setOpen(willOpen);
+            closed = !willOpen;
+        });
+        document.getElementById('cgClose').addEventListener('click', () => {
+            setOpen(false); closed = true;
+        });
+
+        const sections = document.querySelectorAll('[data-guide]');
+        if ('IntersectionObserver' in window) {
+            const io = new IntersectionObserver((entries) => {
+                entries.forEach(en => {
+                    if (en.isIntersecting) {
+                        const key = en.target.getAttribute('data-guide');
+                        if (key !== current) { current = key; render(true); if (key !== 'hero') { if (!closed && !isSmall()) peek(); else if (!guide.classList.contains('open')) guide.classList.add('has-tip'); } }
+                    }
+                });
+            }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+            sections.forEach(s => io.observe(s));
+        }
+        render(false);
+        // في الواجهة الرئيسية يكفي فقاعة الترحيب بجانب الشيف؛ المرشد يظهر تلقائياً عند الانتقال للأقسام
+    }
+
     function applyExtraLang(lang) {
-        const dict = extraUi[lang] || extraUi.ar;
+        const dict = Object.assign({}, extraUi[lang] || extraUi.ar, (chefUi[lang] || chefUi.ar));
         document.querySelectorAll('[data-ui]').forEach(el => {
             const key = el.getAttribute('data-ui');
             if (dict[key]) el.textContent = dict[key];
         });
+        document.querySelectorAll('[data-ui-alt]').forEach(el => {
+            const key = el.getAttribute('data-ui-alt');
+            if (dict[key]) el.alt = dict[key];
+        });
+        if (window.chefGuideRefresh) window.chefGuideRefresh();
         updateRoi();
         setPhoneStatus('book');
     }
@@ -1109,6 +1589,9 @@
         });
     });
     applyExtraLang(document.documentElement.lang || 'ar');
+    // ضمان تطبيق اللغة المحفوظة بعد أن يحددها ملف landing-i18n.js عند التحميل
+    document.addEventListener('DOMContentLoaded', () => applyExtraLang(document.documentElement.lang || 'ar'));
+    initChefGuide();
 
     // Scroll reveal observer
     const revealEls = document.querySelectorAll('.reveal');
@@ -1126,5 +1609,445 @@
         revealEls.forEach(el => el.classList.add('visible'));
     }
 </script>
-</body>
+<script data-pplx-inline-edit>
+(function () {
+  if (window === window.top) return;
+
+  const allowedParentOrigins = ["https://www.perplexity.ai","https://perplexity.ai","https://testing.perplexity.ai","https://staging.perplexity.ai","https://*.preview.i.perplexity.ai","http://perplexity.localhost","http://localhost:1420","http://127.0.0.1:1420","http://localhost:3000","http://127.0.0.1:3000","http://localhost:5173","http://127.0.0.1:5173"];
+  const MAX_FONT_BYTES = 500 * 1024;
+  const MAX_TOTAL_FONT_BYTES = 2 * 1024 * 1024;
+  const DEFAULT_LINE_HEIGHT = 16;
+  let scrollForwarding = false;
+  let scrollRaf = 0;
+  let trustedTopOrigin = null;
+
+  // Allow entries like "https://*.preview.i.perplexity.ai" — the wildcard
+  // matches a single DNS label (no dots), so "https://*.foo" cannot stretch
+  // across multiple labels.
+  function matchesAllowedOrigin(origin) {
+    if (!origin) return false;
+    for (const entry of allowedParentOrigins) {
+      if (!entry.includes("*")) {
+        if (entry === origin) return true;
+        continue;
+      }
+      const pattern = new RegExp(
+        "^" +
+          entry.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, "[^.]+") +
+          "$",
+      );
+      if (pattern.test(origin)) return true;
+    }
+    return false;
+  }
+
+  // Trust decision: when the sender is same-origin-visible (event.origin is a
+  // real origin like https://www.perplexity.ai) we trust event.origin directly.
+  // When event.origin is "null" (opaque broker srcdoc), we fall back to the
+  // broker's stamped `parentOrigin` to identify the top window. The fallback
+  // is claim-only — we rely on the browser's native `targetOrigin` enforcement
+  // on the response path (see postToTrustedTop) to ensure replies can't be
+  // delivered to anyone but the actual top window of that claimed origin.
+  function getTrustedParentOrigin(event) {
+    const forwardedParentOrigin =
+      typeof event.data.parentOrigin === "string" ? event.data.parentOrigin : null;
+    const parentOrigin = event.origin === "null" ? forwardedParentOrigin : event.origin;
+    return matchesAllowedOrigin(parentOrigin) ? parentOrigin : null;
+  }
+
+  // All responses go to window.top with targetOrigin = the allowlisted origin.
+  // An attacker that iframes us inside their own null-origin broker can claim
+  // any parentOrigin they like, but the browser will drop the reply whenever
+  // the real top's origin doesn't match — so the screenshot never leaves.
+  function postToTrustedTop(message) {
+    if (!trustedTopOrigin) return;
+    try {
+      window.top.postMessage(message, trustedTopOrigin);
+    } catch (_error) {}
+  }
+
+  const PICK_CAPABILITIES = ["pick"];
+  const PICK_CHAIN_LENGTH = 4;
+  const PICK_MAX_TEXT_CHARS = 120;
+  const PICK_MAX_HTML_CHARS = 300;
+
+  function truncate(value, maxChars) {
+    return value.length > maxChars ? value.slice(0, maxChars - 1) + "…" : value;
+  }
+
+  function isPickableElement(element) {
+    return (
+      element instanceof Element &&
+      element !== document.documentElement &&
+      element !== document.body
+    );
+  }
+
+  function resolvePickTarget(x, y) {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    const element = document.elementFromPoint(x, y);
+    return isPickableElement(element) ? element.closest("svg") || element : null;
+  }
+
+  function pickLabel(element) {
+    if (element.id) return element.localName + "#" + element.id;
+    return [element.localName].concat(Array.from(element.classList).slice(0, 2)).join(".");
+  }
+
+  // Only attributes that help find the element in source. data-* values and URL
+  // query strings or fragments can carry tokens.
+  const PICK_ATTRIBUTES = new Set([
+    "id",
+    "class",
+    "name",
+    "type",
+    "role",
+    "alt",
+    "aria-label",
+    "href",
+    "src",
+  ]);
+
+  function pickAttributeValue(attribute) {
+    return attribute.name === "href" || attribute.name === "src"
+      ? attribute.value.split(/[?#]/)[0]
+      : attribute.value;
+  }
+
+  function describePickElement(element) {
+    const chain = [];
+    for (
+      let current = element;
+      isPickableElement(current) && chain.length < PICK_CHAIN_LENGTH;
+      current = current.parentElement
+    ) {
+      chain.unshift(current);
+    }
+    const attributes = Array.from(element.attributes)
+      .filter((attribute) => PICK_ATTRIBUTES.has(attribute.name))
+      .map((attribute) => ` ${attribute.name}="${pickAttributeValue(attribute).replace(/"/g, "&quot;")}"`)
+      .join("");
+    const text = (element.innerText || element.textContent || "").replace(/\s+/g, " ").trim();
+    return {
+      chain: chain.map(pickLabel),
+      html: truncate(`<${element.localName}${attributes}>`, PICK_MAX_HTML_CHARS),
+      text: text ? truncate(text, PICK_MAX_TEXT_CHARS) : undefined,
+    };
+  }
+
+  // Hover asks once per frame, and innerText on a large section forces layout,
+  // so only the rect is re-read while the pointer stays on the same element.
+  // Clicks ask for fresh details since the page may have changed the element.
+  let lastPick = null;
+
+  function describePickTarget(element, fresh) {
+    if (fresh || lastPick?.element !== element) {
+      lastPick = { element, details: describePickElement(element) };
+    }
+    const rect = element.getBoundingClientRect();
+    return {
+      rect: { x: rect.left, y: rect.top, width: rect.width, height: rect.height },
+      ...lastPick.details,
+    };
+  }
+
+  function inlineAll(original, clone) {
+    if (original.nodeType !== 1 || clone.nodeType !== 1) return;
+
+    try {
+      const computedStyle = getComputedStyle(original);
+      // cssText on a computed style is the serialized declaration in modern
+      // Chromium/Safari — a single read beats enumerating ~400 longhand
+      // properties. Firefox returns "" here, so we fall back on empty.
+      const serialized = computedStyle.cssText;
+      if (serialized) {
+        clone.style.cssText = serialized;
+      } else {
+        const parts = new Array(computedStyle.length);
+        for (let index = 0; index < computedStyle.length; index += 1) {
+          const property = computedStyle[index];
+          parts[index] = `${property}:${computedStyle.getPropertyValue(property)};`;
+        }
+        clone.style.cssText = parts.join("");
+      }
+    } catch (_error) {}
+
+    const originalChildren = original.children;
+    const clonedChildren = clone.children;
+    for (
+      let index = 0;
+      index < originalChildren.length && index < clonedChildren.length;
+      index += 1
+    ) {
+      inlineAll(originalChildren[index], clonedChildren[index]);
+    }
+  }
+
+  function extractFontUrl(srcValue) {
+    const matches = [
+      ...srcValue.matchAll(
+        /url\(["']?([^"')]+)["']?\)(?:\s*format\(["']?([^"')]+)["']?\))?/gi,
+      ),
+    ];
+    if (matches.length === 0) return null;
+    const woff2 = matches.find((m) => m[2] && m[2].toLowerCase().includes("woff2"));
+    if (woff2) return woff2[1];
+    const woff = matches.find((m) => m[2] && m[2].toLowerCase().includes("woff"));
+    if (woff) return woff[1];
+    return matches[0][1];
+  }
+
+  // Cache resolved font URL -> data URI across captures. Fonts on a page
+  // essentially never change, and a batch run emits multiple captures back to
+  // back — without this we'd refetch + re-base64 every time.
+  const fontDataUriCache = new Map();
+  const SRC_DECLARATION_RE = /src\s*:\s*[^;}]+/i;
+
+  async function fetchAsDataUri(url) {
+    if (fontDataUriCache.has(url)) return fontDataUriCache.get(url);
+    let dataUri = null;
+    try {
+      const response = await fetch(url, { mode: "cors", credentials: "omit" });
+      if (response.ok) {
+        const blob = await response.blob();
+        if (blob.size <= MAX_FONT_BYTES) {
+          dataUri = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () =>
+              resolve(typeof reader.result === "string" ? reader.result : null);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(blob);
+          });
+        }
+      }
+    } catch (_error) {
+      dataUri = null;
+    }
+    fontDataUriCache.set(url, dataUri);
+    return dataUri;
+  }
+
+  function collectFontFaceRuleTexts() {
+    const rules = [];
+    for (const sheet of document.styleSheets) {
+      let cssRules;
+      try {
+        cssRules = sheet.cssRules;
+      } catch (_error) {
+        continue;
+      }
+      if (!cssRules) continue;
+      for (const rule of cssRules) {
+        const cssText = rule.cssText || "";
+        if (cssText.startsWith("@font-face")) rules.push(cssText);
+      }
+    }
+    return rules;
+  }
+
+  async function buildInlinedFontCss() {
+    const ruleTexts = collectFontFaceRuleTexts();
+    if (ruleTexts.length === 0) return null;
+
+    const resolved = ruleTexts.map((cssText) => {
+      if (!SRC_DECLARATION_RE.test(cssText)) return null;
+      const srcMatch = cssText.match(/src\s*:\s*([^;}]+)[;}]/i);
+      if (!srcMatch) return null;
+      const url = extractFontUrl(srcMatch[1]);
+      if (!url) return null;
+      try {
+        return { cssText, url: new URL(url, document.baseURI).href };
+      } catch (_error) {
+        return null;
+      }
+    });
+
+    const dataUris = await Promise.all(
+      resolved.map((entry) => (entry ? fetchAsDataUri(entry.url) : Promise.resolve(null))),
+    );
+
+    const inlined = [];
+    let totalBytes = 0;
+    for (let index = 0; index < resolved.length; index += 1) {
+      const entry = resolved[index];
+      const dataUri = dataUris[index];
+      if (!entry || !dataUri) continue;
+      const approxBytes = dataUri.length * 0.75;
+      if (totalBytes + approxBytes > MAX_TOTAL_FONT_BYTES) break;
+      totalBytes += approxBytes;
+      inlined.push(entry.cssText.replace(SRC_DECLARATION_RE, `src: url("${dataUri}")`));
+    }
+    return inlined.length > 0 ? inlined.join("\n") : null;
+  }
+
+  function stripExternal(clone) {
+    const images = clone.querySelectorAll("img");
+    for (let index = 0; index < images.length; index += 1) {
+      const src = images[index].getAttribute("src");
+      if (src && !src.startsWith("data:")) images[index].removeAttribute("src");
+    }
+
+    const elements = clone.querySelectorAll("*");
+    for (let index = 0; index < elements.length; index += 1) {
+      const style = elements[index].style.cssText;
+      if (style && style.includes("url(")) {
+        elements[index].style.cssText = style.replace(
+          /url\(["']?(?!data:)[^)"']*["']?\)/gi,
+          "none",
+        );
+      }
+    }
+  }
+
+  function emitScroll() {
+    scrollRaf = 0;
+    if (!scrollForwarding) return;
+    postToTrustedTop({
+      type: "INLINE_EDIT_SCROLL",
+      scrollX: window.scrollX,
+      scrollY: window.scrollY,
+      capabilities: PICK_CAPABILITIES,
+    });
+  }
+
+  window.addEventListener(
+    "scroll",
+    function () {
+      if (!scrollForwarding || scrollRaf) return;
+      scrollRaf = requestAnimationFrame(emitScroll);
+    },
+    { passive: true, capture: true },
+  );
+
+  async function handleCaptureRequest(event) {
+    const requestId = event.data.requestId;
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    function postResult(dataUrl) {
+      postToTrustedTop({
+        type: "INLINE_EDIT_SCREENSHOT_RESULT",
+        requestId,
+        dataUrl,
+        scrollX,
+        scrollY,
+      });
+    }
+
+    try {
+      // Wait for any pending web fonts to resolve so both inline metrics and
+      // the @font-face inlining below see the same loaded faces.
+      if (document.fonts && document.fonts.ready) {
+        try {
+          await document.fonts.ready;
+        } catch (_error) {}
+      }
+
+      const clone = document.documentElement.cloneNode(true);
+      inlineAll(document.documentElement, clone);
+
+      const removedNodes = clone.querySelectorAll("script,link[rel=\"stylesheet\"],style");
+      for (let index = 0; index < removedNodes.length; index += 1) {
+        removedNodes[index].remove();
+      }
+
+      stripExternal(clone);
+
+      // Re-embed web fonts as data-URI @font-face rules so the SVG rasterizer
+      // can resolve them — external font URLs aren't fetched during
+      // foreignObject rendering, which would otherwise force a fallback face
+      // and change text metrics.
+      const inlinedFontCss = await buildInlinedFontCss();
+      if (inlinedFontCss) {
+        const styleEl = document.createElement("style");
+        styleEl.textContent = inlinedFontCss;
+        const head = clone.querySelector("head");
+        if (head) head.appendChild(styleEl);
+        else clone.insertBefore(styleEl, clone.firstChild);
+      }
+
+      const html = new XMLSerializer().serializeToString(clone);
+      const svg =
+        `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">` +
+        '<foreignObject width="100%" height="100%">' +
+        `<div xmlns="http://www.w3.org/1999/xhtml" style="width:${width}px;height:${height}px;overflow:hidden">` +
+        `<div style="position:relative;left:-${scrollX}px;top:-${scrollY}px">` +
+        html +
+        "</div></div></foreignObject></svg>";
+      const svgUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+      const image = new Image();
+      image.onload = function () {
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(image, 0, 0);
+        postResult(canvas.toDataURL("image/png"));
+      };
+      image.onerror = function () {
+        postResult(null);
+      };
+      image.src = svgUrl;
+    } catch (_error) {
+      postResult(null);
+    }
+  }
+
+  window.addEventListener("message", function (event) {
+    if (!event.data) return;
+    // Only accept messages from the direct parent frame. Blocks sibling /
+    // unrelated-window postMessage senders that could otherwise reach us.
+    if (event.source !== window.parent) return;
+
+    const trustedParentOrigin = getTrustedParentOrigin(event);
+    if (!trustedParentOrigin) return;
+    trustedTopOrigin = trustedParentOrigin;
+
+    if (event.data.type === "INLINE_EDIT_PICK") {
+      const element = resolvePickTarget(event.data.x, event.data.y);
+      postToTrustedTop({
+        type: "INLINE_EDIT_PICK_RESULT",
+        seq: event.data.seq,
+        target: element ? describePickTarget(element, event.data.fresh === true) : null,
+      });
+      return;
+    }
+
+    if (event.data.type === "INLINE_EDIT_SCROLL_START") {
+      scrollForwarding = true;
+      emitScroll();
+      return;
+    }
+
+    if (event.data.type === "INLINE_EDIT_SCROLL_STOP") {
+      scrollForwarding = false;
+      if (scrollRaf) cancelAnimationFrame(scrollRaf);
+      scrollRaf = 0;
+      return;
+    }
+
+    if (event.data.type === "INLINE_EDIT_SCROLL_BY") {
+      const { deltaX, deltaY, deltaMode } = event.data;
+      if (!scrollForwarding || !Number.isFinite(deltaX) || !Number.isFinite(deltaY)) return;
+      if (deltaMode !== 0 && deltaMode !== 1 && deltaMode !== 2) return;
+      const lineHeight =
+        parseFloat(getComputedStyle(document.documentElement).lineHeight) || DEFAULT_LINE_HEIGHT;
+      const scaleX = deltaMode === 1 ? lineHeight : deltaMode === 2 ? window.innerWidth : 1;
+      const scaleY = deltaMode === 1 ? lineHeight : deltaMode === 2 ? window.innerHeight : 1;
+      // The selection overlay receives the wheel event instead of this iframe.
+      // Instant scrolling preserves trackpad deltas even on smooth-scroll sites.
+      window.scrollBy({ left: deltaX * scaleX, top: deltaY * scaleY, behavior: "instant" });
+      emitScroll();
+      return;
+    }
+
+    if (event.data.type !== "INLINE_EDIT_CAPTURE_REQUEST") return;
+
+    handleCaptureRequest(event);
+  });
+})();
+
+
+</script></body>
 </html>
