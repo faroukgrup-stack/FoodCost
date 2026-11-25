@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>استبيان تقييم المنصة | Mataami Pro</title>
+<meta name="description" content="شاركنا رأيك في مطعمي برو خلال 4 دقائق وساعدنا في تطوير المنصة.">
+<link rel="icon" type="image/png" href="assets/favicon-64.png">
+<meta name="theme-color" content="#082419">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Cairo:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="preload" as="image" href="assets/chef/chef-survey.webp">
+<style>
+:root{
+  --gold:#b48554;--gold-light:#d9b869;--gold-bright:#edd088;--gold-soft:#f6ecd6;
+  --forest:#093323;--forest-deep:#061f15;--forest-mid:#0d4430;--obsidian:#0a0e17;
+  --bg:#f5f3ee;--card:#ffffff;--line:#e6e0d3;--line-strong:#d6ccb8;
+  --text:#14201a;--muted:#5d6b63;--faint:#8a958f;
+  --ok:#1f8a5b;--warn:#c07a12;--bad:#c2412d;
+  --radius:18px;--radius-sm:12px;
+  --shadow:0 18px 50px -24px rgba(9,51,35,.35),0 2px 6px rgba(9,51,35,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Tajawal','Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;-webkit-font-smoothing:antialiased;min-height:100vh}
+h1,h2,h3{font-family:'Cairo','Tajawal',sans-serif;letter-spacing:-.01em;line-height:1.3}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* ---------- top bar ---------- */
+.top{background:linear-gradient(180deg,var(--forest-deep),var(--forest));color:#fff;padding:14px 0 70px;position:relative;overflow:hidden}
+.top:before{content:"";position:absolute;inset:0;background:radial-gradient(600px 240px at 85% -40%,rgba(217,184,105,.22),transparent 70%),radial-gradient(500px 220px at 5% 120%,rgba(217,184,105,.12),transparent 70%);pointer-events:none}
+.wrap{max-width:1140px;margin:0 auto;padding:0 20px;position:relative}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none}
+.logo-mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--forest-mid),var(--obsidian));color:var(--gold-light);display:grid;place-items:center;border:1px solid rgba(217,184,105,.4)}
+.brand b{font-family:'Cairo',sans-serif;font-size:1.25rem;font-weight:900;direction:ltr}
+.brand b span{color:var(--gold-light)}
+.langs{display:flex;gap:4px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);padding:4px;border-radius:12px}
+.langs button{border:0;background:transparent;color:rgba(255,255,255,.75);padding:6px 11px;border-radius:9px;cursor:pointer;font-weight:700;font-size:.85rem}
+.langs button[aria-pressed="true"]{background:var(--gold-light);color:var(--obsidian)}
+.progress{margin-top:22px;display:none}
+.progress.show{display:block}
+.p-meta{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:.88rem;color:rgba(255,255,255,.78);margin-bottom:9px}
+.p-meta b{color:var(--gold-bright);font-weight:800}
+.p-track{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.p-track i{height:6px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden;position:relative}
+.p-track i:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--gold),var(--gold-bright));transform:scaleX(0);transform-origin:var(--origin,right);transition:transform .45s cubic-bezier(.3,.7,.2,1)}
+[dir="ltr"] .p-track i:after{--origin:left}
+.p-track i.done:after,.p-track i.cur:after{transform:scaleX(1)}
+.p-track i.cur:after{opacity:.65}
+
+/* ---------- layout ---------- */
+.shell{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:26px;margin-top:-50px;padding-bottom:60px;align-items:start}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:34px 36px;min-height:420px}
+.step-kicker{display:inline-flex;align-items:center;gap:8px;font-size:.8rem;font-weight:800;color:var(--gold);background:var(--gold-soft);border:1px solid #ecdcb7;padding:4px 12px;border-radius:99px;margin-bottom:12px}
+.step-title{font-size:clamp(1.45rem,2.4vw,1.9rem);font-weight:900;color:var(--forest-deep);margin-bottom:6px}
+.step-sub{color:var(--muted);margin-bottom:26px;max-width:620px}
+
+.q{border:0;margin:0 0 26px;padding:0}
+.q:last-child{margin-bottom:0}
+.q-label{display:block;font-weight:800;font-size:1.02rem;color:var(--text);margin-bottom:4px}
+.q-label .req{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--gold);margin-inline-start:6px;vertical-align:middle}
+.q-hint{display:block;color:var(--faint);font-size:.86rem;margin-bottom:12px}
+.q.invalid .q-label{color:var(--bad)}
+.q.invalid .q-err{display:flex}
+.q-err{display:none;align-items:center;gap:6px;color:var(--bad);font-size:.85rem;font-weight:700;margin-top:8px}
+
+/* option chips/cards */
+.opts{display:flex;flex-wrap:wrap;gap:9px}
+.opts.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+.opt{position:relative;cursor:pointer}
+.opt input{position:absolute;opacity:0;inset:0;cursor:pointer;margin:0}
+.opt span{display:flex;align-items:center;gap:9px;min-height:44px;padding:9px 15px;border:1.5px solid var(--line);border-radius:var(--radius-sm);background:#fff;font-weight:700;font-size:.93rem;transition:border-color .15s,background .15s,box-shadow .15s;user-select:none}
+.opt span:before{content:"";flex:0 0 18px;height:18px;border-radius:50%;border:2px solid var(--line-strong);background:#fff;transition:all .15s}
+.opt input[type="checkbox"]+span:before{border-radius:6px}
+.opt:hover span{border-color:var(--gold-light)}
+.opt input:checked+span{border-color:var(--gold);background:#fbf6ea;box-shadow:0 0 0 3px rgba(217,184,105,.18)}
+.opt input:checked+span:before{border-color:var(--gold);background:var(--gold) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E") center/12px no-repeat}
+.opt input:focus-visible+span{outline:2px solid var(--gold);outline-offset:2px}
+.opt input:disabled+span{opacity:.45;cursor:not-allowed}
+
+/* NPS */
+.nps{display:grid;grid-template-columns:repeat(11,1fr);gap:6px}
+.nps .opt span{justify-content:center;padding:0;min-height:48px;font-family:'Cairo',sans-serif;font-size:1.05rem;font-weight:800}
+.nps .opt span:before,.scale .opt span:before,.faces .opt span:before,.mx .opt span:before{display:none}
+.nps .opt input:checked+span{color:#fff;border-color:transparent;box-shadow:none}
+.nps .opt.lo input:checked+span{background:var(--bad)}
+.nps .opt.mid input:checked+span{background:var(--warn)}
+.nps .opt.hi input:checked+span{background:var(--ok)}
+.ends{display:flex;justify-content:space-between;color:var(--faint);font-size:.8rem;margin-top:7px;gap:10px}
+.follow{margin-top:16px;display:none}
+.follow.show{display:block;animation:fadeUp .35s ease both}
+
+/* faces CSAT */
+.faces{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+.faces .opt span{flex-direction:column;justify-content:center;text-align:center;padding:12px 6px;min-height:92px;font-size:.82rem;gap:6px}
+.faces .opt i{font-size:1.7rem;color:var(--faint);transition:color .15s,transform .15s}
+.faces .opt input:checked+span i{color:var(--gold);transform:scale(1.12)}
+
+/* 1..7 scale */
+.scale{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.scale .opt span{justify-content:center;padding:0;min-height:44px;font-family:'Cairo',sans-serif;font-weight:800}
+.scale .opt input:checked+span{background:var(--forest);color:var(--gold-bright);border-color:var(--forest)}
+
+/* module ratings */
+.rate-list{display:grid;gap:8px;margin-top:6px}
+.rate-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fcfbf8;animation:fadeUp .3s ease both}
+.rate-row b{font-weight:700;font-size:.93rem}
+.stars{display:flex;gap:2px;flex-shrink:0}
+.stars label{cursor:pointer;padding:3px;position:relative}
+.stars input{position:absolute;opacity:0;width:1px;height:1px}
+.stars i{font-size:1.25rem;color:#dcd5c6;transition:color .12s,transform .12s}
+.stars label.on i{color:var(--gold-light)}
+.stars label:hover i{transform:scale(1.15)}
+.stars input:focus-visible+i{outline:2px solid var(--gold);outline-offset:2px;border-radius:3px}
+
+/* quality matrix */
+.mx{display:grid;gap:8px}
+.mx-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;padding:10px 14px;border:1px solid var(--line);border-radius:var(--radius-sm)}
+.mx-row b{font-weight:700;font-size:.93rem}
+.mx-opts{display:flex;gap:5px}
+.mx .opt span{justify-content:center;width:40px;min-height:38px;padding:0;font-family:'Cairo',sans-serif;font-weight:800;font-size:.92rem}
+.mx .opt.na span{width:auto;padding:0 10px;font-family:'Tajawal',sans-serif;font-size:.78rem;color:var(--faint)}
+.mx .opt input:checked+span{background:var(--forest);color:var(--gold-bright);border-color:var(--forest);box-shadow:none}
+.mx-head{display:flex;justify-content:flex-end;gap:14px;font-size:.78rem;color:var(--faint);padding:0 14px}
+
+.counter{font-size:.82rem;color:var(--muted);font-weight:700;margin-top:8px}
+.counter b{color:var(--gold)}
+
+/* text fields */
+.field{display:grid;gap:6px;margin-bottom:14px}
+.field label{font-weight:700;font-size:.9rem}
+.input,textarea{width:100%;border:1.5px solid var(--line);border-radius:var(--radius-sm);padding:11px 14px;background:#fff;transition:border-color .15s,box-shadow .15s;font-size:.95rem}
+textarea{min-height:96px;resize:vertical;line-height:1.6}
+.input:focus,textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(217,184,105,.18)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.check{display:flex;align-items:flex-start;gap:10px;font-size:.92rem;cursor:pointer;padding:10px 0}
+.check input{width:18px;height:18px;accent-color:var(--gold);margin-top:4px;flex-shrink:0}
+.box{border:1px dashed var(--line-strong);border-radius:var(--radius-sm);padding:16px 18px;background:#fcfbf8}
+.box h3{font-size:1rem;font-weight:800;margin-bottom:4px}
+.box p{color:var(--muted);font-size:.88rem;margin-bottom:12px}
+
+/* nav */
+.nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:30px;padding-top:22px;border-top:1px solid var(--line)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:13px;padding:13px 26px;font-weight:800;font-size:1rem;cursor:pointer;text-decoration:none;transition:transform .15s,box-shadow .15s,background .15s;white-space:nowrap}
+.btn-gold{background:linear-gradient(135deg,var(--gold-light),var(--gold));color:var(--obsidian);box-shadow:0 10px 24px -10px rgba(180,133,84,.7)}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 14px 28px -10px rgba(180,133,84,.8)}
+.btn-ghost{background:transparent;color:var(--muted);border:1.5px solid var(--line)}
+.btn-ghost:hover{border-color:var(--gold-light);color:var(--text)}
+.btn-dark{background:var(--forest);color:#fff}
+.btn[disabled]{opacity:.6;cursor:progress;transform:none}
+[dir="rtl"] .fa-arrow-left-flip{transform:none}
+[dir="ltr"] .flip{transform:scaleX(-1)}
+.nav .spacer{flex:1}
+
+/* welcome & thanks */
+.hero-step{display:block;padding:10px 0}
+.hero-step img{display:none;width:100%;height:auto;filter:drop-shadow(0 18px 30px rgba(9,51,35,.25))}
+.hero-step .step-title{font-size:clamp(1.7rem,3vw,2.35rem)}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0 26px}
+.fact{border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px 14px;background:#fcfbf8}
+.fact i{color:var(--gold);font-size:1.05rem}
+.fact b{display:block;font-family:'Cairo',sans-serif;font-size:1.05rem;font-weight:800;margin-top:4px}
+.fact small{color:var(--muted);font-size:.8rem}
+.privacy{display:flex;gap:10px;align-items:flex-start;color:var(--muted);font-size:.85rem;margin-top:18px}
+.privacy i{color:var(--ok);margin-top:4px}
+.thanks-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.alert{display:none;margin-top:18px;border:1px solid #f0c9c1;background:#fdf1ee;color:#8a2d1d;border-radius:var(--radius-sm);padding:14px 16px;font-size:.92rem}
+.alert.show{display:block}
+.alert .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.alert .btn{padding:9px 16px;font-size:.9rem}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}
+.summary div{border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px;text-align:center;background:#fcfbf8}
+.summary b{display:block;font-family:'Cairo',sans-serif;font-size:1.4rem;color:var(--forest)}
+.summary small{color:var(--muted);font-size:.8rem}
+
+/* chef panel */
+.chef{position:sticky;top:20px;background:linear-gradient(170deg,var(--forest) 0%,var(--forest-deep) 100%);border-radius:var(--radius);padding:22px 22px 0;color:#fff;overflow:hidden;border:1px solid rgba(217,184,105,.25);box-shadow:var(--shadow)}
+.chef:before{content:"";position:absolute;inset:auto -40px -60px -40px;height:220px;background:radial-gradient(closest-side,rgba(217,184,105,.28),transparent);pointer-events:none}
+.chef-name{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.chef-name img{width:38px;height:38px;border-radius:50%;border:2px solid var(--gold-light);object-fit:cover;background:var(--forest-mid)}
+.chef-name b{display:block;font-family:'Cairo',sans-serif;font-size:1rem;line-height:1.2}
+.chef-name small{color:var(--gold-light);font-size:.78rem}
+.bubble{position:relative;background:#fff;color:var(--text);border-radius:16px;padding:14px 16px;font-size:.94rem;font-weight:500;line-height:1.65;box-shadow:0 10px 24px -12px rgba(0,0,0,.5);min-height:74px}
+.bubble:after{content:"";position:absolute;bottom:-8px;inset-inline-start:46%;width:16px;height:16px;background:#fff;transform:rotate(45deg)}
+.bubble.pop{animation:pop .4s cubic-bezier(.2,.8,.3,1.3)}
+.chef-img{position:relative;display:block;width:88%;margin:16px auto 0;height:auto;aspect-ratio:640/920;object-fit:contain;object-position:bottom;transition:opacity .25s}
+.chef-img.swap{opacity:0}
+.chef-tip{display:flex;gap:8px;align-items:flex-start;font-size:.8rem;color:rgba(255,255,255,.7);padding:12px 0 18px;position:relative;border-top:1px solid rgba(255,255,255,.1);margin-top:-2px}
+.chef-tip i{color:var(--gold-light);margin-top:3px}
+
+@keyframes pop{0%{transform:scale(.94);opacity:.6}100%{transform:scale(1);opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.step-in{animation:fadeUp .4s ease both}
+
+/* ---------- responsive ---------- */
+@media (max-width:980px){
+  .shell{grid-template-columns:1fr;gap:16px}
+  .chef{position:relative;top:0;order:-1;padding:14px 16px;display:grid;grid-template-columns:64px minmax(0,1fr);gap:12px;align-items:center}
+  .chef-name,.chef-tip,.chef:before{display:none}
+  .chef-img{grid-column:1;grid-row:1;width:64px;height:64px;margin:0;border-radius:50%;object-fit:cover;object-position:50% 8%;aspect-ratio:1;background:var(--forest-mid);border:2px solid var(--gold-light)}
+  .bubble{grid-column:2;grid-row:1;font-size:.88rem;padding:11px 13px;min-height:0}
+  .bubble:after{bottom:auto;top:24px;inset-inline-start:-7px}
+  .hero-step{display:grid;grid-template-columns:1fr}
+  .hero-step img{display:block;max-width:200px;margin:0 auto 6px;order:-1}
+}
+@media (max-width:640px){
+  .top{padding-bottom:60px}
+  .card{padding:24px 18px}
+  .facts{grid-template-columns:1fr}
+  .nps{grid-template-columns:repeat(6,1fr)}
+  .faces{grid-template-columns:repeat(5,1fr);gap:5px}
+  .faces .opt span{min-height:78px;font-size:.7rem;padding:8px 2px}
+  .faces .opt i{font-size:1.4rem}
+  .scale{gap:4px}
+  .two{grid-template-columns:1fr}
+  .mx-row{grid-template-columns:1fr;gap:8px}
+  .mx-opts{flex-wrap:wrap}
+  .mx .opt span{width:38px}
+  .mx-head{display:none}
+  .rate-row{flex-direction:column;align-items:flex-start;gap:4px}
+  .summary{grid-template-columns:1fr 1fr 1fr}
+  .btn{padding:12px 18px}
+  .nav .btn-gold{flex:1}
+  .brand b{font-size:1.1rem}
+}
+@media (prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="bar">
+      <a class="brand" href="Mataami-Pro.html" id="brandLink"><span class="logo-mark"><i class="fas fa-utensils"></i></span><b>Mataami <span>Pro</span></b></a>
+      <div class="langs" role="group" aria-label="Language">
+        <button type="button" data-lang="ar" aria-pressed="true">العربية</button>
+        <button type="button" data-lang="en" aria-pressed="false">English</button>
+        <button type="button" data-lang="tr" aria-pressed="false">Türkçe</button>
+      </div>
+    </div>
+    <div class="progress" id="progress" aria-hidden="true">
+      <div class="p-meta"><span id="pStep"></span><span id="pTime"></span></div>
+      <div class="p-track" id="pTrack"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap shell">
+  <section class="card" aria-live="polite">
+    <form id="sv" novalidate autocomplete="on">
+      <input type="text" name="website" id="hp" tabindex="-1" autocomplete="off" class="sr" aria-hidden="true">
+      <div id="stepHost"></div>
+    </form>
+  </section>
+  <aside class="chef" aria-label="Chef Pro">
+    <div class="chef-name"><img src="assets/chef/chef-face.webp" width="240" height="240" alt=""><div><b data-s="chef_name"></b><small data-s="chef_role"></small></div></div>
+    <div class="bubble" id="bubble" role="status"></div>
+    <img class="chef-img" id="chefImg" src="assets/chef/chef-survey.webp" width="640" height="942" alt="">
+    <div class="chef-tip"><i class="fas fa-lock"></i><span data-s="chef_privacy"></span></div>
+  </aside>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/survey-schema.js"></script>
+<script>
+(function () {
+  'use strict';
+  var SC = window.MP_SURVEY, T = SC.T, OP = SC.OPTS;
+  var qs = new URLSearchParams(location.search);
+  var LANGS = ['ar', 'en', 'tr'];
+  var lang = LANGS.indexOf(qs.get('lang')) > -1 ? qs.get('lang') : (/^(en|tr)/i.test(navigator.language || '') ? navigator.language.slice(0, 2).toLowerCase() : 'ar');
+  var DEMO = qs.get('demo') === '1';
+  var API = (typeof COST_API_URL !== 'undefined') ? COST_API_URL : '';
+  if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && qs.get('api')) API = qs.get('api');
+  var WA = (typeof SUPPORT_WHATSAPP !== 'undefined') ? SUPPORT_WHATSAPP : '';
+
+  /* ---------------- النصوص ---------------- */
+  var S = {
+    title: T('استبيان تقييم المنصة | Mataami Pro', 'Platform feedback survey | Mataami Pro', 'Platform değerlendirme anketi | Mataami Pro'),
+    chef_name: T('الشيف برو', 'Chef Pro', 'Şef Pro'),
+    chef_role: T('مرشدك في الاستبيان', 'Your survey guide', 'Anket rehberiniz'),
+    chef_privacy: T('إجاباتك تصل لفريق التطوير فقط، ولا نشاركها مع أي جهة.', 'Your answers go only to the product team and are never shared.', 'Yanıtlarınız yalnızca ürün ekibine ulaşır ve paylaşılmaz.'),
+    step_of: T('القسم {n} من 6', 'Section {n} of 6', 'Bölüm {n} / 6'),
+    time_left: T('بقي حوالي {m} د', 'About {m} min left', 'Yaklaşık {m} dk kaldı'),
+    time_last: T('القسم الأخير', 'Last section', 'Son bölüm'),
+    next: T('التالي', 'Next', 'İleri'), back: T('السابق', 'Back', 'Geri'),
+    send: T('إرسال التقييم', 'Submit feedback', 'Değerlendirmeyi gönder'), sending: T('جارٍ الإرسال...', 'Sending...', 'Gönderiliyor...'),
+    required: T('هذا السؤال مطلوب', 'This question is required', 'Bu soru zorunludur'),
+    optional: T('اختياري', 'Optional', 'İsteğe bağlı'),
+    w_kicker: T('رأيك يصنع النسخة القادمة', 'Your voice shapes the next release', 'Sesiniz bir sonraki sürümü şekillendirir'),
+    w_title: T('ساعدنا نطبخ نسخة أفضل من مطعمي برو', 'Help us cook up a better Mataami Pro', 'Daha iyi bir Mataami Pro pişirmemize yardım edin'),
+    w_sub: T('هذا الاستبيان مخصص لمشتركي المنصة ومن جرّبها. سنسألك عن تجربتك، والوحدات التي تستخدمها، وما الذي تريد أن نطوّره أولاً.', 'This survey is for subscribers and anyone who has tried the platform. We will ask about your experience, the modules you use and what we should build next.', 'Bu anket aboneler ve platformu deneyenler içindir. Deneyiminizi, kullandığınız modülleri ve önce neyi geliştirmemiz gerektiğini soracağız.'),
+    f1: T('حوالي 4 دقائق', 'About 4 minutes', 'Yaklaşık 4 dakika'), f1s: T('6 أقسام قصيرة', '6 short sections', '6 kısa bölüm'),
+    f2: T('بدون تسجيل', 'No sign-in', 'Giriş gerekmez'), f2s: T('بياناتك الشخصية اختيارية', 'Personal details are optional', 'Kişisel bilgiler isteğe bağlı'),
+    f3: T('يُقرأ كاملاً', 'Read in full', 'Tamamı okunur'), f3s: T('كل إجابة يراجعها الفريق', 'The team reviews every answer', 'Ekip her yanıtı inceler'),
+    start: T('ابدأ الاستبيان', 'Start the survey', 'Ankete başla'),
+    w_privacy: T('نستخدم الإجابات لتحسين المنصة فقط. لن نتواصل معك إلا إذا سمحت بذلك في آخر الاستبيان.', 'We use answers only to improve the platform, and will only contact you if you allow it at the end.', 'Yanıtları yalnızca platformu geliştirmek için kullanırız; sadece izin verirseniz sizinle iletişime geçeriz.'),
+
+    s1_t: T('عرّفنا بك وبمطعمك', 'Tell us about you and your restaurant', 'Bize kendinizden ve restoranınızdan bahsedin'),
+    s1_s: T('حتى نفهم إجاباتك في سياقها الصحيح.', 'So we can read your answers in the right context.', 'Yanıtlarınızı doğru bağlamda okuyabilmemiz için.'),
+    q_role: T('ما دورك في المطعم؟', 'What is your role?', 'Restorandaki rolünüz nedir?'),
+    q_rtype: T('ما نوع نشاطك؟', 'What type of business is it?', 'İşletmenizin türü nedir?'),
+    q_branches: T('كم عدد الفروع؟', 'How many branches?', 'Kaç şubeniz var?'),
+    q_plan: T('ما باقتك الحالية؟', 'Which plan are you on?', 'Hangi paketi kullanıyorsunuz?'),
+    q_tenure: T('منذ متى تستخدم مطعمي برو؟', 'How long have you used Mataami Pro?', 'Mataami Pro\'yu ne zamandır kullanıyorsunuz?'),
+    q_devices: T('على أي أجهزة تستخدمه؟', 'Which devices do you use it on?', 'Hangi cihazlarda kullanıyorsunuz?'),
+    multi: T('يمكنك اختيار أكثر من إجابة', 'You can choose more than one', 'Birden fazla seçebilirsiniz'),
+
+    s2_t: T('انطباعك العام', 'Your overall impression', 'Genel izleniminiz'),
+    s2_s: T('ثلاثة أسئلة سريعة هي الأهم في الاستبيان كله.', 'Three quick questions, the most important in the whole survey.', 'Anketin en önemli üç kısa sorusu.'),
+    q_nps: T('ما مدى احتمال أن تنصح صديقاً يملك مطعماً بمطعمي برو؟', 'How likely are you to recommend Mataami Pro to a friend who runs a restaurant?', 'Restoran işleten bir arkadaşınıza Mataami Pro\'yu önerme olasılığınız nedir?'),
+    nps_lo: T('غير محتمل إطلاقاً', 'Not at all likely', 'Hiç olası değil'), nps_hi: T('محتمل جداً', 'Extremely likely', 'Çok olası'),
+    why_hi: T('رائع! ما أكثر شيء أعجبك؟', 'Great! What do you like most?', 'Harika! En çok neyi beğendiniz?'),
+    why_mid: T('ما الذي ينقصنا لتعطينا 10؟', 'What would it take to make it a 10?', '10 vermeniz için neyi eksik?'),
+    why_lo: T('نأسف لذلك. ما السبب الرئيسي لتقييمك؟', 'We\'re sorry. What is the main reason for your score?', 'Üzgünüz. Puanınızın ana nedeni nedir?'),
+    q_csat: T('بشكل عام، ما مدى رضاك عن المنصة؟', 'Overall, how satisfied are you with the platform?', 'Genel olarak platformdan ne kadar memnunsunuz?'),
+    c1: T('غير راضٍ إطلاقاً', 'Very dissatisfied', 'Hiç memnun değilim'), c2: T('غير راضٍ', 'Dissatisfied', 'Memnun değilim'), c3: T('محايد', 'Neutral', 'Kararsızım'), c4: T('راضٍ', 'Satisfied', 'Memnunum'), c5: T('راضٍ جداً', 'Very satisfied', 'Çok memnunum'),
+    q_ces: T('ما مدى سهولة البدء وإعداد مطعمك على النظام؟', 'How easy was it to get started and set up your restaurant?', 'Başlamak ve restoranınızı kurmak ne kadar kolaydı?'),
+    ces_lo: T('صعب جداً', 'Very difficult', 'Çok zor'), ces_hi: T('سهل جداً', 'Very easy', 'Çok kolay'),
+
+    s3_t: T('الوحدات التي تستخدمها', 'The modules you use', 'Kullandığınız modüller'),
+    s3_s: T('اختر الوحدات التي جربتها، ثم قيّم كل واحدة منها.', 'Pick the modules you have tried, then rate each one.', 'Denediğiniz modülleri seçin, sonra her birini puanlayın.'),
+    q_modules: T('أي الوحدات تستخدم؟', 'Which modules do you use?', 'Hangi modülleri kullanıyorsunuz?'),
+    q_rate: T('قيّم كل وحدة اخترتها', 'Rate each module you selected', 'Seçtiğiniz her modülü puanlayın'),
+    rate_hint: T('من نجمة (ضعيفة) إلى 5 نجوم (ممتازة)', 'From 1 star (poor) to 5 stars (excellent)', '1 yıldız (zayıf) ile 5 yıldız (mükemmel) arası'),
+    q_top: T('ما أكثر وحدة لا تستغني عنها؟', 'Which module could you not live without?', 'Vazgeçemeyeceğiniz modül hangisi?'),
+    star: T('{n} من 5', '{n} of 5', '5 üzerinden {n}'),
+
+    s4_t: T('جودة التجربة', 'Quality of the experience', 'Deneyim kalitesi'),
+    s4_s: T('قيّم كل جانب من 1 (ضعيف) إلى 5 (ممتاز). اختر «لا ينطبق» إن لم تجربه.', 'Rate each aspect from 1 (poor) to 5 (excellent). Choose "N/A" if you haven\'t tried it.', 'Her yönü 1 (zayıf) ile 5 (mükemmel) arasında puanlayın. Denemediyseniz "Yok" seçin.'),
+    na: T('لا ينطبق', 'N/A', 'Yok'), poor: T('ضعيف', 'Poor', 'Zayıf'), excellent: T('ممتاز', 'Excellent', 'Mükemmel'),
+
+    s5_t: T('أثر المنصة على مطعمك', 'Impact on your restaurant', 'Restoranınıza etkisi'),
+    s5_s: T('تقديرك التقريبي يكفي، لا نحتاج أرقاماً دقيقة.', 'A rough estimate is fine; we don\'t need exact numbers.', 'Yaklaşık bir tahmin yeterli; kesin rakam gerekmez.'),
+    q_before: T('ماذا كنت تستخدم قبل مطعمي برو؟', 'What did you use before Mataami Pro?', 'Mataami Pro\'dan önce ne kullanıyordunuz?'),
+    q_foodcost: T('كيف تغيّرت نسبة تكلفة الطعام منذ بدأت؟', 'How has your food cost % changed since you started?', 'Başladığınızdan beri gıda maliyeti oranınız nasıl değişti?'),
+    q_time: T('كم ساعة توفّر أسبوعياً في الحسابات والمتابعة؟', 'How many hours a week does it save you on admin?', 'Haftada idari işlerde kaç saat kazandırıyor?'),
+    q_gains: T('في أي القرارات ساعدك النظام فعلاً؟', 'Which decisions has it actually helped with?', 'Hangi kararlarda gerçekten yardımcı oldu?'),
+
+    s6_t: T('المستقبل وكلمتك الأخيرة', 'The future, and your final word', 'Gelecek ve son sözünüz'),
+    s6_s: T('هنا تقرر معنا ماذا نبني في الإصدارات القادمة.', 'This is where you help decide what we build next.', 'Bir sonraki sürümlerde ne inşa edeceğimize burada birlikte karar veriyoruz.'),
+    q_prio: T('اختر أهم 3 تطويرات تريدها', 'Pick the 3 improvements you want most', 'En çok istediğiniz 3 geliştirmeyi seçin'),
+    prio_count: T('اخترت {n} من 3', '{n} of 3 selected', '3 üzerinden {n} seçildi'),
+    q_renew: T('هل ستجدد اشتراكك عند انتهائه؟', 'Will you renew your subscription when it ends?', 'Aboneliğiniz bittiğinde yenileyecek misiniz?'),
+    q_frustration: T('ما أكثر شيء يزعجك أو يبطئك في النظام؟', 'What frustrates or slows you down the most?', 'Sistemde sizi en çok ne rahatsız ediyor veya yavaşlatıyor?'),
+    q_wish: T('لو كان بإمكانك تغيير شيء واحد فقط، ماذا سيكون؟', 'If you could change just one thing, what would it be?', 'Sadece bir şeyi değiştirebilseydiniz, ne olurdu?'),
+    ph_text: T('اكتب بحرية...', 'Write freely...', 'Özgürce yazın...'),
+    contact_t: T('هل نتواصل معك؟', 'May we contact you?', 'Sizinle iletişime geçebilir miyiz?'),
+    contact_s: T('اختياري تماماً. اترك بياناتك إن أردت أن نعود إليك بخصوص ملاحظاتك.', 'Completely optional. Leave your details if you want us to follow up on your feedback.', 'Tamamen isteğe bağlı. Geri bildiriminizle ilgili size dönmemizi isterseniz bilgilerinizi bırakın.'),
+    f_name: T('الاسم', 'Name', 'Ad'), f_email: T('البريد المسجّل في المنصة', 'Email used on the platform', 'Platformdaki e-posta'), f_contact: T('واتساب أو هاتف', 'WhatsApp or phone', 'WhatsApp veya telefon'),
+    allow_contact: T('أوافق أن يتواصل معي فريق مطعمي برو بخصوص هذا التقييم.', 'I agree that the Mataami Pro team may contact me about this feedback.', 'Mataami Pro ekibinin bu değerlendirme hakkında benimle iletişime geçmesini kabul ediyorum.'),
+    allow_quote: T('أوافق على نشر رأيي على موقع مطعمي برو باسمي الأول ونوع نشاطي.', 'I agree that my opinion may be published on the Mataami Pro website with my first name and business type.', 'Görüşümün adım ve işletme türümle Mataami Pro sitesinde yayınlanmasını kabul ediyorum.'),
+    q_quote: T('اكتب جملة قصيرة عن تجربتك للنشر', 'Write a short sentence about your experience for publishing', 'Yayın için deneyiminiz hakkında kısa bir cümle yazın'),
+
+    th_title: T('شكراً من القلب!', 'Thank you, sincerely!', 'Yürekten teşekkürler!'),
+    th_hi: T('سعيد جداً أن مطعمي برو يساعدك. إن أعجبك، شارك الرابط مع صديق يملك مطعماً.', 'I\'m so glad Mataami Pro helps you. If you like it, share it with a friend who runs a restaurant.', 'Mataami Pro\'nun size yardımcı olmasına çok sevindim. Beğendiyseniz restoran işleten bir arkadaşınızla paylaşın.'),
+    th_mid: T('ملاحظاتك وصلت للفريق، وسنعمل على ما ينقصنا لنصل معك إلى 10.', 'Your notes reached the team, and we will work on what is missing to earn a 10 from you.', 'Notlarınız ekibe ulaştı; sizden 10 almak için eksikler üzerinde çalışacağız.'),
+    th_lo: T('نأسف لأن التجربة لم تكن كما تستحق. فريق الدعم جاهز لمساعدتك الآن.', 'We\'re sorry the experience fell short. Our support team is ready to help you now.', 'Deneyimin hak ettiğiniz gibi olmadığı için üzgünüz. Destek ekibimiz şimdi yardıma hazır.'),
+    th_recv: T('تم استلام إجاباتك بنجاح.', 'Your answers were received.', 'Yanıtlarınız alındı.'),
+    th_demo: T('وضع المعاينة: لم تُرسل الإجابات إلى الخادم.', 'Preview mode: answers were not sent to the server.', 'Önizleme modu: yanıtlar sunucuya gönderilmedi.'),
+    sum_nps: T('التوصية', 'Recommend', 'Tavsiye'), sum_csat: T('الرضا', 'Satisfaction', 'Memnuniyet'), sum_mod: T('وحدات قيّمتها', 'Modules rated', 'Puanlanan modül'),
+    back_site: T('العودة إلى الموقع', 'Back to the website', 'Siteye dön'),
+    share: T('شارك مع صديق', 'Share with a friend', 'Bir arkadaşla paylaş'),
+    support: T('تواصل مع الدعم', 'Contact support', 'Destekle iletişim'),
+    share_msg: T('أنصحك بتجربة مطعمي برو لإدارة مطعمك: ', 'I recommend Mataami Pro for running your restaurant: ', 'Restoranınızı yönetmek için Mataami Pro\'yu öneririm: '),
+    err: T('تعذّر إرسال الإجابات الآن. تحقق من الاتصال وحاول مجدداً، أو أرسلها لنا عبر واتساب.', 'We couldn\'t send your answers right now. Check your connection and try again, or send them to us on WhatsApp.', 'Yanıtlar şu anda gönderilemedi. Bağlantınızı kontrol edip tekrar deneyin veya WhatsApp ile gönderin.'),
+    retry: T('حاول مجدداً', 'Try again', 'Tekrar dene'), via_wa: T('أرسل عبر واتساب', 'Send via WhatsApp', 'WhatsApp ile gönder')
+  };
+  var CHEF = {
+    0: ['chef-survey', T('أهلاً! أنا الشيف برو. عندي لك 6 أسئلة سريعة، وكل إجابة منك تتحول إلى تحسين حقيقي في النظام.', 'Hi! I\'m Chef Pro. I have 6 quick sections for you, and every answer turns into a real improvement.', 'Merhaba! Ben Şef Pro. Size 6 kısa bölüm hazırladım; her yanıtınız gerçek bir iyileştirmeye dönüşür.')],
+    1: ['chef-avatar', T('نبدأ بالتعارف. كل مطبخ مختلف، وأريد أن أفهم مطبخك.', 'Let\'s get to know each other. Every kitchen is different, and I want to understand yours.', 'Tanışarak başlayalım. Her mutfak farklıdır, sizinkini anlamak istiyorum.')],
+    2: ['chef-thinking', T('كن صريحاً معي، النقد يساعدني أكثر من المجاملة.', 'Be honest with me; criticism helps more than compliments.', 'Bana dürüst olun; eleştiri iltifattan daha çok işe yarar.')],
+    3: ['chef-phone', T('اختر الوحدات التي جربتها فقط، ولا بأس إن كانت قليلة.', 'Only pick the modules you have tried; a few is perfectly fine.', 'Sadece denediğiniz modülleri seçin; az olması sorun değil.')],
+    4: ['chef-calculator', T('هنا أقيس جودة كل تفصيلة: السرعة، الدقة، الدعم...', 'Here I measure the quality of every detail: speed, accuracy, support...', 'Burada her ayrıntının kalitesini ölçüyorum: hız, doğruluk, destek...')],
+    5: ['chef-hero', T('أريد أن أعرف: هل صنع مطعمي برو فرقاً حقيقياً في أرقامك؟', 'I want to know: has Mataami Pro made a real difference in your numbers?', 'Bilmek istiyorum: Mataami Pro rakamlarınızda gerçek bir fark yarattı mı?')],
+    6: ['chef-wave', T('آخر قسم! أخبرني ماذا نطبخ لك في الإصدار القادم.', 'Last section! Tell me what we should cook up for you next.', 'Son bölüm! Bir sonraki sürümde size ne pişirelim, söyleyin.')],
+    7: ['chef-thanks', T('شكراً لوقتك. سأنقل كل كلمة كتبتها إلى الفريق بنفسي.', 'Thank you for your time. I\'ll pass every word to the team myself.', 'Zaman ayırdığınız için teşekkürler. Her kelimeyi ekibe kendim ileteceğim.')]
+  };
+  var REACT = {
+    nps_hi: T('رائع! هذا يسعدني كثيراً.', 'Wonderful! That makes me very happy.', 'Harika! Bu beni çok mutlu etti.'),
+    nps_mid: T('جيد، لكني أريد أن أصل معك إلى 10. ما الذي ينقصنا؟', 'Good, but I want to earn a 10 from you. What\'s missing?', 'İyi, ama sizden 10 almak istiyorum. Eksik ne?'),
+    nps_lo: T('آسف لهذا. أخبرني بصراحة ما الذي يزعجك وسنعمل على إصلاحه.', 'I\'m sorry. Tell me honestly what bothers you and we\'ll work on fixing it.', 'Üzgünüm. Sizi neyin rahatsız ettiğini dürüstçe söyleyin, düzeltmek için çalışacağız.'),
+    mods: T('اخترت {n} وحدات. الآن أعطِ كل واحدة نجومها.', 'You picked {n} modules. Now give each one its stars.', '{n} modül seçtiniz. Şimdi her birine yıldız verin.'),
+    prio_full: T('ممتاز، هذه أولوياتك الثلاث.', 'Great, those are your top three.', 'Harika, bunlar ilk üç önceliğiniz.'),
+    missing: T('بقي سؤال مطلوب لم تُجب عنه، أشرت لك عليه.', 'There\'s a required question left; I\'ve highlighted it for you.', 'Yanıtlanmamış zorunlu bir soru kaldı; sizin için işaretledim.')
+  };
+  var MINUTES = [4, 4, 3, 3, 2, 1, 1];
+
+  function t(o, v) { var s = o && (o[lang] || o.ar) || ''; if (v) Object.keys(v).forEach(function (k) { s = s.replace('{' + k + '}', v[k]); }); return s; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  /* ---------------- الحالة ---------------- */
+  var A = { devices: [], modules: [], modRatings: {}, quality: {}, gains: [], priorities: [], allowContact: false, allowQuote: false };
+  if (qs.get('plan') && OP.plan.some(function (o) { return o.v === qs.get('plan'); })) A.plan = qs.get('plan');
+  if (qs.get('e')) A.email = qs.get('e').slice(0, 160);
+  var source = (qs.get('src') || qs.get('utm_source') || 'direct').slice(0, 40);
+  var step = 0, sent = false;
+  var REQ = { 1: ['role', 'rtype'], 2: ['nps', 'csat'], 3: ['modules'], 6: ['renew'] };
+
+  /* ---------------- عناصر الإدخال ---------------- */
+  function opts(name, list, type, extra) {
+    type = type || 'radio';
+    return '<div class="opts ' + (extra || '') + '">' + list.map(function (o) {
+      var cur = A[name], on = type === 'checkbox' ? (cur || []).indexOf(o.v) > -1 : cur === o.v;
+      return '<label class="opt"><input type="' + type + '" name="' + name + '" value="' + esc(o.v) + '"' + (on ? ' checked' : '') + '><span>' + esc(t(o.t)) + '</span></label>';
+    }).join('') + '</div>';
+  }
+  function q(name, labelKey, body, o) {
+    o = o || {};
+    var req = o.req ? '<span class="req" aria-hidden="true"></span>' : '';
+    var hint = o.hint ? '<span class="q-hint">' + esc(o.hint) + '</span>' : '';
+    return '<fieldset class="q" data-q="' + name + '"' + (o.req ? ' aria-required="true"' : '') + '><legend class="q-label">' + esc(t(S[labelKey])) + req + '</legend>' + hint + body +
+      '<div class="q-err" role="alert"><i class="fas fa-circle-exclamation"></i>' + esc(t(S.required)) + '</div></fieldset>';
+  }
+  function area(name, labelKey, rows) {
+    return '<div class="field"><label for="f_' + name + '">' + esc(t(S[labelKey])) + ' <small style="color:var(--faint);font-weight:500">(' + esc(t(S.optional)) + ')</small></label><textarea id="f_' + name + '" name="' + name + '" rows="' + (rows || 3) + '" maxlength="1500" placeholder="' + esc(t(S.ph_text)) + '">' + esc(A[name] || '') + '</textarea></div>';
+  }
+  function npsGroup() {
+    var h = '<div class="nps" role="radiogroup">';
+    for (var i = 0; i <= 10; i++) h += '<label class="opt ' + (i <= 6 ? 'lo' : i <= 8 ? 'mid' : 'hi') + '"><input type="radio" name="nps" value="' + i + '"' + (A.nps === i ? ' checked' : '') + ' aria-label="' + i + '"><span>' + i + '</span></label>';
+    return h + '</div><div class="ends"><span>' + esc(t(S.nps_lo)) + '</span><span>' + esc(t(S.nps_hi)) + '</span></div>';
+  }
+  function npsFollow() {
+    if (A.nps == null) return '<div class="follow" id="npsFollow"></div>';
+    var k = A.nps >= 9 ? 'why_hi' : A.nps >= 7 ? 'why_mid' : 'why_lo';
+    return '<div class="follow show" id="npsFollow">' + area('npsWhy', k, 2) + '</div>';
+  }
+  function faces() {
+    var ic = ['fa-face-angry', 'fa-face-frown', 'fa-face-meh', 'fa-face-smile', 'fa-face-grin-stars'];
+    return '<div class="faces">' + [1, 2, 3, 4, 5].map(function (v) {
+      return '<label class="opt"><input type="radio" name="csat" value="' + v + '"' + (A.csat === v ? ' checked' : '') + '><span><i class="fa-regular ' + ic[v - 1] + '" aria-hidden="true"></i>' + esc(t(S['c' + v])) + '</span></label>';
+    }).join('') + '</div>';
+  }
+  function scale7() {
+    var h = '<div class="scale">';
+    for (var i = 1; i <= 7; i++) h += '<label class="opt"><input type="radio" name="ces" value="' + i + '"' + (A.ces === i ? ' checked' : '') + ' aria-label="' + i + '"><span>' + i + '</span></label>';
+    return h + '</div><div class="ends"><span>' + esc(t(S.ces_lo)) + '</span><span>' + esc(t(S.ces_hi)) + '</span></div>';
+  }
+  function stars(code) {
+    var v = A.modRatings[code] || 0, h = '<div class="stars" role="radiogroup" data-mod="' + code + '">';
+    for (var i = 1; i <= 5; i++) h += '<label class="' + (i <= v ? 'on' : '') + '" title="' + esc(t(S.star, { n: i })) + '"><input type="radio" name="r_' + code + '" value="' + i + '"' + (v === i ? ' checked' : '') + ' aria-label="' + esc(t(S.star, { n: i })) + '"><i class="fas fa-star" aria-hidden="true"></i></label>';
+    return h + '</div>';
+  }
+  function rateList() {
+    if (!A.modules.length) return '';
+    return q('modRatings', 'q_rate', '<div class="rate-list">' + SC.MODULES.filter(function (m) { return A.modules.indexOf(m.v) > -1; }).map(function (m) {
+      return '<div class="rate-row"><b>' + esc(t(m.t)) + '</b>' + stars(m.v) + '</div>';
+    }).join('') + '</div>', { hint: t(S.rate_hint) }) +
+      q('topModule', 'q_top', opts('topModule', SC.MODULES.filter(function (m) { return A.modules.indexOf(m.v) > -1; })));
+  }
+  function matrix() {
+    return '<div class="mx-head" aria-hidden="true"><span>1 = ' + esc(t(S.poor)) + '</span><span>5 = ' + esc(t(S.excellent)) + '</span></div><div class="mx">' + SC.QUALITY.map(function (r) {
+      var cur = A.quality[r.v], cells = '';
+      for (var i = 1; i <= 5; i++) cells += '<label class="opt"><input type="radio" name="x_' + r.v + '" value="' + i + '"' + (cur === i ? ' checked' : '') + ' aria-label="' + i + '"><span>' + i + '</span></label>';
+      cells += '<label class="opt na"><input type="radio" name="x_' + r.v + '" value="0"' + (cur === 0 ? ' checked' : '') + '><span>' + esc(t(S.na)) + '</span></label>';
+      return '<div class="mx-row" role="radiogroup" aria-label="' + esc(t(r.t)) + '"><b>' + esc(t(r.t)) + '</b><div class="mx-opts">' + cells + '</div></div>';
+    }).join('') + '</div>';
+  }
+  function prioCount() { return '<div class="counter" id="prioCount">' + t(S.prio_count, { n: '<b>' + A.priorities.length + '</b>' }) + '</div>'; }
+
+  /* ---------------- الأقسام ---------------- */
+  function head(n) { return '<span class="step-kicker"><i class="fas fa-utensils"></i>' + esc(t(S.step_of, { n: n })) + '</span><h1 class="step-title" tabindex="-1">' + esc(t(S['s' + n + '_t'])) + '</h1><p class="step-sub">' + esc(t(S['s' + n + '_s'])) + '</p>'; }
+  function nav(isLast) {
+    return '<div class="nav"><button type="button" class="btn btn-ghost" data-go="back"><i class="fas fa-arrow-right flip"></i>' + esc(t(S.back)) + '</button><span class="spacer"></span>' +
+      '<button type="' + (isLast ? 'submit' : 'button') + '" class="btn btn-gold" data-go="' + (isLast ? 'send' : 'next') + '" id="goBtn">' + esc(t(isLast ? S.send : S.next)) + '<i class="fas ' + (isLast ? 'fa-paper-plane' : 'fa-arrow-left flip') + '"></i></button></div>' +
+      (isLast ? '<div class="alert" id="sendErr" role="alert"><span>' + esc(t(S.err)) + '</span><div class="row"><button type="submit" class="btn btn-dark">' + esc(t(S.retry)) + '</button>' + (WA ? '<button type="button" class="btn btn-ghost" id="waBtn"><i class="fab fa-whatsapp"></i>' + esc(t(S.via_wa)) + '</button>' : '') + '</div></div>' : '');
+  }
+  var STEPS = [
+    function () {
+      return '<div class="hero-step step-in"><div><span class="step-kicker"><i class="fas fa-star"></i>' + esc(t(S.w_kicker)) + '</span><h1 class="step-title" tabindex="-1">' + esc(t(S.w_title)) + '</h1><p class="step-sub" style="margin-bottom:0">' + esc(t(S.w_sub)) + '</p>' +
+        '<div class="facts"><div class="fact"><i class="fas fa-stopwatch"></i><b>' + esc(t(S.f1)) + '</b><small>' + esc(t(S.f1s)) + '</small></div><div class="fact"><i class="fas fa-user-shield"></i><b>' + esc(t(S.f2)) + '</b><small>' + esc(t(S.f2s)) + '</small></div><div class="fact"><i class="fas fa-eye"></i><b>' + esc(t(S.f3)) + '</b><small>' + esc(t(S.f3s)) + '</small></div></div>' +
+        '<button type="button" class="btn btn-gold" data-go="next" id="startBtn">' + esc(t(S.start)) + '<i class="fas fa-arrow-left flip"></i></button>' +
+        '<p class="privacy"><i class="fas fa-shield-halved"></i><span>' + esc(t(S.w_privacy)) + '</span></p></div>' +
+        '<img src="assets/chef/chef-survey.webp" width="640" height="942" alt="' + esc(t(S.chef_name)) + '"></div>';
+    },
+    function () {
+      return head(1) + q('role', 'q_role', opts('role', OP.role, 'radio', 'grid'), { req: 1 }) + q('rtype', 'q_rtype', opts('rtype', OP.rtype, 'radio', 'grid'), { req: 1 }) +
+        q('branches', 'q_branches', opts('branches', OP.branches)) + q('plan', 'q_plan', opts('plan', OP.plan)) + q('tenure', 'q_tenure', opts('tenure', OP.tenure)) +
+        q('devices', 'q_devices', opts('devices', OP.devices, 'checkbox'), { hint: t(S.multi) }) + nav();
+    },
+    function () {
+      return head(2) + q('nps', 'q_nps', npsGroup() + npsFollow(), { req: 1 }) + q('csat', 'q_csat', faces(), { req: 1 }) + q('ces', 'q_ces', scale7()) + nav();
+    },
+    function () {
+      return head(3) + q('modules', 'q_modules', opts('modules', SC.MODULES, 'checkbox', 'grid'), { req: 1, hint: t(S.multi) }) + '<div id="rateHost">' + rateList() + '</div>' + nav();
+    },
+    function () { return head(4) + '<div class="q">' + matrix() + '</div>' + nav(); },
+    function () {
+      return head(5) + q('before', 'q_before', opts('before', OP.before)) + q('foodcost', 'q_foodcost', opts('foodcost', OP.foodcost)) + q('time', 'q_time', opts('time', OP.time)) +
+        q('gains', 'q_gains', opts('gains', OP.gains, 'checkbox', 'grid'), { hint: t(S.multi) }) + nav();
+    },
+    function () {
+      return head(6) + q('priorities', 'q_prio', opts('priorities', OP.priorities, 'checkbox', 'grid') + prioCount()) + q('renew', 'q_renew', opts('renew', OP.renew), { req: 1 }) +
+        area('frustration', 'q_frustration') + area('wish', 'q_wish', 2) +
+        '<div class="box"><h3>' + esc(t(S.contact_t)) + '</h3><p>' + esc(t(S.contact_s)) + '</p>' +
+        '<div class="two"><div class="field"><label for="f_name">' + esc(t(S.f_name)) + '</label><input class="input" id="f_name" name="name" autocomplete="name" maxlength="120" value="' + esc(A.name || '') + '"></div>' +
+        '<div class="field"><label for="f_email">' + esc(t(S.f_email)) + '</label><input class="input" id="f_email" name="email" type="email" dir="ltr" autocomplete="email" maxlength="160" value="' + esc(A.email || '') + '"></div></div>' +
+        '<div class="field"><label for="f_contact">' + esc(t(S.f_contact)) + '</label><input class="input" id="f_contact" name="contact" type="tel" dir="ltr" autocomplete="tel" maxlength="40" value="' + esc(A.contact || '') + '"></div>' +
+        '<label class="check"><input type="checkbox" name="allowContact"' + (A.allowContact ? ' checked' : '') + '><span>' + esc(t(S.allow_contact)) + '</span></label>' +
+        '<label class="check"><input type="checkbox" name="allowQuote"' + (A.allowQuote ? ' checked' : '') + '><span>' + esc(t(S.allow_quote)) + '</span></label>' +
+        '<div id="quoteHost" class="follow' + (A.allowQuote ? ' show' : '') + '">' + area('quote', 'q_quote', 2) + '</div></div>' + nav(true);
+    },
+    function () {
+      var k = A.nps >= 9 ? 'th_hi' : A.nps >= 7 ? 'th_mid' : 'th_lo';
+      var rated = Object.keys(A.modRatings).length, site = landingUrl();
+      var acts = '<a class="btn btn-gold" href="' + esc(site) + '"><i class="fas fa-house"></i>' + esc(t(S.back_site)) + '</a>';
+      if (A.nps >= 9) acts += '<a class="btn btn-dark" target="_blank" rel="noopener" href="https://wa.me/?text=' + encodeURIComponent(t(S.share_msg) + publicLanding()) + '"><i class="fab fa-whatsapp"></i>' + esc(t(S.share)) + '</a>';
+      else if (WA) acts += '<a class="btn btn-dark" target="_blank" rel="noopener" href="https://wa.me/' + WA + '"><i class="fab fa-whatsapp"></i>' + esc(t(S.support)) + '</a>';
+      return '<div class="hero-step step-in"><div><span class="step-kicker"><i class="fas fa-circle-check"></i>' + esc(t(DEMO ? S.th_demo : S.th_recv)) + '</span><h1 class="step-title" tabindex="-1">' + esc(t(S.th_title)) + '</h1><p class="step-sub" style="margin-bottom:0">' + esc(t(S[k])) + '</p>' +
+        '<div class="summary"><div><b>' + A.nps + '/10</b><small>' + esc(t(S.sum_nps)) + '</small></div><div><b>' + A.csat + '/5</b><small>' + esc(t(S.sum_csat)) + '</small></div><div><b>' + rated + '</b><small>' + esc(t(S.sum_mod)) + '</small></div></div>' +
+        '<div class="thanks-actions">' + acts + '</div></div><img src="assets/chef/chef-thanks.webp" width="640" height="879" alt="' + esc(t(S.chef_name)) + '"></div>';
+    }
+  ];
+  function landingUrl() { return 'Mataami-Pro.html?lang=' + lang; }
+  function publicLanding() { var b = (typeof PUBLIC_APP_URL !== 'undefined' ? PUBLIC_APP_URL : location.origin + '/').replace(/\/?$/, '/'); return b + 'Mataami-Pro.html?lang=' + lang; }
+
+  /* ---------------- العرض ---------------- */
+  var host = document.getElementById('stepHost'), bubble = document.getElementById('bubble'), chefImg = document.getElementById('chefImg');
+  function say(text) { bubble.textContent = text; bubble.classList.remove('pop'); void bubble.offsetWidth; bubble.classList.add('pop'); }
+  function setChef(n) {
+    var c = CHEF[n], src = 'assets/chef/' + c[0] + '.webp';
+    say(t(c[1]));
+    if (chefImg.getAttribute('src') !== src) {
+      chefImg.classList.add('swap');
+      setTimeout(function () { chefImg.src = src; chefImg.onload = function () { chefImg.classList.remove('swap'); }; }, 180);
+    }
+  }
+  function progress() {
+    var p = document.getElementById('progress');
+    p.classList.toggle('show', step >= 1 && step <= 6);
+    if (step < 1 || step > 6) return;
+    document.getElementById('pStep').innerHTML = '<b>' + esc(t(S.step_of, { n: step })) + '</b> · ' + esc(t(S['s' + step + '_t']));
+    document.getElementById('pTime').textContent = step === 6 ? t(S.time_last) : t(S.time_left, { m: MINUTES[step] });
+    [].forEach.call(document.querySelectorAll('#pTrack i'), function (el, i) { el.className = i + 1 < step ? 'done' : i + 1 === step ? 'cur' : ''; });
+  }
+  function render(focus) {
+    host.innerHTML = '<div class="step-in">' + STEPS[step]() + '</div>';
+    setChef(step);
+    progress();
+    if (focus) {
+      var top = document.querySelector('.card').getBoundingClientRect().top + window.scrollY - 12;
+      if (window.scrollY > top) window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      var h = host.querySelector('.step-title'); if (h) h.focus({ preventScroll: true });
+    }
+  }
+  function applyLang() {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    document.title = t(S.title);
+    [].forEach.call(document.querySelectorAll('[data-s]'), function (el) { el.textContent = t(S[el.getAttribute('data-s')]); });
+    [].forEach.call(document.querySelectorAll('[data-lang]'), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === lang)); });
+    document.getElementById('brandLink').href = landingUrl();
+    var u = new URL(location.href); u.searchParams.set('lang', lang); history.replaceState(null, '', u);
+    render(false);
+  }
+
+  /* ---------------- التفاعل ---------------- */
+  var form = document.getElementById('sv');
+  form.addEventListener('change', function (e) {
+    var el = e.target, n = el.name; if (!n) return;
+    if (n === 'nps' || n === 'csat' || n === 'ces') {
+      A[n] = parseInt(el.value, 10);
+      if (n === 'nps') {
+        var f = document.getElementById('npsFollow'), keep = A.npsWhy;
+        f.outerHTML = npsFollow(); A.npsWhy = keep;
+        say(t(A.nps >= 9 ? REACT.nps_hi : A.nps >= 7 ? REACT.nps_mid : REACT.nps_lo));
+      }
+    } else if (n.indexOf('r_') === 0) {
+      var code = n.slice(2); A.modRatings[code] = parseInt(el.value, 10);
+      var g = el.closest('.stars'); [].forEach.call(g.querySelectorAll('label'), function (l, i) { l.classList.toggle('on', i < A.modRatings[code]); });
+    } else if (n.indexOf('x_') === 0) {
+      A.quality[n.slice(2)] = parseInt(el.value, 10);
+    } else if (n === 'allowContact' || n === 'allowQuote') {
+      A[n] = el.checked;
+      if (n === 'allowQuote') document.getElementById('quoteHost').classList.toggle('show', el.checked);
+    } else if (el.type === 'checkbox') {
+      var arr = [].map.call(form.querySelectorAll('input[name="' + n + '"]:checked'), function (x) { return x.value; });
+      if (n === 'priorities' && arr.length > 3) { el.checked = false; arr = arr.filter(function (v) { return v !== el.value; }); }
+      A[n] = arr;
+      if (n === 'modules') {
+        Object.keys(A.modRatings).forEach(function (k) { if (arr.indexOf(k) < 0) delete A.modRatings[k]; });
+        if (A.topModule && arr.indexOf(A.topModule) < 0) delete A.topModule;
+        document.getElementById('rateHost').innerHTML = rateList();
+        if (arr.length) say(t(REACT.mods, { n: arr.length }));
+      }
+      if (n === 'priorities') {
+        document.getElementById('prioCount').outerHTML = prioCount();
+        [].forEach.call(form.querySelectorAll('input[name="priorities"]'), function (x) { x.disabled = arr.length >= 3 && !x.checked; });
+        if (arr.length === 3) say(t(REACT.prio_full));
+      }
+    } else if (el.type === 'radio') {
+      A[n] = el.value;
+    }
+    var fs = el.closest('.q'); if (fs) fs.classList.remove('invalid');
+  });
+  form.addEventListener('input', function (e) {
+    var el = e.target; if (el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && /^(text|email|tel)$/.test(el.type) && el.id !== 'hp')) A[el.name] = el.value;
+  });
+  form.addEventListener('mouseover', function (e) {
+    var l = e.target.closest('.stars label'); if (!l) return;
+    var ls = [].slice.call(l.parentNode.children), idx = ls.indexOf(l);
+    ls.forEach(function (x, i) { x.classList.toggle('on', i <= idx); });
+  });
+  form.addEventListener('mouseout', function (e) {
+    var g = e.target.closest('.stars'); if (!g || g.contains(e.relatedTarget)) return;
+    var v = A.modRatings[g.getAttribute('data-mod')] || 0;
+    [].forEach.call(g.children, function (x, i) { x.classList.toggle('on', i < v); });
+  });
+  function validate() {
+    var bad = null;
+    (REQ[step] || []).forEach(function (k) {
+      var v = A[k], miss = v == null || v === '' || (Array.isArray(v) && !v.length);
+      var fs = form.querySelector('[data-q="' + k + '"]');
+      if (fs) fs.classList.toggle('invalid', miss);
+      if (miss && !bad) bad = fs;
+    });
+    if (bad) { say(t(REACT.missing)); bad.scrollIntoView({ behavior: 'smooth', block: 'center' }); var i = bad.querySelector('input'); if (i) i.focus({ preventScroll: true }); return false; }
+    return true;
+  }
+  host.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-go]'); if (!b) return;
+    var go = b.getAttribute('data-go');
+    if (go === 'next') { if (!validate()) return; step++; render(true); }
+    else if (go === 'back') { step = Math.max(0, step - 1); render(true); }
+  });
+  host.addEventListener('click', function (e) { if (e.target.closest('#waBtn')) sendWhatsApp(); });
+  form.addEventListener('submit', function (e) { e.preventDefault(); if (step === 6 && validate()) submit(); });
+  [].forEach.call(document.querySelectorAll('[data-lang]'), function (b) {
+    b.addEventListener('click', function () { if (b.getAttribute('data-lang') !== lang) { lang = b.getAttribute('data-lang'); applyLang(); } });
+  });
+
+  function payload() {
+    var a = JSON.parse(JSON.stringify(A));
+    ['npsWhy', 'frustration', 'wish', 'quote', 'name', 'email', 'contact'].forEach(function (k) { if (typeof a[k] === 'string') a[k] = a[k].trim(); if (!a[k]) delete a[k]; });
+    if (!a.allowQuote) delete a.quote;
+    return a;
+  }
+  function submit() {
+    if (sent) return;
+    var btn = document.getElementById('goBtn'), err = document.getElementById('sendErr');
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>' + esc(t(S.sending)); err.classList.remove('show');
+    var done = function () { sent = true; step = 7; render(true); };
+    if (DEMO) { setTimeout(done, 500); return; }
+    var ctl = ('AbortController' in window) ? new AbortController() : null, to = setTimeout(function () { if (ctl) ctl.abort(); }, 20000);
+    fetch(API, { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'text/plain;charset=UTF-8', Accept: 'application/json' }, signal: ctl ? ctl.signal : undefined,
+      body: JSON.stringify({ fn: 'submitPlatformSurvey', lang: lang, source: source, hp: document.getElementById('hp').value, answers: payload() }) })
+      .then(function (r) { return r.json(); })
+      .then(function (r) { clearTimeout(to); if (r && r.success) done(); else fail(r && (r.error || r.message)); })
+      .catch(function () { clearTimeout(to); fail(); });
+    function fail(msg) {
+      btn.disabled = false; btn.innerHTML = esc(t(S.send)) + '<i class="fas fa-paper-plane"></i>';
+      err.querySelector('span').textContent = msg ? msg : t(S.err);
+      err.classList.add('show');
+    }
+  }
+  function label(list, v) { var o = list.filter(function (x) { return x.v === v; })[0]; return o ? t(o.t) : (v || '-'); }
+  function sendWhatsApp() {
+    var a = payload(), L = [];
+    L.push('Mataami Pro - ' + t(S.title).split('|')[0].trim());
+    L.push(t(S.q_role) + ' ' + label(OP.role, a.role) + ' / ' + label(OP.rtype, a.rtype));
+    L.push('NPS: ' + a.nps + '/10 · CSAT: ' + a.csat + '/5' + (a.ces ? ' · CES: ' + a.ces + '/7' : ''));
+    if (a.npsWhy) L.push('> ' + a.npsWhy);
+    if (a.modules.length) L.push(t(S.q_modules) + ' ' + a.modules.map(function (m) { return label(SC.MODULES, m) + (a.modRatings[m] ? ' (' + a.modRatings[m] + '/5)' : ''); }).join('، '));
+    if (a.priorities.length) L.push(t(S.q_prio) + ': ' + a.priorities.map(function (p) { return label(OP.priorities, p); }).join('، '));
+    L.push(t(S.q_renew) + ' ' + label(OP.renew, a.renew));
+    if (a.frustration) L.push(t(S.q_frustration) + ' ' + a.frustration);
+    if (a.wish) L.push(t(S.q_wish) + ' ' + a.wish);
+    if (a.name || a.email) L.push((a.name || '') + ' ' + (a.email || ''));
+    window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent(L.join('\n')), '_blank', 'noopener');
+  }
+
+  applyLang();
+})();
+</script>
+</body>
+</html>
