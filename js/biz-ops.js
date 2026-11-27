@@ -78,13 +78,19 @@ async function productEdit(p, after, all) {
     { k: 'tax_rate', label: 'نسبة ضريبة خاصة %', type: 'number', hint: 'اتركها فارغة لاستخدام النسبة العامة' },
     { k: 'color', label: 'لون الزر', type: 'color', def: '#b48554' }, { k: 'sort', label: 'الترتيب', type: 'number', def: 0 },
     { k: 'image_url', label: 'رابط الصورة', ltr: true, full: true },
-    { k: 'track_stock', label: 'تتبع مخزون هذا المنتج كسلعة جاهزة', type: 'checkbox', def: false }, { k: 'show_in_kitchen', label: 'يظهر في شاشة المطبخ', type: 'checkbox', def: true }
+    { k: 'track_stock', label: 'تتبع مخزون هذا المنتج كسلعة جاهزة', type: 'checkbox', def: false }, { k: 'show_in_kitchen', label: 'يظهر في شاشة المطبخ', type: 'checkbox', def: true },
+    { k: 'station', label: 'شاشة / قسم التحضير', type: 'select', options: [['', 'حسب التصنيف (تلقائي)'], ['main', 'المطبخ الرئيسي']].concat(((B.acc && B.acc.biz && B.acc.biz.kds && B.acc.biz.kds.stations) || []).map(function (x) { return [x.id, x.name]; })), hint: 'يحدد أي شاشة مطبخ يظهر عليها هذا المنتج' },
+    { type: 'section', label: 'السعرات الحرارية ومسببات الحساسية' },
+    { k: 'calories', label: 'السعرات الحرارية (kcal) للحصة', type: 'number', hint: 'تُحسب تلقائياً من مكونات الطبق في صفحة «السعرات والحساسية» ويمكن تعديلها' },
+    { type: 'html', full: true, html: '<label style="display:block;margin-bottom:6px">مسببات الحساسية</label><div id="prodAl">' + (window.FC_NUTRI ? FC_NUTRI.alGridHtml((p && p.allergens) || []) : '') + '</div>' }
   ];
-  const v = p ? Object.assign({}, p, { variants: optsText(p.variants), extras: optsText(p.extras), tax_rate: p.tax_rate === null ? '' : p.tax_rate }) : {};
+  const v = p ? Object.assign({}, p, { variants: optsText(p.variants), extras: optsText(p.extras), tax_rate: p.tax_rate === null ? '' : p.tax_rate, calories: p.calories === null || p.calories === undefined ? '' : p.calories, station: p.station || '' }) : {};
   bPrompt(p ? 'تعديل منتج' : 'منتج جديد', fields, v, async function (d) {
     d.variants = parseOpts(d.variants); d.extras = parseOpts(d.extras);
     if (d.tax_rate === '') d.tax_rate = null;
     if (p) d.id = p.id;
+    d.calories = d.calories === '' || d.calories === null || d.calories === undefined ? null : +d.calories;
+    const alEl = document.getElementById('prodAl'); if (alEl && window.FC_NUTRI) d.allergens = FC_NUTRI.readAl(alEl);
     await entSave('products', d); after();
   }, { wide: true, icon: 'box', onOpen: function (m) {
     const el = m.el || m, q = function (k) { return el.querySelector('[data-k="' + k + '"]'); };

@@ -456,6 +456,38 @@ async function bizFullSections() {
   if (qt.length) out.sections.push({ title: 'عروض الأسعار — آخر 30 يوماً', table: { headers: ['#', 'التاريخ', 'العميل', 'الجوال', 'صالح حتى', 'الحالة', 'الإجمالي'], rows: qt.map(function (x) { return [x.number, tm(x.created_at), x.customer_name || '', x.phone || '', (x.valid_until || '').slice(0, 10), x.status, +x.total]; }), money: [6], foot: 'sum' } });
   const ac = R.activityList;
   if (ac && ac.rows && ac.rows.length) out.sections.push({ title: 'سجل النشاط — آخر 30 يوماً', pb: true, table: { headers: ['الوقت', 'المستخدم', 'الدور', 'الإجراء', 'التفاصيل', 'الفرع'], rows: ac.rows.map(function (x) { return [tm(x.created_at), x.actor, x.actor_role || '', x.action, x.details || '', x.branch_name || '']; }) } });
+  // ---------- v5.4: أقسام المطبخ والسعرات والأسعار والاستيراد والطلب الذاتي ----------
+  try {
+    const alN = function (a) { return (Array.isArray(a) ? a : []).map(function (k) { return window.FC_NUTRI ? FC_NUTRI.alName(k) : k; }).join('، '); };
+    const kd = hasF('kitchen') && canP('reports', 'settings') ? await get0('kdsReport', f) : null;
+    if (kd && ((kd.stations || []).length || (kd.configured || []).length)) {
+      out.sections.push({ title: 'أقسام المطبخ وأداء الشاشات — آخر 30 يوماً', pb: true,
+        kpis: [['الأقسام المعرّفة', (kd.configured || []).length], ['الطلبات الموجّهة', (kd.stations || []).reduce(function (a, x) { return a + x.orders; }, 0)], ['هدف التحضير (د)', kd.prepMin]],
+        table: { headers: ['القسم', 'الطلبات', 'الكمية', 'الانتظار (د)', 'التحضير (د)', 'الإجمالي (د)', 'متأخرة', 'متأخرة %', 'قيد التنفيذ'], rows: (kd.stations || []).map(function (x) { return [x.name === 'main' ? 'المطبخ الرئيسي' : x.name, x.orders, x.qty, x.avgWait === null ? '—' : x.avgWait, x.avgPrep === null ? '—' : x.avgPrep, x.avgTotal === null ? '—' : x.avgTotal, x.late, x.latePct + '%', x.pending]; }) } });
+      if ((kd.configured || []).length) out.sections.push({ title: 'إعداد شاشات المطبخ', table: { headers: ['الشاشة', 'النوع', 'التصنيفات'], rows: kd.configured.map(function (x) { return [x.name, x.type === 'linked' ? 'مرتبطة بالمطبخ الرئيسي' : 'مستقلة (منطقة خدمة منفصلة)', (x.categories || []).join('، ')]; }) } });
+      if ((kd.items || []).length) out.sections.push({ title: 'أكثر الأصناف تحضيراً حسب القسم', table: { headers: ['القسم', 'الصنف', 'الكمية'], rows: kd.items.map(function (x) { return [x.station === 'main' ? 'المطبخ الرئيسي' : x.station, x.name, x.qty]; }) } });
+    }
+    const nd = canP('costing', 'digital_menu', 'settings') ? await get0('nutritionData', {}) : null;
+    if (nd) {
+      const rowsN = (nd.products || []).map(function (x) { const n = x.nutrition || {}; return ['منتج كاشير', x.name, x.category || '', x.calories === null || x.calories === undefined ? '—' : x.calories, n.protein == null ? '' : n.protein, n.carbs == null ? '' : n.carbs, n.fat == null ? '' : n.fat, alN(x.allergens)]; })
+        .concat((nd.menu || []).map(function (x) { return ['مينيو إلكتروني', x.name, x.category || '', x.calories === null || x.calories === undefined ? '—' : x.calories, '', '', '', alN(x.allergens)]; }));
+      if (rowsN.length) out.sections.push({ title: 'السعرات الحرارية ومسببات الحساسية', pb: true,
+        kpis: [['أصناف بسعرات', rowsN.filter(function (r) { return r[3] !== '—'; }).length], ['بدون سعرات', rowsN.filter(function (r) { return r[3] === '—'; }).length], ['بمسببات حساسية', rowsN.filter(function (r) { return r[7]; }).length]],
+        table: { headers: ['المصدر', 'الصنف', 'التصنيف', 'السعرات (kcal)', 'بروتين (غ)', 'كربوهيدرات (غ)', 'دهون (غ)', 'مسببات الحساسية'], rows: rowsN } });
+    }
+    const lg = function (kind) { return canP('reports', 'costing', 'settings') ? get0('v54Logs', { kind: kind }) : Promise.resolve(null); };
+    const pl = await lg('price_log');
+    if (pl && pl.rows.length) out.sections.push({ title: 'سجل تعديل الأسعار الجماعي', table: { headers: ['الوقت', 'التعديل', 'التقريب', 'منتجات', 'مينيو', 'أطباق', 'بواسطة'], rows: pl.rows.map(function (x) { const d = x.data || {}; return [tm(x.createdAt), x.title, d.step || '', d.products != null ? d.products : (d.prod || ''), d.menu || 0, d.recipes || 0, x.createdBy || '']; }) } });
+    const il = await lg('import_log');
+    if (il && il.rows.length) out.sections.push({ title: 'سجل الاستيراد من Excel', table: { headers: ['الوقت', 'الملف', 'مواد جديدة', 'مواد محدّثة', 'أطباق جديدة', 'أطباق محدّثة', 'مينيو', 'منتجات', 'تنبيهات', 'بواسطة'], rows: il.rows.map(function (x) { const d = x.data || {}; return [tm(x.createdAt), x.title, d.matNew || 0, d.matUpd || 0, d.dishNew || 0, d.dishUpd || 0, (d.menuNew || 0) + (d.menuUpd || 0), (d.prodNew || 0) + (d.prodUpd || 0), (d.warnings || []).length, x.createdBy || '']; }) } });
+    const kr = hasF('kiosk') && canP('reports') ? await get0('kioskReport', f) : null;
+    if (kr && (kr.byStatus.length || kr.payments.length)) {
+      const SN = { paid: 'مدفوع', open: 'مفتوح', cancelled: 'ملغى', pending: 'بانتظار الدفع', failed: 'فشل' };
+      out.sections.push({ title: 'الطلب الذاتي (الكشك) والدفع الإلكتروني — آخر 30 يوماً', pb: true, kpis: [['طلبات مدفوعة', kr.paidOrders], ['المبيعات', money(kr.paidTotal)], ['متوسط الفاتورة', money(kr.avgTicket)]],
+        table: { headers: ['الحالة', 'الطلبات', 'القيمة'], rows: kr.byStatus.map(function (x) { return [SN[x.status] || x.status, x.orders, money(x.total)]; }) } });
+      if (kr.payments.length) out.sections.push({ title: 'عمليات الدفع في الكشك', table: { headers: ['المزوّد', 'الحالة', 'العدد', 'المبلغ'], rows: kr.payments.map(function (x) { return [x.provider, SN[x.status] || x.status, x.n, money(x.amount)]; }) } });
+    }
+  } catch (e) { console.warn('v54 report sections', e); }
   if (pg) pg.set(rg[1], 'تنسيق أقسام نظام التشغيل…');
   return out;
 }

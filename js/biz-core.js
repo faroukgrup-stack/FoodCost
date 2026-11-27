@@ -382,7 +382,7 @@ async function loadAccount() {
   if (hasF('notifications')) { refreshNotifications(); clearInterval(B.notifTimer); B.notifTimer = setInterval(refreshNotifications, 30000); }
   if (typeof bizLiveStart === 'function') bizLiveStart();
   setTimeout(bizPaymentReturn, 300);
-  const vb = document.querySelector('.version-badge'); if (vb) vb.innerHTML = '<i class="fas fa-code-branch"></i> الإصدار ' + (typeof APP_VERSION !== 'undefined' ? APP_VERSION : '5.3.5') + ' · ' + planBadge(r.plan);
+  const vb = document.querySelector('.version-badge'); if (vb) vb.innerHTML = '<i class="fas fa-code-branch"></i> الإصدار ' + (typeof APP_VERSION !== 'undefined' ? APP_VERSION : '5.4.0') + ' · ' + planBadge(r.plan);
   return r;
 }
 function renderHeaderExtras() {
@@ -537,6 +537,7 @@ async function staffLoginAttempt() {
     startSessionTimer();
     const perms = (B.acc && B.acc.staff && B.acc.staff.permissions) || [];
     if (perms.indexOf('kitchen') >= 0 && perms.length === 1 && hasF('kitchen')) { location.href = 'kitchen.html'; return; }
+    if (perms.indexOf('kiosk') >= 0 && perms.length === 1 && hasF('kiosk')) { location.href = 'kiosk.html'; return; }
     switchTab(perms.indexOf('pos') >= 0 && hasF('pos') ? 'pos' : 'dashboard');
   } catch (e) { err.textContent = 'تعذر الاتصال: ' + e.message; }
   finally { btn.disabled = false; }
