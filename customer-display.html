@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0e17">
+<title>شاشة العميل | Mataami Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root{--c:#b48554}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:Tajawal,system-ui,sans-serif;background:#0b0e17;color:#e8ecf5;overflow:hidden;cursor:none}
+.v{position:fixed;inset:0;display:none}
+.v.on{display:flex}
+#idle{flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;background:radial-gradient(circle at 50% 35%,rgba(180,133,84,.25),transparent 60%)}
+#idle img{max-width:260px;max-height:200px;object-fit:contain}
+#idle h1{font-size:3rem;font-weight:800}
+#idle p{font-size:1.5rem;color:#aab7d4}
+#order{flex-direction:row}
+#ol{flex:1;display:flex;flex-direction:column;min-width:0}
+#ol header{display:flex;align-items:center;gap:14px;padding:18px 26px;border-bottom:1px solid #222a3d}
+#ol header img{height:46px;max-width:120px;object-fit:contain}
+#ol header h2{font-size:1.5rem;flex:1}
+#lines{flex:1;overflow:hidden;padding:12px 26px;display:flex;flex-direction:column;justify-content:flex-start}
+.ln{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #1b2236;font-size:1.4rem;animation:in .25s}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.ln .q{background:var(--c);color:#0b0e17;font-weight:800;border-radius:10px;min-width:44px;text-align:center;padding:4px 8px}
+.ln .n{flex:1;font-weight:700}
+.ln .n small{display:block;color:#aab7d4;font-size:.95rem;font-weight:500}
+.ln .p{font-weight:800}
+#tot{width:min(420px,38vw);background:#121726;border-inline-start:1px solid #222a3d;padding:30px;display:flex;flex-direction:column;justify-content:center;gap:14px}
+#tot .r{display:flex;justify-content:space-between;font-size:1.3rem;color:#aab7d4}
+#tot .g{display:flex;justify-content:space-between;font-size:2.6rem;font-weight:800;color:#fff;border-top:2px solid #263049;padding-top:16px;margin-top:6px}
+#tot .g span:last-child{color:var(--c)}
+#tot .st{text-align:center;font-size:1.2rem;color:var(--c);font-weight:700;margin-top:10px}
+#thanks{flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center}
+#thanks i{font-size:6rem;color:#10b981}
+#thanks h1{font-size:3rem}
+#thanks .num{font-size:5rem;font-weight:800;color:var(--c)}
+#code{flex-direction:column;align-items:center;justify-content:center;gap:14px;cursor:auto}
+#code input{font-size:2rem;padding:14px;border-radius:14px;border:2px solid #263049;background:#121726;color:#fff;text-align:center;width:260px;font-family:inherit;letter-spacing:6px}
+#code button{font-family:inherit;font-size:1.2rem;font-weight:800;background:var(--c);color:#0b0e17;border:0;border-radius:14px;padding:14px 30px;cursor:pointer}
+#err{color:#f87171;min-height:1.2em}
+#conn{position:fixed;bottom:10px;inset-inline-start:12px;font-size:.75rem;color:#64748b}
+@media(max-width:800px){#order{flex-direction:column}#tot{width:auto;border:0;border-top:1px solid #222a3d;padding:18px}.ln{font-size:1.1rem}#tot .g{font-size:1.8rem}}
+</style>
+</head>
+<body>
+<div class="v on" id="idle"><img id="logo" alt="" style="display:none"><h1 id="bn"></h1><p id="wel">أهلاً بك</p></div>
+<div class="v" id="order">
+  <section id="ol"><header><img id="logo2" alt="" style="display:none"><h2 id="bn2">طلبك</h2></header><div id="lines"></div></section>
+  <aside id="tot"></aside>
+</div>
+<div class="v" id="thanks"><i class="fas fa-circle-check"></i><h1>شكراً لك</h1><div class="num" id="tnum"></div><p style="font-size:1.4rem;color:#aab7d4">نتمنى لك وجبة شهية</p></div>
+<div class="v" id="code"><h2><i class="fas fa-display"></i> شاشة العميل</h2><p style="color:#aab7d4">أدخل رمز الربط من إعدادات «الطلب الذاتي وشاشة العميل»</p><input id="ci" inputmode="numeric" maxlength="10" dir="ltr"><button id="cb">ربط</button><div id="err"></div><div data-lang-picker></div></div>
+<div id="conn"></div>
+<script src="js/config.js?v=5.4.0"></script>
+<script src="js/i18n.js?v=5.4.0"></script>
+<script>
+(function () {
+  'use strict';
+  const $ = s => document.querySelector(s);
+  const h = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const T = s => (window.fcI18n ? fcI18n.t(s) : s);
+  const q = new URLSearchParams(location.search);
+  const remote = !!q.get('e');
+  let code = q.get('code') || localStorage.getItem('fcCdCode') || '', lastAt = 0, brand = {}, cur = '', thanksT = null;
+  const fmt = n => (Math.round((+n || 0) * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  function view(id) { document.querySelectorAll('.v').forEach(v => v.classList.toggle('on', v.id === id)); }
+  function setBrand(b) {
+    brand = b || {};
+    if (brand.color) document.documentElement.style.setProperty('--c', brand.color);
+    $('#bn').textContent = brand.name || ''; $('#bn2').textContent = brand.name || T('طلبك');
+    if (brand.welcome) $('#wel').textContent = brand.welcome;
+    [$('#logo'), $('#logo2')].forEach(i => { if (brand.logo && brand.showLogo !== false) { i.src = brand.logo; i.style.display = ''; } else i.style.display = 'none'; });
+  }
+  function render(st) {
+    if (!st || typeof st !== 'object') return;
+    if (st.brand) setBrand(Object.assign({}, brand, st.brand));
+    const c = st.currency || cur;
+    if (st.status === 'paid') {
+      $('#tnum').textContent = st.number ? '#' + st.number : '';
+      view('thanks'); clearTimeout(thanksT); thanksT = setTimeout(() => view('idle'), 8000); return;
+    }
+    if (!st.lines || !st.lines.length || st.status === 'idle') { if (!$('#thanks').classList.contains('on')) view('idle'); return; }
+    clearTimeout(thanksT);
+    const L = st.lines.slice(-12);
+    $('#lines').innerHTML = (st.lines.length > 12 ? '<div style="color:#64748b;text-align:center">+' + (st.lines.length - 12) + '</div>' : '') +
+      L.map(l => '<div class="ln"><span class="q">' + h(l.qty) + '×</span><span class="n">' + h(l.name) + (l.variant || l.extras ? '<small>' + h([l.variant, l.extras].filter(Boolean).join(' · ')) + '</small>' : '') + '</span><span class="p">' + fmt(l.total) + '</span></div>').join('');
+    $('#tot').innerHTML = '<div class="r"><span>' + T('المجموع') + '</span><span>' + fmt(st.subtotal) + ' ' + h(c) + '</span></div>' +
+      (+st.discount ? '<div class="r"><span>' + T('الخصم') + '</span><span>-' + fmt(st.discount) + '</span></div>' : '') +
+      (+st.tax ? '<div class="r"><span>' + T('الضريبة') + '</span><span>' + fmt(st.tax) + '</span></div>' : '') +
+      '<div class="g"><span>' + T('الإجمالي') + '</span><span>' + fmt(st.total) + ' ' + h(c) + '</span></div>' +
+      (st.status === 'checkout' || st.status === 'paying' ? '<div class="st"><i class="fas fa-credit-card"></i> ' + T('بانتظار الدفع…') + '</div>' : '');
+    view('order');
+  }
+  if (!remote) {
+    // نفس الجهاز: قناة بث + تخزين محلي
+    if ('BroadcastChannel' in window) new BroadcastChannel('fcCustDisplay').onmessage = e => render(e.data);
+    window.addEventListener('storage', e => { if (e.key === 'fcCustDisplayState' && e.newValue) try { render(JSON.parse(e.newValue)); } catch (x) { } });
+    try { const s = JSON.parse(localStorage.getItem('fcCustDisplayState') || 'null'); if (s && Date.now() - (s.at || 0) < 600000) render(s); } catch (e) { }
+    try { const b = JSON.parse(localStorage.getItem('fcCustDisplayBrand') || 'null'); if (b) setBrand(b); } catch (e) { }
+  } else {
+    let fails = 0;
+    const pull = async () => {
+      if (!code) { view('code'); return; }
+      try {
+        const r = await (await fetch(COST_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: 'custDisplayPull', e: q.get('e'), code, b: q.get('b') || '' }) })).json();
+        if (!r.success) { if (/رمز/.test(r.error || '')) { localStorage.removeItem('fcCdCode'); code = ''; view('code'); $('#err').textContent = T(r.error); return; } throw new Error(r.error); }
+        localStorage.setItem('fcCdCode', code); fails = 0; $('#conn').textContent = '';
+        cur = r.currency || cur; setBrand(r.brand);
+        const st = r.state || {};
+        if ((st.at || 0) !== lastAt) { lastAt = st.at || 0; if (Date.now() - lastAt > 600000 && st.status !== 'paid') view('idle'); else render(st); }
+      } catch (e) { fails++; if (fails > 3) $('#conn').textContent = '● ' + T('جارٍ إعادة الاتصال…'); }
+      setTimeout(pull, 1500);
+    };
+    $('#cb').onclick = () => { code = $('#ci').value.trim(); $('#err').textContent = ''; view('idle'); pull(); };
+    pull();
+  }
+})();
+</script>
+</body>
+</html>
