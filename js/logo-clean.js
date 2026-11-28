@@ -1,4 +1,4 @@
-/* مطعمي برو V5.4.2 — تفريغ الشعار تلقائياً من الخلفية الموحّدة (سوداء/بيضاء) في شاشات العميل والكشك والمنيو */
+/* مطعمي برو V5.4.4 — تفريغ الشعار تلقائياً من الخلفية الموحّدة (سوداء/بيضاء) في شاشات العميل والكشك والمنيو */
 (function () {
   var SEL = '#logo,#logo2,#wLogo,#cats .brand img,#restLogo,.v5top img,img[data-fc-logo]';
   var cache = {};
@@ -41,11 +41,18 @@
     });
     return cache[src];
   }
+  // v5.4.3: لا وميض — الصورة تبقى مخفية حتى تنتهي المعالجة، والنتيجة المحفوظة تُطبَّق فوراً
+  var done = {};
   function clean(img) {
     if (!img || !img.src || img.dataset.fcClean === img.src || /^data:image\/png/.test(img.src) && img.dataset.fcClean) return;
-    var src = img.src; img.dataset.fcClean = src;
-    img.style.background = 'transparent';
-    process(src).then(function (u) { if (u && img.src === src) { img.src = u; img.dataset.fcClean = u; } });
+    var src = img.src; img.style.background = 'transparent';
+    if (src in done) { img.dataset.fcClean = done[src] || src; if (done[src]) img.src = done[src]; return; }
+    img.dataset.fcClean = src; img.style.visibility = 'hidden';
+    process(src).then(function (u) {
+      done[src] = u || '';
+      if (img.src === src) { if (u) { img.dataset.fcClean = u; img.src = u; } }
+      img.style.visibility = '';
+    });
   }
   function scan() { document.querySelectorAll(SEL).forEach(function (i) { if (i.complete || i.src) clean(i); }); }
   window.fcCleanLogo = clean;

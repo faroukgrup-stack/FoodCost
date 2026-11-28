@@ -264,3 +264,17 @@ small.dm-cat-tr,.dm-cat-row small.dm-cat-tr{width:auto;height:auto;border:0;back
 #dmItemsList .dm-item-card>.dm-item-info{grid-column:3;grid-row:1/3}
 #dmItemsList .dm-item-card>.dm-item-actions{grid-column:4;grid-row:1/3}
 #dmItemsList .dm-meta .badge{flex-shrink:0}
+/* v5.4.3: نافذة التهيئة — خطوات واضحة غير باهتة وتحذير منسق */
+.sx-warn{display:flex;gap:10px;align-items:flex-start}
+.sx-warn > i{margin-top:4px;flex:none}
+.sx-warn > div{display:flex;flex-direction:column;gap:3px}
+.sx-warn b{display:block}
+.sx-step{opacity:1}
+.sx-step .sx-step-b small{display:block;color:var(--text-muted,#94a3b8);font-size:.74rem}
+.sx-step .sx-sws{display:flex;flex-direction:column;gap:6px}
+#frS3 .sx-step-b{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+#frS3 .sx-step-b b{flex:1 0 100%;margin:0}
+#frS3 .sx-in{max-width:220px;font-family:var(--f-mono,monospace);letter-spacing:.08em}
+#frGo{background:#b91c1c!important;color:#fff!important;border:0!important}
+#frGo:disabled{opacity:.45;cursor:not-allowed}
+html[data-theme="light"] #frGo{background:#a5523f!important}

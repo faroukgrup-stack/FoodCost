@@ -302,7 +302,7 @@ async function saveBiz(section, data) { const s = {}; s[section] = data; const r
 function settingsForm(el, section, fields, intro, extra) {
   const v = (B.acc.biz && B.acc.biz[section]) || {};
   el.innerHTML = (intro ? '<div class="biz-card"><p class="muted" style="line-height:1.9">' + intro + '</p></div>' : '') + '<div class="biz-card">' + bForm(fields, v) + '<div style="margin-top:14px;text-align:left"><button class="btn btn-primary" id="sfSave"><i class="fas fa-save"></i> حفظ</button></div></div>' + (extra || '');
-  el.querySelector('#sfSave').onclick = async function () { await saveBiz(section, Object.assign({}, v, readForm(el, fields))); };
+  el.querySelector('#sfSave').onclick = async function () { await saveBiz(section, Object.assign({}, (B.acc.biz && B.acc.biz[section]) || v, readForm(el, fields))); };
 }
 function loyaltyView(el) {
   settingsForm(el, 'loyalty', [{ k: 'enabled', label: 'تفعيل برنامج الولاء', type: 'checkbox', full: true }, { k: 'pointsPerUnit', label: 'نقاط لكل 1 ' + (B.acc.currency || '') + ' مدفوع', type: 'number', hint: 'مثال: 1 = نقطة لكل وحدة عملة' }, { k: 'pointValue', label: 'قيمة النقطة عند الاستبدال', type: 'number', hint: 'مثال: 0.05 = كل 20 نقطة تساوي 1' }, { k: 'minRedeem', label: 'أقل عدد نقاط للاستبدال', type: 'number' }],

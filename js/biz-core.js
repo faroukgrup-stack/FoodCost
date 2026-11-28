@@ -54,6 +54,9 @@ function bModal(o) {
     '<div class="modal-header-pro"><div class="mh-left"><div class="mh-icon"><i class="fas fa-' + (o.icon || 'pen') + '"></i></div><div><h3>' + h(o.title) + '</h3>' + (o.sub ? '<div class="mh-sub">' + h(o.sub) + '</div>' : '') + '</div></div>' +
     '<button type="button" class="modal-close-btn" data-x aria-label="إغلاق"><i class="fas fa-times"></i></button></div>' +
     '<div class="modal-body-pro">' + (o.body || '') + '</div>' + (o.foot !== false ? '<div class="modal-footer-pro">' + (o.foot || '<button class="btn btn-cancel" data-x>إغلاق</button>') + (canPr ? '<button class="btn btn-outline" data-pr="print"><i class="fas fa-print"></i> طباعة</button><button class="btn btn-outline" data-pr="excel"><i class="fas fa-file-excel"></i> Excel</button>' : '') + '</div>' : '') + '</div>';
+  // v5.4.4: النافذة الجديدة تظهر دائماً فوق أي نافذة مفتوحة (مثل الإعدادات العامة)
+  let zTop = 0; document.querySelectorAll('.modal-overlay.active').forEach(function (x) { const z = parseInt(getComputedStyle(x).zIndex, 10); if (z > zTop) zTop = z; });
+  if (zTop >= 1000) ov.style.zIndex = String(zTop + 10);
   document.body.appendChild(ov);
   const m = { el: ov, $: function (s) { return ov.querySelector(s); }, $$: function (s) { return Array.from(ov.querySelectorAll(s)); },
     close: function () { ov.remove(); if (o.onClose) o.onClose(); } };
@@ -382,7 +385,7 @@ async function loadAccount() {
   if (hasF('notifications')) { refreshNotifications(); clearInterval(B.notifTimer); B.notifTimer = setInterval(refreshNotifications, 30000); }
   if (typeof bizLiveStart === 'function') bizLiveStart();
   setTimeout(bizPaymentReturn, 300);
-  const vb = document.querySelector('.version-badge'); if (vb) vb.innerHTML = '<i class="fas fa-code-branch"></i> الإصدار ' + (typeof APP_VERSION !== 'undefined' ? APP_VERSION : '5.4.3') + ' · ' + planBadge(r.plan);
+  const vb = document.querySelector('.version-badge'); if (vb) vb.innerHTML = '<i class="fas fa-code-branch"></i> الإصدار ' + (typeof APP_VERSION !== 'undefined' ? APP_VERSION : '5.4.4') + ' · ' + planBadge(r.plan);
   return r;
 }
 function renderHeaderExtras() {
