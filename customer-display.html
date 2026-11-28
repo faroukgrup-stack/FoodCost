@@ -56,8 +56,8 @@ body{font-family:Tajawal,system-ui,sans-serif;background:#0b0e17;color:#e8ecf5;o
 <div class="v" id="thanks"><i class="fas fa-circle-check"></i><h1>شكراً لك</h1><div class="num" id="tnum"></div><p style="font-size:1.4rem;color:#aab7d4">نتمنى لك وجبة شهية</p></div>
 <div class="v" id="code"><h2><i class="fas fa-display"></i> شاشة العميل</h2><p style="color:#aab7d4">أدخل رمز الربط من إعدادات «الطلب الذاتي وشاشة العميل»</p><input id="ci" inputmode="numeric" maxlength="10" dir="ltr"><button id="cb">ربط</button><div id="err"></div><div data-lang-picker></div></div>
 <div id="conn"></div>
-<script src="js/config.js?v=5.4.3"></script>
-<script src="js/i18n.js?v=5.4.3"></script>
+<script src="js/config.js?v=5.4.4"></script>
+<script src="js/i18n.js?v=5.4.4"></script>
 <script>
 (function () {
   'use strict';
@@ -74,7 +74,7 @@ body{font-family:Tajawal,system-ui,sans-serif;background:#0b0e17;color:#e8ecf5;o
     if (brand.color) document.documentElement.style.setProperty('--c', brand.color);
     $('#bn').textContent = brand.name || ''; $('#bn2').textContent = brand.name || T('طلبك');
     if (brand.welcome) $('#wel').textContent = brand.welcome;
-    [$('#logo'), $('#logo2')].forEach(i => { if (brand.logo && brand.showLogo !== false) { i.src = brand.logo; i.style.display = ''; } else i.style.display = 'none'; });
+    [$('#logo'), $('#logo2')].forEach(i => { if (brand.logo && brand.showLogo !== false) { if (i.dataset.orig !== brand.logo) { i.dataset.orig = brand.logo; i.src = brand.logo; } i.style.display = ''; } else i.style.display = 'none'; });
   }
   function render(st) {
     if (!st || typeof st !== 'object') return;
@@ -126,6 +126,6 @@ body{font-family:Tajawal,system-ui,sans-serif;background:#0b0e17;color:#e8ecf5;o
   }
 })();
 </script>
-<script src="js/logo-clean.js?v=5.4.3"></script>
+<script src="js/logo-clean.js?v=5.4.4"></script>
 </body>
 </html>

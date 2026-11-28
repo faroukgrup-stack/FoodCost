@@ -1,4 +1,4 @@
-# Mataami Pro — robots.txt (v5.4.3) — https://mataami-pro.com
+# Mataami Pro — robots.txt (v5.4.4) — https://mataami-pro.com
 User-agent: *
 Allow: /
 Allow: /Mataami-Pro.html
