@@ -13,8 +13,8 @@ async function loadReviews() {
                 renderReviewsTable();
                 updateReviewsSummary();
                 updateReviewsChart();
-                document.getElementById('reviewsSummary').style.display = 'block';
-                document.getElementById('reviewsChartContainer').style.display = 'block';
+                document.getElementById('reviewsSummary').style.display = allReviews.length ? 'block' : 'none';
+                document.getElementById('reviewsChartContainer').style.display = allReviews.length ? 'block' : 'none';
             } else showToast(res.error || 'فشل تحميل التقييمات', true);
         } catch (e) { showToast('خطأ في التحميل', true); } finally { hideLoading(); }
     }
@@ -44,7 +44,7 @@ function showFullNotes(name, date, notes) {
 
 function updateReviewsSummary() {
         const container = document.getElementById('reviewsSummary');
-        if (!allReviews.length) { container.innerHTML = '<div class="empty-state">لا توجد تقييمات.</div>'; container.style.display = 'block'; return; }
+        if (!allReviews.length) { container.innerHTML = ''; container.style.display = 'none'; return; }
         const total = allReviews.length;
         const avgFood = allReviews.reduce((s, r) => s + (r.food || 0), 0) / total;
         const avgService = allReviews.reduce((s, r) => s + (r.service || 0), 0) / total;
@@ -58,17 +58,19 @@ function updateReviewsSummary() {
             let cls = 'badge-review-average';
             if (k.includes('راضي')) cls = 'badge-review-excellent';
             else if (k.includes('غير راضي')) cls = 'badge-review-poor';
-            statusHtml += `<span class="badge ${cls}" style="margin:3px;">${k}: ${v}</span>`;
+            statusHtml += `<span class="badge ${cls}">${k.replace(/[^\p{L}\p{N}\s_-]/gu, '').trim()}: ${v}</span>`;
         }
         const visitTypeCounts = {};
         allReviews.forEach(r => { const vt = r.visitType || 'غير محدد'; visitTypeCounts[vt] = (visitTypeCounts[vt] || 0) + 1; });
         let visitTypeHtml = '';
-        const visitTypeLabels = { 'فطور': '🍳 فطور', 'غداء': '☀️ غداء', 'عشاء': '🌙 عشاء', 'طلبات_خارجية': '🛍️ طلبات خارجية', 'غير محدد': '❓ غير محدد' };
+        const visitTypeLabels = { 'فطور': 'فطور', 'غداء': 'غداء', 'عشاء': 'عشاء', 'طلبات_خارجية': 'طلبات خارجية', 'غير محدد': 'غير محدد' };
         for (const [k, v] of Object.entries(visitTypeCounts)) {
             const label = visitTypeLabels[k] || k;
-            visitTypeHtml += `<span class="badge badge-info" style="margin:3px;">${label}: ${v}</span>`;
+            visitTypeHtml += `<span class="badge badge-info">${label}: ${v}</span>`;
         }
-        container.innerHTML = `<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap:15px; background:var(--bg-card); border-radius:var(--radius); padding:20px; border:1px solid var(--border);"><div><strong style="color:var(--accent-soft);">📊 إجمالي</strong><br><span style="font-size:1.5rem;">${total}</span></div><div><strong style="color:var(--accent-soft);">⭐ المتوسط</strong><br><span style="font-size:1.5rem;">${overall.toFixed(1)}</span></div><div><strong style="color:var(--accent-soft);">🍽️ الطعام</strong><br><span style="font-size:1.2rem;">${avgFood.toFixed(1)}</span></div><div><strong style="color:var(--accent-soft);">👨‍🍳 الخدمة</strong><br><span style="font-size:1.2rem;">${avgService.toFixed(1)}</span></div><div><strong style="color:var(--accent-soft);">🧹 النظافة</strong><br><span style="font-size:1.2rem;">${avgClean.toFixed(1)}</span></div><div><strong style="color:var(--accent-soft);">💰 الأسعار</strong><br><span style="font-size:1.2rem;">${avgPrice.toFixed(1)}</span></div><div style="grid-column: 1 / -1;"><strong style="color:var(--accent-soft);">🏷️ التصنيفات</strong><br>${statusHtml}</div><div style="grid-column: 1 / -1;"><strong style="color:var(--accent-soft);">🕒 أنواع الزيارات</strong><br>${visitTypeHtml}</div></div>`;
+        const st = (ic, lab, v, big) => `<div class="rv-st${big ? ' big' : ''}"><i class="fas fa-${ic}"></i><span>${lab}</span><b>${v}</b></div>`;
+        container.innerHTML = `<div class="rv-sum"><div class="rv-stats">${st('list-ol', 'إجمالي', total, 1)}${st('star', 'المتوسط', overall.toFixed(1), 1)}${st('utensils', 'الطعام', avgFood.toFixed(1))}${st('bell-concierge', 'الخدمة', avgService.toFixed(1))}${st('broom', 'النظافة', avgClean.toFixed(1))}${st('tag', 'الأسعار', avgPrice.toFixed(1))}</div>` +
+            `<div class="rv-chips"><span class="rv-cl"><i class="fas fa-tags"></i> التصنيفات</span>${statusHtml}</div><div class="rv-chips"><span class="rv-cl"><i class="fas fa-clock"></i> أنواع الزيارات</span>${visitTypeHtml}</div></div>`;
         container.style.display = 'block';
     }
 
@@ -79,7 +81,7 @@ function updateReviewsChart() {
         if (reviewsChartInstance) reviewsChartInstance.destroy();
         const ratings = [1, 2, 3, 4, 5];
         const counts = ratings.map(r => allReviews.filter(rev => { const avg = ((rev.food || 0) + (rev.service || 0) + (rev.cleanliness || 0) + (rev.price || 0)) / 4; return Math.round(avg) === r; }).length);
-        reviewsChartInstance = new Chart(ctx, { type: 'bar', data: { labels: ['★ 1', '★ 2', '★ 3', '★ 4', '★ 5'], datasets: [{ label: 'عدد التقييمات', data: counts, backgroundColor: ['#ef4444', '#f59e0b', '#fcd34d', '#34d399', '#10b981'], borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, color: '#aab7d4' } }, x: { ticks: { color: '#aab7d4' } } }, plugins: { legend: { labels: { color: '#aab7d4' } } } } });
+        reviewsChartInstance = new Chart(ctx, { type: 'bar', data: { labels: ['★ 1', '★ 2', '★ 3', '★ 4', '★ 5'], datasets: [{ label: 'عدد التقييمات', data: counts, backgroundColor: ['#ef4444', '#f59e0b', '#fcd34d', '#34d399', '#10b981'], borderRadius: 5, barThickness: 14 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: 4 }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1, color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(148,163,184,.12)' } }, y: { reverse: true, ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { display: false } } }, plugins: { legend: { display: false } } } });
     }
 
 function applyReviewFilters() {
@@ -178,7 +180,7 @@ function generateQRCode() {
         }
         const hint = document.getElementById('qrHint');
         if (hint) {
-            hint.textContent = '⚠️ كود QR يعمل فقط بعد رفع الملفات على سيرفر (رابط https). افتح من localhost أو السيرفر.';
+            hint.textContent = 'كود QR يعمل فقط بعد رفع الملفات على سيرفر (رابط https). افتح من localhost أو السيرفر.';
             hint.style.display = 'block';
         }
         return;

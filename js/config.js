@@ -18,6 +18,6 @@ const PAYMENT_LINKS={
 const SUPPORT_WHATSAPP="905550196682";
 const CACHE_DURATION_MS=5*60*1000;
 const PUBLIC_APP_URL="https://mataami-pro.com/";
-const APP_VERSION="5.4.0";const APP_NAME="Mataami Pro";
+const APP_VERSION="5.4.3";const APP_NAME="Mataami Pro";
 // نطاقات النظام نفسه (أي نطاق آخر يُعامل كدومين خاص لمطعم ويُحوَّل لمينيو المطعم) — v5.3.4: الدومين الرسمي mataami-pro.com، والقديم باقٍ لتعمل روابط QR القديمة
 const APP_HOSTS=["mataami-pro.com","www.mataami-pro.com","rest-tools.farouk-grup.com","localhost","127.0.0.1"];

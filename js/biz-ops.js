@@ -14,13 +14,20 @@ bizPage('products', { group: 'stock', title: 'المنتجات', icon: 'box', fe
       '<button class="btn btn-primary btn-sm" id="prAdd"><i class="fas fa-plus"></i> منتج جديد</button>' +
       '<button class="btn btn-outline btn-sm" id="prImpM"><i class="fas fa-qrcode"></i> استيراد من المينيو الإلكتروني</button>' +
       '<button class="btn btn-outline btn-sm" id="prImpR"><i class="fas fa-clipboard-list"></i> استيراد من الأطباق</button></div>' +
-      '<div class="muted" id="prLim" style="margin-bottom:8px"></div><div id="prList"></div>';
-    let rows = [];
+      '<div class="muted" id="prLim" style="margin-bottom:8px"></div>' +
+      (canP('settings') ? '<div class="sx-bulk" id="prBulk" hidden><span id="prSelN"></span><button class="btn btn-danger btn-sm" id="prBulkDel"><i class="fas fa-trash"></i> حذف المحدد</button><button class="btn btn-outline btn-sm" id="prBulkClr">إلغاء التحديد</button></div>' : '') +
+      '<div id="prList"></div>';
+    let rows = []; const sel = new Set(); const bulk = canP('settings');
+    const selUI = function () {
+      const bar = body.querySelector('#prBulk'); if (!bar) return;
+      bar.hidden = !sel.size; body.querySelector('#prSelN').textContent = 'تم تحديد ' + sel.size + ' منتج';
+      const all = body.querySelector('#prAll'); if (all) { const vis = [...body.querySelectorAll('[data-sel]')]; all.checked = vis.length && vis.every(function (c) { return c.checked; }); }
+    };
     const draw = function () {
       const q = body.querySelector('#prQ').value.trim().toLowerCase();
       const list = rows.filter(function (p) { return !q || (p.name + ' ' + p.category + ' ' + p.barcode + ' ' + p.sku).toLowerCase().includes(q); });
       body.querySelector('#prLim').textContent = 'عدد المنتجات: ' + rows.length + (lim >= 0 ? ' من ' + lim + ' (حد باقة الإنطلاقة)' : ' (بلا حد)');
-      body.querySelector('#prList').innerHTML = bTable([
+      body.querySelector('#prList').innerHTML = bTable((bulk ? [{ label: '', html: '<input type="checkbox" class="sx-cb" id="prAll" title="تحديد الكل">', r: function (p) { return '<input type="checkbox" class="sx-cb" data-sel="' + p.id + '"' + (sel.has(p.id) ? ' checked' : '') + '>'; } }] : []).concat([
         { label: 'المنتج', r: function (p) { return (p.image_url ? '<img src="' + h(p.image_url) + '" style="width:34px;height:34px;border-radius:8px;object-fit:cover;vertical-align:middle;margin-left:8px">' : '') + '<b>' + h(p.name) + '</b>' + (p.kind === 'service' ? ' <span class="badge badge-info">خدمة</span>' : '') + (p.kind === 'semi' ? ' <span class="badge badge-cash">نصف مصنّع</span>' : '') + (p.active ? '' : ' <span class="badge badge-dog">موقوف</span>'); } },
         { label: 'التصنيف', r: function (p) { return h(p.category || '—'); } },
         { label: 'السعر', num: true, r: function (p) { return money(p.price); } }, { label: 'التكلفة', num: true, r: function (p) { return money(p.cost); } },
@@ -28,8 +35,23 @@ bizPage('products', { group: 'stock', title: 'المنتجات', icon: 'box', fe
         { label: 'خيارات', r: function (p) { return (p.variants || []).length + ' حجم · ' + (p.extras || []).length + ' إضافة'; } },
         { label: 'مخزون', r: function (p) { return p.track_stock ? '<i class="fas fa-check" style="color:#6ee7b7"></i>' : (p.recipe_name ? '<span class="muted" style="font-size:.78rem">بالوصفة</span>' : '—'); } },
         { label: '', r: function (p) { return '<button class="ico-btn" data-e="' + p.id + '"><i class="fas fa-pen"></i></button><button class="ico-btn danger" data-d="' + p.id + '"><i class="fas fa-trash"></i></button>'; } }
-      ], list, { empty: 'لا توجد منتجات — أضف منتجاً أو استورد من المينيو' });
+      ]), list, { empty: 'لا توجد منتجات — أضف منتجاً أو استورد من المينيو' });
+      selUI();
     };
+    if (bulk) {
+      body.querySelector('#prList').addEventListener('change', function (e) {
+        if (e.target.id === 'prAll') { body.querySelectorAll('[data-sel]').forEach(function (c) { c.checked = e.target.checked; if (c.checked) sel.add(c.dataset.sel); else sel.delete(c.dataset.sel); }); selUI(); return; }
+        const c = e.target.closest('[data-sel]'); if (!c) return; if (c.checked) sel.add(c.dataset.sel); else sel.delete(c.dataset.sel); selUI();
+      });
+      body.querySelector('#prBulkClr').onclick = function () { sel.clear(); draw(); };
+      body.querySelector('#prBulkDel').onclick = async function () {
+        if (!sel.size) return;
+        if (!(await bConfirm('سيتم حذف ' + sel.size + ' منتج نهائياً من الكاشير والمخزون. لا يمكن التراجع. هل تريد المتابعة؟'))) return;
+        const r = await bzOk('entityDeleteMany', { kind: 'products', ids: [...sel] });
+        showToast('تم حذف ' + r.deleted + ' منتج' + (r.failed ? ' — تعذر حذف ' + r.failed : ''), !!r.failed);
+        sel.clear(); load();
+      };
+    }
     const load = async function () { rows = await entList('products'); draw(); };
     body.querySelector('#prQ').oninput = draw;
     body.querySelector('#prAdd').onclick = function () { productEdit(null, load, rows); };
@@ -51,20 +73,21 @@ async function productEdit(p, after, all) {
   let recipes = [], menu = [];
   try { const r = await bz('recipesBrief', {}, { silentPlan: true }); recipes = r.recipes || []; } catch (e) { }
   try { const r = await bz('getDigitalMenu', { restaurantEmail: currentUserEmail }, { silentPlan: true }); menu = (r.items || []).filter(function (x) { return x && x.name; }); } catch (e) { }
-  const taken = new Set((all || []).filter(function (x) { return !p || x.id !== p.id; }).map(function (x) { return String(x.name).trim().toLowerCase(); }));
+  const taken = new Set((all || []).filter(function (x) { return !p || x.id !== p.id; }).map(function (x) { return window.fcArN ? fcArN(x.name) : String(x.name).trim().toLowerCase(); }));
   const cats = [...new Set((all || []).map(function (x) { return x.category; }).filter(Boolean))];
   const src0 = p ? (p.recipe_name ? 'dish' : 'custom') : (recipes.length ? 'dish' : (menu.length ? 'menu' : 'custom'));
-  const opt = function (list, lab) { return '<option value="">— اختر —</option>' + list.map(function (x, i) { const used = taken.has(String(x.name).trim().toLowerCase()); return '<option value="' + i + '">' + h(lab(x)) + (used ? ' (مضاف مسبقاً)' : '') + '</option>'; }).join(''); };
+  const opt = function (list, lab) { return '<option value="">— اختر —</option>' + list.map(function (x, i) { const used = taken.has(window.fcArN ? fcArN(x.name) : String(x.name).trim().toLowerCase()); return '<option value="' + i + '">' + h(lab(x)) + (used ? ' (مضاف مسبقاً)' : '') + '</option>'; }).join(''); };
   const srcHtml = '<div class="prod-src">' +
     '<div class="prod-src-tabs">' + [['dish', 'utensils', 'من الأطباق', 'طبق محسوب التكلفة'], ['menu', 'book-open', 'من المينيو الإلكتروني', 'بالأحجام والإضافات والصورة'], ['custom', 'box', 'منتج مستقل', 'مشروب جاهز أو سلعة']].map(function (t) {
       return '<label class="prod-src-card"><input type="radio" name="prodSrc" value="' + t[0] + '"' + (t[0] === src0 ? ' checked' : '') + '><i class="fas fa-' + t[1] + '"></i><b>' + t[2] + '</b><small>' + t[3] + '</small></label>'; }).join('') + '</div>' +
-    '<div class="prod-src-pick" data-src="dish"><label>اختر الطبق</label><select id="prodDish">' + (recipes.length ? opt(recipes, function (r) { return r.name + ' · سعر ' + money(r.price || 0) + ' · تكلفة ' + money(r.cost || 0); }) : '<option value="">لا توجد أطباق — أضفها من حاسبة التكلفة</option>') + '</select></div>' +
-    '<div class="prod-src-pick" data-src="menu"><label>اختر صنف المينيو</label><select id="prodMenu">' + (menu.length ? opt(menu, function (m) { return m.name + (m.category && m.category !== 'الكل' ? ' · ' + m.category : ''); }) : '<option value="">المينيو الإلكتروني فارغ</option>') + '</select></div>' +
+    '<div class="prod-src-pick" data-src="dish"><label>اختر الطبق</label><select id="prodDish" data-search>' + (recipes.length ? opt(recipes, function (r) { return r.name + ' · سعر ' + money(r.price || 0) + ' · تكلفة ' + money(r.cost || 0); }) : '<option value="">لا توجد أطباق — أضفها من حاسبة التكلفة</option>') + '</select></div>' +
+    '<div class="prod-src-pick" data-src="menu"><label>اختر صنف المينيو</label><select id="prodMenu" data-search>' + (menu.length ? opt(menu, function (m) { return m.name + (m.category && m.category !== 'الكل' ? ' · ' + m.category : ''); }) : '<option value="">المينيو الإلكتروني فارغ</option>') + '</select></div>' +
     '<p class="prod-src-note">المنتج هو ما يظهر في الكاشير. اختيار طبق أو صنف يعبّئ الاسم والسعر والتكلفة تلقائياً ويمكنك تعديلها.</p></div>';
   const fields = [
     { type: 'html', html: srcHtml },
     { type: 'section', label: 'بيانات المنتج في الكاشير' },
-    { k: 'name', label: 'اسم المنتج', req: true }, { k: 'category', label: 'التصنيف', ph: cats.slice(0, 3).join('، ') || 'مشروبات' },
+    { type: 'html', full: true, html: '<div class="sx-nm-note"><i class="fas fa-language"></i> ' + h(fcT('اسم المنتج')) + ' <span class="req">*</span> <small>' + h(fcT('لغة واحدة على الأقل — بقية اللغات اختيارية')) + '</small></div>' },
+    { k: 'name_ar', label: 'العربية' }, { k: 'name_en', label: 'English', ltr: true }, { k: 'name_tr', label: 'Türkçe', ltr: true }, { k: 'category', label: 'التصنيف', ph: cats.slice(0, 3).join('، ') || 'مشروبات' },
     { k: 'price', label: 'سعر البيع', type: 'number', req: true }, { k: 'cost', label: 'التكلفة', type: 'number', hint: 'تُحدّث تلقائياً من الطبق أو فواتير الشراء' },
     { k: 'recipe_name', label: 'الطبق المرتبط', type: 'select', options: [['', '— بدون —']].concat(recipes.map(function (r) { return [r.name, r.name + ' · تكلفة ' + money(r.cost)]; })), hint: hasF('production') ? 'عند البيع تُخصم مكونات الطبق من المواد الأولية' : 'خصم مكونات الطبق من المخزون متاح في الباقة المتقدمة' },
     { k: 'active', label: 'متاح للبيع في الكاشير', type: 'checkbox', def: true },
@@ -84,17 +107,27 @@ async function productEdit(p, after, all) {
     { k: 'calories', label: 'السعرات الحرارية (kcal) للحصة', type: 'number', hint: 'تُحسب تلقائياً من مكونات الطبق في صفحة «السعرات والحساسية» ويمكن تعديلها' },
     { type: 'html', full: true, html: '<label style="display:block;margin-bottom:6px">مسببات الحساسية</label><div id="prodAl">' + (window.FC_NUTRI ? FC_NUTRI.alGridHtml((p && p.allergens) || []) : '') + '</div>' }
   ];
-  const v = p ? Object.assign({}, p, { variants: optsText(p.variants), extras: optsText(p.extras), tax_rate: p.tax_rate === null ? '' : p.tax_rate, calories: p.calories === null || p.calories === undefined ? '' : p.calories, station: p.station || '' }) : {};
+  const un0 = (p && window.FC_UN && window.FC_UN[String(p.name || '').replace(/\s+/g, ' ').trim()]) || {};
+  const nm0 = window.fcNm ? fcNm.split(p ? p.name : '') : { ar: p ? p.name : '', en: un0.en || '', tr: un0.tr || '' };
+  const v = p ? Object.assign({}, p, { name_ar: nm0.ar, name_en: nm0.en, name_tr: nm0.tr, variants: optsText(p.variants), extras: optsText(p.extras), tax_rate: p.tax_rate === null ? '' : p.tax_rate, calories: p.calories === null || p.calories === undefined ? '' : p.calories, station: p.station || '' }) : {};
   bPrompt(p ? 'تعديل منتج' : 'منتج جديد', fields, v, async function (d) {
     d.variants = parseOpts(d.variants); d.extras = parseOpts(d.extras);
     if (d.tax_rate === '') d.tax_rate = null;
     if (p) d.id = p.id;
     d.calories = d.calories === '' || d.calories === null || d.calories === undefined ? null : +d.calories;
     const alEl = document.getElementById('prodAl'); if (alEl && window.FC_NUTRI) d.allergens = FC_NUTRI.readAl(alEl);
-    await entSave('products', d); after();
+    const pk = window.fcNm ? fcNm.pick({ ar: d.name_ar, en: d.name_en, tr: d.name_tr }) : { name: d.name_ar, tr: { en: d.name_en, tr: d.name_tr } };
+    if (!pk.name) { showToast('اكتب اسم المنتج بلغة واحدة على الأقل (عربي أو English أو Türkçe)', true); return false; }
+    d.name = pk.name; delete d.name_ar;
+    if (taken.has(window.fcArN ? fcArN(d.name) : d.name.toLowerCase())) { showToast('الاسم «' + d.name + '» مستخدم مسبقاً لمنتج آخر — لا يمكن تكرار نفس الاسم', true); return false; }
+    delete d.name_en; delete d.name_tr;
+    await entSave('products', d);
+    if (window.fcSaveNames) await fcSaveNames(d.name, pk.tr, p && p.name);
+    after();
   }, { wide: true, icon: 'box', onOpen: function (m) {
     const el = m.el || m, q = function (k) { return el.querySelector('[data-k="' + k + '"]'); };
     const set = function (k, val) { const x = q(k); if (x && val !== undefined && val !== null) x.value = val; };
+    const setName = function (n) { const sp = window.fcNm ? fcNm.split(n) : { ar: n }; set('name_ar', sp.ar || ''); set('name_en', sp.en || ''); set('name_tr', sp.tr || ''); };
     const show = function () {
       const cur = (el.querySelector('input[name="prodSrc"]:checked') || {}).value || 'custom';
       el.querySelectorAll('.prod-src-pick').forEach(function (x) { x.style.display = x.dataset.src === cur ? '' : 'none'; });
@@ -104,14 +137,14 @@ async function productEdit(p, after, all) {
     const dsel = el.querySelector('#prodDish'), msel = el.querySelector('#prodMenu');
     if (dsel) dsel.addEventListener('change', function () {
       const r = recipes[+dsel.value]; if (dsel.value === '' || !r) return;
-      set('name', r.name); set('price', +(r.price || 0).toFixed(2)); set('cost', +(r.cost || 0).toFixed(2)); set('recipe_name', r.name);
+      setName(r.name); set('price', +(r.price || 0).toFixed(2)); set('cost', +(r.cost || 0).toFixed(2)); set('recipe_name', r.name);
       if (!q('category').value) set('category', 'الأطباق');
     });
     if (msel) msel.addEventListener('change', function () {
       const it = menu[+msel.value]; if (msel.value === '' || !it) return;
       const sizes = Array.isArray(it.sizes) ? it.sizes.filter(function (z) { return z && z.name; }) : [];
       const rec = it.recipeName && recipes.find(function (r) { return r.name === it.recipeName; });
-      set('name', it.name); set('category', it.category && it.category !== 'الكل' ? it.category : 'عام');
+      setName(it.name); set('category', it.category && it.category !== 'الكل' ? it.category : 'عام');
       set('price', sizes.length ? +sizes[0].price || 0 : +it.price || 0);
       set('variants', sizes.length > 1 ? optsText(sizes.map(function (z) { return { name: z.name, price: +z.price || 0 }; })) : '');
       set('extras', optsText((Array.isArray(it.extras) ? it.extras : []).map(function (e) { return { name: e.name, price: +e.price || 0 }; })));
@@ -141,7 +174,7 @@ async function stockView(el) {
   let filter = 'all', q = '';
   el.innerHTML = kpis([['قيمة المخزون', money(r.totalValue)], ['عدد الأصناف', r.items.length], ['أصناف منخفضة', r.lowCount, '', r.lowCount ? '#f59e0b' : '']]) +
     '<div class="biz-toolbar"><input class="biz-search grow" id="stQ" placeholder="بحث"><select class="biz-branch-sel" id="stF"><option value="all">الكل</option><option value="material">المواد الأولية</option><option value="product">المنتجات</option><option value="low">المنخفضة فقط</option></select>' +
-    '<button class="btn btn-outline btn-sm" id="stX"><i class="fas fa-file-excel"></i> Excel</button></div><div id="stList"></div>';
+    '</div><div id="stList"></div>';
   const draw = function () {
     const list = r.items.filter(function (i) { return (filter === 'all' || (filter === 'low' ? i.low : i.itemType === filter)) && (!q || i.name.toLowerCase().includes(q)); });
     el.querySelector('#stList').innerHTML = bTable([
@@ -160,7 +193,7 @@ async function stockView(el) {
   };
   el.querySelector('#stQ').oninput = function (e) { q = e.target.value.trim().toLowerCase(); draw(); };
   el.querySelector('#stF').onchange = function (e) { filter = e.target.value; draw(); };
-  el.querySelector('#stX').onclick = function () { exportRowsExcel('المخزون', ['الصنف', 'النوع', 'الوحدة', 'الرصيد', 'الحد الأدنى', 'التكلفة', 'القيمة'], r.items.map(function (i) { return [i.name, i.itemType === 'material' ? 'مادة' : 'منتج', i.unit, i.qty, i.minQty, i.cost, i.value]; })); };
+  (el.querySelector('#stX') || {}).onclick = function () { exportRowsExcel('المخزون', ['الصنف', 'النوع', 'الوحدة', 'الرصيد', 'الحد الأدنى', 'التكلفة', 'القيمة'], r.items.map(function (i) { return [i.name, i.itemType === 'material' ? 'مادة' : 'منتج', i.unit, i.qty, i.minQty, i.cost, i.value]; })); };
   draw();
 }
 function stockAdjustModal(it, reason, after) {

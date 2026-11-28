@@ -15,9 +15,9 @@ const PALETTE = ['#b48554', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6
 bizPage('finance', { group: 'fin', title: 'الحسابات والمصروفات', icon: 'wallet', feature: 'finance', perms: ['finance'], plan: 'pro',
   pitch: 'المصروفات اليومية والتشغيلية، الفواتير الإلكترونية، الورديات، وعروض الأسعار في الباقة المتقدمة.',
   render: async function (body) {
-    body.innerHTML = subTabs('fnSub', [['exp', 'المصروفات', 'money-bill-wave'], ['inv', 'الفواتير الإلكترونية', 'file-invoice'], ['shifts', 'الورديات', 'user-clock', !hasF('shifts')], ['drawers', 'الصناديق حسب الفرع والكاشير', 'cash-register', !hasF('shifts') || !(B.acc.isOwner || canP('team', 'finance'))], ['quotes', 'عروض الأسعار', 'file-signature', !hasF('quotes')]], 'exp') + '<div id="fnBody"></div>';
+    body.innerHTML = subTabs('fnSub', [['exp', 'المصروفات', 'money-bill-wave'], ['inv', 'الفواتير الإلكترونية', 'file-invoice'], ['shifts', 'الورديات', 'user-clock', !hasF('shifts')], ['drawers', 'الصناديق حسب الفرع والكاشير', 'cash-register', !hasF('shifts') || !(B.acc.isOwner || canP('team', 'finance'))], ['cashmoves', 'حركات الصندوق', 'right-left', !hasF('shifts') || !(B.acc.isOwner || canP('finance'))], ['quotes', 'عروض الأسعار', 'file-signature', !hasF('quotes')]], 'exp') + '<div id="fnBody"></div>';
     const el = body.querySelector('#fnBody');
-    bindSubTabs(body, 'fnSub', function (k) { ({ exp: expensesView, inv: invoicesView, shifts: shiftsView, drawers: drawersView, quotes: quotesView })[k](el); });
+    bindSubTabs(body, 'fnSub', function (k) { ({ exp: expensesView, inv: invoicesView, shifts: shiftsView, drawers: drawersView, cashmoves: cashMovesView, quotes: quotesView })[k](el); });
     expensesView(el);
   } });
 function expensesView(el) {
@@ -197,7 +197,11 @@ async function staffView(el) {
     '<div class="biz-toolbar"><span class="grow"></span><button class="btn btn-primary btn-sm" id="sfNew"><i class="fas fa-user-plus"></i> موظف جديد</button></div>' +
     bTable([{ label: 'الموظف', r: function (s) { return '<b>' + h(s.name) + '</b>'; } }, { label: 'اسم المستخدم', r: function (s) { return '<span dir="ltr">' + h(s.username) + '</span>'; } }, { label: 'الدور', r: function (s) { return h(acc.roleNames[s.role] || s.role); } }, { label: 'الفرع', r: function (s) { const b = (acc.branches || []).find(function (x) { return x.id === s.branch_id; }); return b ? h(b.name) : 'كل الفروع'; } },
       { label: 'الصلاحيات', r: function (s) { return '<span class="muted" style="font-size:.76rem">' + (s.permissions || []).map(function (p) { return PERM_NAMES[p] || p; }).join('، ') + '</span>'; } }, { label: 'آخر دخول', r: function (s) { return s.last_login ? dt(s.last_login) : '—'; } }, { label: 'الحالة', r: function (s) { return s.active ? '<span class="badge badge-success">فعّال</span>' : '<span class="badge badge-dog">موقوف</span>'; } },
-      { label: '', r: function (s) { return '<button class="ico-btn" data-e="' + s.id + '"><i class="fas fa-pen"></i></button><button class="ico-btn danger" data-d="' + s.id + '"><i class="fas fa-trash"></i></button>'; } }], rows, { empty: 'لا يوجد موظفون — أضف الكاشير والنادل والمطبخ' });
+      { label: '', r: function (s) { return '<button class="ico-btn" data-e="' + s.id + '"><i class="fas fa-pen"></i></button><button class="ico-btn danger" data-d="' + s.id + '"><i class="fas fa-trash"></i></button>'; } }], rows.filter(function (s) { return !fcIsDevice(s); }), { empty: 'لا يوجد موظفون — أضف الكاشير والنادل والمطبخ' }) +
+    (function () { const dv = rows.filter(fcIsDevice); return dv.length ? '<div class="sx-sec" style="margin-top:12px"><h4><i class="fas fa-tablet-screen-button"></i> ' + h(fcT('حسابات أجهزة الطلب الذاتي')) + '</h4><span class="sx-hint">' + h(fcT('حسابات تشغيل للأجهزة فقط — لا تُحسب ضمن الموظفين والورديات والرواتب')) + '</span></div>' +
+      bTable([{ label: 'الجهاز', r: function (s) { return '<b>' + h(s.name) + '</b>'; } }, { label: 'اسم المستخدم', r: function (s) { return '<span dir="ltr">' + h(s.username) + '</span>'; } },
+        { label: 'الحالة', r: function (s) { return s.active === false ? '<span class="badge badge-dog">' + h(fcT('متوقفة')) + '</span>' : '<span class="badge badge-success">' + h(fcT('مفعّلة')) + '</span>'; } },
+        { label: '', r: function (s) { return '<button class="ico-btn" data-e="' + s.id + '"><i class="fas fa-pen"></i></button><button class="ico-btn danger" data-d="' + s.id + '"><i class="fas fa-trash"></i></button>'; } }], dv) : ''; })();
   const edit = function (s) {
     const roleOpts = Object.keys(acc.rolePresets).concat(['custom']).filter(function (v, i, a) { return a.indexOf(v) === i; }).map(function (k) { return [k, acc.roleNames[k] || k]; });
     const permHtml = '<div class="biz-sec">الصلاحيات</div><div class="biz-form" id="permBox">' + acc.perms.filter(function (p) { return acc.isOwner || p !== 'settings'; }).map(function (p) { return '<label class="biz-check"><input type="checkbox" data-perm="' + p + '"> <span>' + h(PERM_NAMES[p] || p) + '</span></label>'; }).join('') + '</div>';
@@ -318,22 +322,23 @@ function bizLogoUploader(el, key, hint) {
 
 // ---------- إعدادات النشاط ----------
 bizPage('bizsettings', { group: 'admin', title: 'إعدادات النشاط والفوترة', icon: 'sliders-h', feature: 'pos', perms: ['settings'], plan: 'pro',
-  pitch: 'بيانات المنشأة، الضريبة والفاتورة الإلكترونية، شكل الإيصال، وسلوك الكاشير.',
+  pitch: 'بيانات المنشأة، الضريبة والفاتورة الإلكترونية، شكل الإيصال، سلوك الكاشير، والإشعارات الذكية لكل البرنامج.',
   render: async function (body) {
-    body.innerHTML = subTabs('bsSub', [['business', 'بيانات المنشأة', 'building'], ['tax', 'الضريبة والفوترة', 'percent'], ['receipt', 'الإيصال', 'receipt'], ['pos', 'الكاشير', 'cash-register'], ['kpi', 'أهداف الأداء', 'stopwatch']], 'business') + '<div id="bsBody"></div>';
+    body.innerHTML = subTabs('bsSub', [['business', 'بيانات المنشأة', 'building'], ['tax', 'الضريبة والفوترة', 'percent'], ['receipt', 'الإيصال', 'receipt'], ['pos', 'الكاشير', 'cash-register'], ['kpi', 'أهداف الأداء', 'stopwatch'], ['notify', 'الإشعارات الذكية', 'bell', !hasF('notifications')]], 'business') + '<div id="bsBody"></div>';
     const el = body.querySelector('#bsBody');
     const views = {
       business: function () { settingsForm(el, 'business', [{ k: 'legalName', label: 'الاسم التجاري / القانوني', full: true }, { k: 'crNumber', label: 'رقم السجل التجاري', ltr: true }, { k: 'phone', label: 'الهاتف', ltr: true }, { k: 'address', label: 'العنوان', full: true }, { k: 'logo', label: 'رابط الشعار للفواتير', ltr: true, full: true }]); bizLogoUploader(el, 'logo', 'يظهر في الفواتير، وكأيقونة تطبيق المطعم إن لم تحدد أيقونة خاصة.'); },
       tax: function () { settingsForm(el, 'tax', [{ k: 'enabled', label: 'تفعيل الضريبة على المبيعات', type: 'checkbox', full: true }, { k: 'name', label: 'اسم الضريبة', def: 'ضريبة القيمة المضافة' }, { k: 'rate', label: 'النسبة %', type: 'number' }, { k: 'inclusive', label: 'الأسعار شاملة الضريبة', type: 'checkbox' }, { k: 'number', label: 'الرقم الضريبي للمنشأة', ltr: true }],
         'كل فاتورة تصدر برقم تسلسلي غير قابل للتعديل، وبصمة رقمية مرتبطة بالفاتورة السابقة، ورمز QR بصيغة TLV (اسم البائع، الرقم الضريبي، الوقت، الإجمالي، الضريبة) المتوافقة مع متطلبات الفوترة المبسطة. الإلغاء يتم بإشعار دائن.'); },
       receipt: function () { settingsForm(el, 'receipt', [{ k: 'header', label: 'نص أعلى الإيصال', full: true }, { k: 'footer', label: 'نص أسفل الإيصال', full: true, def: 'شكراً لزيارتكم' }, { k: 'paper', label: 'مقاس الورق', type: 'select', options: [['80', 'حراري 80 مم'], ['58', 'حراري 58 مم'], ['a4', 'A4']] }, { k: 'showQr', label: 'إظهار رمز QR', type: 'checkbox' }]); },
-      pos: function () { settingsForm(el, 'pos', [{ k: 'defaultOrderType', label: 'نوع الطلب الافتراضي', type: 'select', options: [['takeaway', 'سفري'], ['dine_in', 'محلي'], ['delivery', 'توصيل']] }, { k: 'requireShift', label: 'إلزام فتح وردية قبل البيع', type: 'checkbox' }, { k: 'allowNegativeStock', label: 'السماح بالبيع عند نفاد المخزون', type: 'checkbox' }, { k: 'kitchenAuto', label: 'إرسال الطلب للمطبخ تلقائياً عند الدفع', type: 'checkbox' }, { k: 'allowPriceEdit', label: 'السماح للكاشير بتعديل الأسعار', type: 'checkbox' },
+      pos: function () { settingsForm(el, 'pos', [{ k: 'defaultOrderType', label: 'نوع الطلب الافتراضي', type: 'select', options: [['takeaway', 'سفري'], ['dine_in', 'محلي'], ['delivery', 'توصيل']] }, { k: 'requireShift', label: 'إلزام فتح وردية قبل البيع', type: 'checkbox' }, { k: 'allowNegativeStock', label: 'السماح بالبيع عند نفاد المخزون (يتقدم على الإيقاف التلقائي)', type: 'checkbox' }, { k: 'kitchenAuto', label: 'إرسال الطلب للمطبخ تلقائياً عند الدفع', type: 'checkbox' }, { k: 'allowPriceEdit', label: 'السماح للكاشير بتعديل الأسعار', type: 'checkbox' },
         { k: 'autoSoldOut', label: 'إيقاف المنتج نهائياً عند نفاد أي مادة أولية (الكاشير + المينيو + التطبيق)', type: 'checkbox', full: true },
         { k: 'wasteOnCancel', label: 'تسجيل الكميات تالفاً عند إلغاء طلب بعد بدء التحضير (بدل إرجاعها للمخزون)', type: 'checkbox', full: true }],
         'عند تفعيل الإيقاف التلقائي: يتم التحقق من توفر جميع المواد الأولية (مع احتساب الطلبات المفتوحة المحجوزة) عند إضافة الصنف وقبول طلب المينيو وإرسال الطلب للمطبخ وليس عند الدفع فقط، ويظهر الصنف «نفد» للعملاء أونلاين. يتطلب ربط المنتج بالوصفة أو تفعيل تتبع مخزون المنتج.'); },
       kpi: function () { settingsForm(el, 'kpi', [{ k: 'acceptMin', label: 'المدة المستهدفة لقبول طلب أونلاين (دقيقة)', type: 'number' }, { k: 'prepMin', label: 'المدة المستهدفة للتحضير (دقيقة)', type: 'number' }, { k: 'serveMin', label: 'المدة المستهدفة للتسليم بعد الجاهزية (دقيقة)', type: 'number' }],
         'تُستخدم هذه الأهداف في تقرير مؤشرات الأداء التشغيلي لحساب نسبة الالتزام بالوقت.'); }
     };
+    views.notify = function () { notifyView(el); };
     bindSubTabs(body, 'bsSub', function (k) { views[k](); });
     views.business();
   } });
@@ -415,4 +420,57 @@ async function profitDoc(r, f) {
       { title: 'الربحية حسب المنتج', pb: true, chart: chPr, chartTop: true, table: Object.assign(cols('المنتج'), { rows: rows(pr) }) },
       { title: 'الربحية حسب التصنيف', table: Object.assign(cols('التصنيف'), { rows: rows(r.categories || []) }) }
     ].concat((r.branches || []).length > 1 ? [{ title: 'الربحية حسب الفرع', table: Object.assign(cols('الفرع'), { rows: rows(r.branches) }) }] : []) };
+}
+
+// ============================================================
+// v5.4.3 — حركات الصندوق: كل سحب/إيداع من درج الكاشير بانتظار اعتماد المحاسب
+// المعلّق يُرحّل على «أرصدة مدينة أخرى 1450» (سحب) أو «أرصدة دائنة أخرى 2160» (إيداع) حتى يُصنّف ويُعتمد فتُقفل الذمة
+// ============================================================
+async function cashMovesView(el) {
+  let st = 'pending';
+  el.innerHTML = '<div class="biz-toolbar"><div class="sx-seg" id="cmSeg"><button type="button" class="on" data-s="pending">' + h(fcT('بانتظار الاعتماد')) + '</button><button type="button" data-s="done">' + h(fcT('المعتمدة')) + '</button><button type="button" data-s="">' + h(fcT('الكل')) + '</button></div><span class="grow"></span></div>' +
+    '<p class="sx-note"><i class="fas fa-shield-halved"></i> <span>' + h(fcT('كل مبلغ يسحبه الكاشير أو يودعه يبقى معلقاً على حساب تحت التسوية حتى يعتمده المحاسب ويحدد نوعه (مصروف، سداد مورد، سلفة موظف، مسحوبات المالك، إيداع بنكي)؛ بعد الاعتماد يُثبت القيد وتُقفل الذمة.')) + '</span></p><div id="cmList"></div>';
+  const list = el.querySelector('#cmList');
+  let meta = { classes: {}, reasons: {} };
+  const load = async function () {
+    list.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
+    const r = await bz('cashMoveList', { status: st }); if (!r.success) { list.innerHTML = ''; return; }
+    meta = r; const rows = r.rows || [];
+    const tot = rows.filter(function (x) { return x.status === 'pending'; }).reduce(function (s, x) { return s + (x.dir === 'out' ? x.amount : -x.amount); }, 0);
+    list.innerHTML = (st === 'pending' && rows.length ? '<div class="sx-warn" style="margin-bottom:8px"><i class="fas fa-triangle-exclamation"></i> <span>' + h(fcT('حركات معلقة')) + ': <b>' + rows.length + '</b> · ' + h(fcT('صافي المسحوب غير المعتمد')) + ': <b>' + money(tot) + '</b></span></div>' : '') +
+      bTable([{ label: 'التاريخ', r: function (x) { return h(x.date) + '<div class="muted" style="font-size:.72rem">' + h(new Date(x.at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })) + '</div>'; } },
+        { label: 'الكاشير', r: function (x) { return '<b>' + h(x.staffName || '—') + '</b>'; } },
+        { label: 'الحركة', r: function (x) { return x.dir === 'out' ? '<span class="badge badge-danger">' + h(fcT('سحب')) + '</span>' : '<span class="badge badge-success">' + h(fcT('إيداع')) + '</span>'; } },
+        { label: 'المبلغ', num: true, r: function (x) { return money(x.amount); } },
+        { label: 'السبب المسجل', r: function (x) { return h(fcT(x.reasonName || 'غير محدد')) + (x.note ? '<div class="muted" style="font-size:.74rem">' + h(x.note) + '</div>' : ''); } },
+        { label: 'الحالة', r: function (x) { return x.status === 'approved' ? '<span class="badge badge-success">' + h(fcT('معتمد')) + '</span><div class="muted" style="font-size:.72rem">' + h(fcT(x.clsName)) + ' · ' + h(x.approvedBy) + '</div>' : '<span class="badge badge-warning">' + h(fcT('بانتظار الاعتماد')) + '</span>'; } },
+        { label: '', r: function (x) { return x.status === 'approved' ? '' : '<button class="btn btn-primary btn-sm" data-ap="' + x.id + '"><i class="fas fa-check"></i> ' + h(fcT('اعتماد وتثبيت القيد')) + '</button>'; } }], rows, { empty: st === 'pending' ? 'لا توجد حركات بانتظار الاعتماد' : 'لا توجد حركات' });
+    list.querySelectorAll('[data-ap]').forEach(function (b) { b.onclick = function () { approve(rows.find(function (x) { return x.id === b.dataset.ap; })); }; });
+  };
+  const approve = async function (x) {
+    const [sups, emps] = await Promise.all([hasF('purchasing') ? entList('suppliers').catch(function () { return []; }) : Promise.resolve([]), bz('empDirectory', {}, { silentPlan: true }).then(function (r) { return (r && r.employees) || []; }).catch(function () { return []; })]);
+    const C = meta.classes || {};
+    const def = x.dir === 'out' ? ({ supplier: 'supplier', expense: 'expense', bank: 'bank', owner: 'drawing', advance: 'employee' })[x.reason] || 'expense' : ({ owner: 'capital', change: 'bank', advance: 'emp_refund' })[x.reason] || 'other_income';
+    const clsOpts = Object.keys(C).filter(function (k) { return C[k].dir === 'both' || C[k].dir === x.dir; }).filter(function (k) { return k !== 'supplier' || sups.length; }).map(function (k) { return [k, C[k].name]; });
+    const empSel = emps.filter(function (e) { return e.active !== false; }).map(function (e) { return [e.id, e.name]; });
+    const myEmp = emps.find(function (e) { return e.staffId && e.staffId === x.staffId; });
+    const F = [{ k: 'cls', label: 'نوع القيد', type: 'select', req: true, options: clsOpts },
+      { k: 'category', label: 'بند المصروف', type: 'select', options: typeof expCatOptions === 'function' ? expCatOptions('') : EXP_CATS },
+      { k: 'supplierId', label: 'المورد', type: 'select', options: [['', '—']].concat(sups.map(function (s) { return [s.id, s.name]; })) },
+      { k: 'empId', label: 'الموظف', type: 'select', options: [['', '—']].concat(empSel) },
+      { k: 'note', label: 'ملاحظة المحاسب', full: true }];
+    bPrompt('اعتماد حركة صندوق', F, { cls: def, empId: myEmp ? myEmp.id : '' }, async function (d) {
+      if ((d.cls === 'supplier') && !d.supplierId) { showToast(fcT('اختر المورّد'), true); return false; }
+      if ((d.cls === 'employee' || d.cls === 'emp_refund') && !d.empId) { showToast(fcT('اختر الموظف'), true); return false; }
+      await bzOk('cashMoveApprove', Object.assign({ id: x.id }, d)); showToast(fcT('تم الاعتماد وتثبيت القيد')); load(); if (typeof refreshNotifications === 'function') refreshNotifications();
+    }, { icon: 'file-signature', saveText: 'اعتماد', sub: (x.dir === 'out' ? fcT('سحب') : fcT('إيداع')) + ' ' + money(x.amount) + ' — ' + (x.staffName || '') + (x.note ? ' — ' + x.note : ''),
+      onOpen: function (m) {
+        const sync = function () { const v = m.$('[data-k=cls]').value;
+          const show = function (k, on) { const f = m.$('[data-k=' + k + ']'); if (f) f.closest('.biz-form > div').style.display = on ? '' : 'none'; };
+          show('category', v === 'expense' || v === 'shortage'); show('supplierId', v === 'supplier'); show('empId', v === 'employee' || v === 'emp_refund'); };
+        m.$('[data-k=cls]').onchange = sync; sync();
+      } });
+  };
+  el.querySelector('#cmSeg').onclick = function (e) { const b = e.target.closest('[data-s]'); if (!b) return; st = b.dataset.s; el.querySelectorAll('#cmSeg button').forEach(function (x) { x.classList.toggle('on', x === b); }); load(); };
+  load();
 }

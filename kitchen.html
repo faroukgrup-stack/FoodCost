@@ -46,6 +46,23 @@ li .nt{color:#fbbf24}
 #err{color:#f87171;text-align:center;min-height:1.2em;margin-top:8px}
 #app{display:none}
 .off{background:#7f1d1d!important;color:#fff}
+/* v5.4.0: أقسام المطبخ + شريط التجميع */
+#wrap{display:flex;align-items:flex-start}
+#wrap #grid{flex:1;min-width:0}
+#agg{width:290px;flex:0 0 290px;position:sticky;top:64px;max-height:calc(100vh - 70px);overflow:auto;margin:16px 16px 16px 0;background:#121726;border:1px solid #263049;border-radius:16px;padding:12px}
+#agg h3{font-size:1rem;color:#d9b182;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+#agg .ar{display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px dashed #263049;font-weight:700}
+#agg .ar .aq{min-width:46px;text-align:center;font-size:1.35rem;font-weight:800;color:#0b0e17;background:#d9b182;border-radius:10px;padding:2px 6px}
+#agg .ar .an{flex:1;line-height:1.3}#agg .ar small{display:block;color:#aab7d4;font-weight:500;font-size:.78rem}
+#agg .ae{color:#64748b;text-align:center;padding:20px 6px}
+#agg .asub{font-size:.78rem;color:#aab7d4;margin-bottom:6px}
+.stsel{background:#1b2236;border:1px solid #2a334b;color:#e8ecf5;border-radius:10px;padding:8px 10px;font-family:inherit;font-weight:700}
+.parts{display:flex;flex-wrap:wrap;gap:5px;padding:6px 14px 0}
+.pt{font-size:.72rem;font-weight:700;border-radius:999px;padding:2px 8px;background:#263049;color:#cbd5e1}
+.pt.new{background:#1e3a8a;color:#bfdbfe}.pt.preparing{background:#78350f;color:#fde68a}.pt.ready{background:#065f46;color:#a7f3d0}.pt.served{background:#334155;color:#94a3b8;text-decoration:line-through}
+.wait{flex:1;text-align:center;padding:12px;border-radius:10px;background:#0f2a22;color:#6ee7b7;font-weight:800}
+.card .stn{font-size:.72rem;color:#aab7d4}
+@media(max-width:900px){#wrap{flex-direction:column}#agg{width:auto;flex:none;position:static;max-height:none;margin:10px 10px 0}}
 /* v4.5 جوال */
 @media(max-width:600px){header{gap:8px;padding:8px 10px;flex-wrap:wrap}header h1{font-size:1rem}.chip{padding:4px 10px;font-size:.78rem}.hb{padding:6px 9px;font-size:.8rem}
 #grid{grid-template-columns:1fr;gap:10px;padding:10px}.ch{padding:8px 10px}.ch .num{font-size:1.25rem}.ch .meta{font-size:.74rem}ul{padding:6px 10px}li{font-size:.92rem;padding:5px 0}
@@ -64,7 +81,9 @@ li .nt{color:#fbbf24}
 </div>
 <div id="app">
   <header>
-    <h1><i class="fas fa-fire-burner"></i> شاشة المطبخ <span id="brName" style="color:#aab7d4;font-size:.95rem"></span></h1>
+    <h1><i class="fas fa-fire-burner" id="stIcon"></i> <span id="stTitle">شاشة المطبخ</span> <span id="brName" style="color:#aab7d4;font-size:.95rem"></span></h1>
+    <select id="stSel" class="stsel" title="القسم" style="display:none"></select>
+    <button class="hb" id="aggBtn" title="تجميع الطلبات المتشابهة"><i class="fas fa-layer-group"></i> <span>التجميع</span></button>
     <span class="chip">جديد <b id="cNew">0</b></span><span class="chip">قيد التحضير <b id="cPrep">0</b></span><span class="chip">جاهز <b id="cReady">0</b></span>
     <div class="filters"><button class="hb on" data-f="all">الكل</button><button class="hb" data-f="new">جديد</button><button class="hb" data-f="preparing">تحضير</button><button class="hb" data-f="ready">جاهز</button></div>
     <button class="hb" id="snd" title="الصوت"><i class="fas fa-volume-up"></i></button>
@@ -72,15 +91,18 @@ li .nt{color:#fbbf24}
     <span class="chip" id="conn"><i class="fas fa-circle" style="color:#10b981;font-size:.6rem"></i> <span id="clock"></span></span>
     <button class="hb" id="out" title="خروج"><i class="fas fa-sign-out-alt"></i></button>
   </header>
-  <div id="grid"></div>
+  <div id="wrap"><aside id="agg" style="display:none"></aside><div id="grid"></div></div>
 </div>
-<script src="js/config.js?v=5.3.5"></script>
-<script src="js/i18n.js?v=5.3.5"></script>
+<script src="js/config.js?v=5.4.3"></script>
+<script src="js/i18n.js?v=5.4.3"></script>
 <script>
 const $ = s => document.querySelector(s);
 const h = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const TYPES = { dine_in: 'محلي', takeaway: 'سفري', delivery: 'توصيل', pickup: 'استلام', online: 'أونلاين' };
 let token = localStorage.getItem('foodUserToken'), email = localStorage.getItem('foodUserEmail'), branch = localStorage.getItem('fcBranch') || '';
+const qs0 = new URLSearchParams(location.search);
+let station = qs0.get('st') || localStorage.getItem('kdsStation') || 'main', stations = [], prepMin = 15, aggOn = localStorage.getItem('kdsAgg') !== '0', aggAllowed = true;
+const ST_L = { new: 'جديد', preparing: 'قيد التحضير', ready: 'جاهز', served: 'تم التسليم' };
 let orders = [], filter = 'all', known = null, sound = localStorage.getItem('kdsSound') !== '0', skew = 0, done = JSON.parse(localStorage.getItem('kdsDone') || '{}');
 async function api(fn, p) {
   const body = Object.assign({ fn, restaurantEmail: email, token, branchId: branch, tzOffset: new Date().getTimezoneOffset() }, p || {});
@@ -113,33 +135,75 @@ function setAlarm(on) {
   if (u) u.style.display = on && sound && (!AC || AC.state !== 'running') ? 'flex' : 'none';
 }
 document.addEventListener('click', () => { const c = ac(); if (c && c.state === 'running') { const u = document.getElementById('sndUnlock'); if (u) u.style.display = 'none'; } });
-function mins(o) { const t = new Date(o.kitchen_at || o.created_at).getTime(); return Math.max(0, Math.floor((Date.now() + skew - t) / 1000)); }
+function cs(o) { return o.stationStatus || o.kitchen_status; }
+function stInfo(id) { return stations.find(s => s.id === id) || { id, name: id, type: 'linked' }; }
+function mins(o) { const t = new Date(o.station_at || o.kitchen_at || o.created_at).getTime(); return Math.max(0, Math.floor((Date.now() + skew - t) / 1000)); }
 function fmt(s) { const m = Math.floor(s / 60), x = s % 60; return (m < 10 ? '0' : '') + m + ':' + (x < 10 ? '0' : '') + x; }
 function draw() {
   const g = $('#grid');
-  $('#cNew').textContent = orders.filter(o => o.kitchen_status === 'new').length;
-  $('#cPrep').textContent = orders.filter(o => o.kitchen_status === 'preparing').length;
-  $('#cReady').textContent = orders.filter(o => o.kitchen_status === 'ready').length;
-  const list = orders.filter(o => filter === 'all' || o.kitchen_status === filter);
+  $('#cNew').textContent = orders.filter(o => cs(o) === 'new').length;
+  $('#cPrep').textContent = orders.filter(o => cs(o) === 'preparing').length;
+  $('#cReady').textContent = orders.filter(o => cs(o) === 'ready').length;
+  drawAgg();
+  const list = orders.filter(o => filter === 'all' || cs(o) === filter);
   if (!list.length) { g.innerHTML = '<div class="empty"><i class="fas fa-mug-hot"></i>لا توجد طلبات حالياً</div>'; return; }
+  const me = stInfo(station), linkedSt = station !== 'main' && me.type !== 'independent' && stations.length > 1;
   g.innerHTML = list.map(o => {
-    const s = mins(o), late = o.kitchen_status !== 'ready' && s > 15 * 60;
+    const ks = cs(o), s = mins(o), late = ks !== 'ready' && s > prepMin * 60;
     const items = (o.items || []).map(l => {
       const key = o.id + ':' + l.lid, d = done[key];
       return '<li class="' + (d ? 'done' : '') + '" data-l="' + h(key) + '"><span class="q">' + (+l.qty) + '×</span>' + h(l.name) + (l.variant ? ' <span class="tag">' + h(l.variant) + '</span>' : '') +
+        (station === 'main' && l.st && l.st !== 'main' ? ' <span class="stn">· ' + h(stInfo(l.st).name) + '</span>' : '') +
         ((l.extras || []).length ? '<small>+ ' + l.extras.map(e => h(e.name) + (e.qty > 1 ? ' ×' + e.qty : '')).join('، ') + '</small>' : '') + (l.note ? '<small class="nt"><i class="fas fa-comment"></i> ' + h(l.note) + '</small>' : '') + '</li>';
     }).join('');
-    const btn = o.kitchen_status === 'new' ? '<button class="b-prep" data-s="preparing" data-id="' + o.id + '"><i class="fas fa-fire"></i> بدء التحضير</button>'
-      : o.kitchen_status === 'preparing' ? '<button class="b-ready" data-s="ready" data-id="' + o.id + '"><i class="fas fa-check"></i> جاهز</button>'
-      : '<button class="b-serve" data-s="served" data-id="' + o.id + '"><i class="fas fa-concierge-bell"></i> تم التسليم</button>';
-    const back = o.kitchen_status !== 'new' ? '<button class="b-back" title="تراجع" data-s="' + (o.kitchen_status === 'ready' ? 'preparing' : 'new') + '" data-id="' + o.id + '"><i class="fas fa-undo"></i></button>' : '';
-    return '<div class="card ' + o.kitchen_status + (late ? ' late' : '') + '"><div class="ch"><div><div class="num">#' + o.number + '</div><span class="tag">' + h(TYPES[o.order_type] || o.order_type) + '</span>' + (o.table_name ? ' <span class="tag">طاولة ' + h(o.table_name) + '</span>' : '') + (o.source === 'menu' ? ' <span class="tag">من المينيو</span>' : '') + '</div>' +
-      '<div class="meta"><div class="timer" data-t="' + o.id + '">' + fmt(s) + '</div>' + h(o.customer_name || '') + '</div></div>' + (o.notes ? '<div class="onote"><i class="fas fa-sticky-note"></i> ' + h(o.notes) + '</div>' : '') + '<ul>' + items + '</ul><div class="acts">' + back + btn + '</div></div>';
+    // v5.4.0: القسم المرتبط بالرئيسية يجهّز فقط — التسليم يتم من الشاشة الرئيسية بعد اكتمال جميع الأقسام
+    const btn = ks === 'new' ? '<button class="b-prep" data-s="preparing" data-id="' + o.id + '"><i class="fas fa-fire"></i> بدء التحضير</button>'
+      : ks === 'preparing' ? '<button class="b-ready" data-s="ready" data-id="' + o.id + '"><i class="fas fa-check"></i> جاهز</button>'
+      : linkedSt ? '<div class="wait"><i class="fas fa-hourglass-half"></i> جاهز — بانتظار التجميع</div>'
+      : '<button class="b-serve" data-s="served" data-id="' + o.id + '"><i class="fas fa-concierge-bell"></i> ' + (station === 'main' && pend(o) ? 'تسليم الطلب كاملاً' : 'تم التسليم') + '</button>';
+    const back = ks !== 'new' ? '<button class="b-back" title="تراجع" data-s="' + (ks === 'ready' ? 'preparing' : 'new') + '" data-id="' + o.id + '"><i class="fas fa-undo"></i></button>' : '';
+    const pk = Object.keys(o.parts || {});
+    const parts = stations.length > 1 && pk.length > 1 ? '<div class="parts">' + pk.map(k => '<span class="pt ' + h(o.parts[k].s) + '" title="' + h(ST_L[o.parts[k].s] || '') + '">' + h(stInfo(k).name) + ' · ' + h(ST_L[o.parts[k].s] || o.parts[k].s) + '</span>').join('') + '</div>' : '';
+    return '<div class="card ' + ks + (late ? ' late' : '') + '"><div class="ch"><div><div class="num">#' + o.number + '</div><span class="tag">' + h(TYPES[o.order_type] || o.order_type) + '</span>' + (o.table_name ? ' <span class="tag">طاولة ' + h(o.table_name) + '</span>' : '') + (o.source === 'menu' ? ' <span class="tag">من المينيو</span>' : '') + '</div>' +
+      '<div class="meta"><div class="timer" data-t="' + o.id + '">' + fmt(s) + '</div>' + h(o.customer_name || '') + '</div></div>' + (o.notes ? '<div class="onote"><i class="fas fa-sticky-note"></i> ' + h(o.notes) + '</div>' : '') + parts + '<ul>' + items + '</ul><div class="acts">' + back + btn + '</div></div>';
   }).join('');
+}
+// أقسام مرتبطة لم تجهز بعد (للتنبيه قبل التسليم من الشاشة الرئيسية)
+function pend(o) { return Object.keys(o.parts || {}).some(k => k !== 'main' && stInfo(k).type !== 'independent' && (o.parts[k].s === 'new' || o.parts[k].s === 'preparing')); }
+// v5.4.0: شريط التجميع — يجمع الأصناف المتشابهة من جميع الطلبات غير الجاهزة
+function drawAgg() {
+  const a = $('#agg'); if (!a) return;
+  const on = aggOn && aggAllowed; a.style.display = on ? 'block' : 'none'; $('#aggBtn').classList.toggle('on', on); $('#aggBtn').style.display = aggAllowed ? '' : 'none';
+  if (!on) return;
+  const m = {};
+  orders.filter(o => cs(o) === 'new' || cs(o) === 'preparing').forEach(o => (o.items || []).forEach(l => {
+    if (done[o.id + ':' + l.lid]) return;
+    const k = l.name + '|' + (l.variant || ''); const x = m[k] || (m[k] = { name: l.name, variant: l.variant, qty: 0, orders: new Set(), notes: 0, st: l.st });
+    x.qty += +l.qty || 0; x.orders.add(o.number); if (l.note || (l.extras || []).length) x.notes++;
+  }));
+  const rows = Object.values(m).sort((x, y) => y.qty - x.qty);
+  a.innerHTML = '<h3><i class="fas fa-layer-group"></i> تجميع الطلبات</h3><div class="asub">مجموع الأصناف في الطلبات الجديدة وقيد التحضير</div>' +
+    (rows.length ? rows.map(x => '<div class="ar"><span class="aq">' + (+x.qty.toFixed(2)) + '</span><div class="an">' + h(x.name) + (x.variant ? ' <span class="tag">' + h(x.variant) + '</span>' : '') +
+      '<small>' + h('الطلبات') + ': ' + [...x.orders].map(n => '#' + n).join(' ') + (x.notes ? ' · <span style="color:#fbbf24"><i class="fas fa-comment"></i> ' + x.notes + '</span>' : '') + '</small></div></div>').join('')
+      : '<div class="ae"><i class="fas fa-check-double"></i><br>لا توجد أصناف قيد الانتظار</div>');
+}
+function fillStations(r) {
+  stations = r.stations || []; prepMin = r.prepMin || 15; aggAllowed = r.aggregate !== false;
+  const sel = $('#stSel');
+  sel.style.display = stations.length > 1 ? '' : 'none';
+  const cur = stations.map(s => s.id).join(',');
+  if (sel.dataset.k !== cur) { sel.dataset.k = cur; sel.innerHTML = stations.map(s => '<option value="' + h(s.id) + '">' + h(s.name) + (s.type === 'independent' ? ' ◆' : '') + '</option>').join(''); }
+  sel.value = station;
+  const me = stInfo(station);
+  $('#stTitle').textContent = stations.length > 1 ? me.name : 'شاشة المطبخ';
+  $('#stIcon').className = 'fas fa-' + (me.icon || 'fire-burner');
+  if (me.color) $('#stIcon').style.color = me.color;
 }
 async function load() {
   try {
-    const r = await api('kitchenList');
+    const r = await api('kitchenList', { station, withNames: window.__fcNm ? '' : '1' });
+    if (r && r.names && window.fcI18n && fcI18n.names) { fcI18n.names(r.names); window.__fcNm = 1; }
+    if (r.success === false && /القسم غير موجود/.test(r.error || '') && station !== 'main') { station = 'main'; localStorage.setItem('kdsStation', 'main'); return load(); }
     if (r.success === false || r.status === 'error' || r.status === 'invalid') {
       if (r.authError || !token) { showLogin(r.error || r.message); return; }
       $('#grid').innerHTML = '<div class="empty"><i class="fas fa-lock"></i>' + h(r.error || r.message || 'تعذر التحميل') + '</div>'; return;
@@ -147,7 +211,8 @@ async function load() {
     $('#conn').classList.remove('off');
     skew = new Date(r.serverTime).getTime() - Date.now();
     $('#brName').textContent = r.branchName ? '· ' + r.branchName : '';
-    const ids = r.orders.filter(o => o.kitchen_status === 'new').map(o => o.id);
+    fillStations(r);
+    const ids = r.orders.filter(o => cs(o) === 'new').map(o => o.id);
     setAlarm(ids.length > 0);
     known = new Set(r.orders.map(o => o.id));
     orders = r.orders; draw();
@@ -157,8 +222,17 @@ document.addEventListener('click', async e => {
   const f = e.target.closest('[data-f]'); if (f) { filter = f.dataset.f; document.querySelectorAll('[data-f]').forEach(b => b.classList.toggle('on', b === f)); draw(); }
   const li = e.target.closest('li[data-l]'); if (li) { const k = li.dataset.l; if (done[k]) delete done[k]; else done[k] = 1; localStorage.setItem('kdsDone', JSON.stringify(done)); li.classList.toggle('done'); }
   const b = e.target.closest('button[data-s]');
-  if (b) { b.disabled = true; const o = orders.find(x => x.id === b.dataset.id); const r = await api('kitchenBump', { id: b.dataset.id, status: b.dataset.s }); if (r.success === false) alert(r.error); else if (o) { if (b.dataset.s === 'served') orders = orders.filter(x => x !== o); else o.kitchen_status = b.dataset.s; draw(); } load(); }
+  if (b) {
+    const o = orders.find(x => x.id === b.dataset.id);
+    if (b.dataset.s === 'served' && station === 'main' && o && pend(o) && !confirm((window.fcI18n ? fcI18n.t('بعض الأقسام لم تجهز أصنافها بعد. تسليم الطلب كاملاً؟') : 'بعض الأقسام لم تجهز أصنافها بعد. تسليم الطلب كاملاً؟'))) return;
+    b.disabled = true;
+    const r = await api('kitchenBump', { id: b.dataset.id, status: b.dataset.s, station: stations.length > 1 ? station : '' });
+    if (r.success === false) alert(r.error); else if (o) { if (b.dataset.s === 'served') orders = orders.filter(x => x !== o); else if (o.stationStatus) o.stationStatus = b.dataset.s; else o.kitchen_status = b.dataset.s; draw(); }
+    load();
+  }
 });
+$('#stSel').onchange = e => { station = e.target.value; localStorage.setItem('kdsStation', station); orders = []; draw(); load(); };
+$('#aggBtn').onclick = () => { aggOn = !aggOn; localStorage.setItem('kdsAgg', aggOn ? '1' : '0'); drawAgg(); };
 $('#snd').onclick = () => { sound = !sound; localStorage.setItem('kdsSound', sound ? '1' : '0'); $('#snd').innerHTML = '<i class="fas fa-volume-' + (sound ? 'up' : 'mute') + '"></i>'; if (sound) beep(); };
 $('#fs').onclick = () => { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => { }); };
 $('#out').onclick = () => { if (!confirm('تسجيل الخروج من شاشة المطبخ؟')) return; localStorage.removeItem('foodUserToken'); token = null; showLogin(); };
@@ -173,7 +247,8 @@ function start() {
   }, 1000);
   clearInterval(poll); poll = setInterval(load, 4000);
 }
-const qs = new URLSearchParams(location.search); if (qs.get('b')) { branch = qs.get('b'); localStorage.setItem('fcBranch', branch); }
+if (qs0.get('st')) localStorage.setItem('kdsStation', station);
+const qs = qs0; if (qs.get('b')) { branch = qs.get('b'); localStorage.setItem('fcBranch', branch); }
 token && email ? start() : showLogin();
 </script>
 <div id="sndUnlock" onclick="ac();this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.75);color:#fff;align-items:center;justify-content:center;flex-direction:column;gap:14px;font-size:22px;font-weight:700;cursor:pointer;text-align:center"><i class="fas fa-volume-up" style="font-size:54px"></i>يوجد طلب جديد — اضغط في أي مكان لتفعيل صوت التنبيه</div>

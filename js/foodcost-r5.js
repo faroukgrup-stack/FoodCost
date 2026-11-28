@@ -50,8 +50,6 @@
  function updateTools(){
   const list=document.getElementById('dmBannerList');if(!list)return;
   let box=document.getElementById('r5BannerTools');if(!box){box=document.createElement('div');box.id='r5BannerTools';list.after(box);}box.replaceChildren();
-  const text=document.createElement('p');text.className='r5-banner-status';text.textContent=app.ready?'حفظ مستقل للبنرات · R5 · إصدار الحفظ '+app.revision:'R5 · لم يتم فحص الاتصال بعد';box.append(text);
-  box.append(button('فحص حفظ الشريط',async()=>{const info=await rpc('r5Info');await read();alert('واجهة R5\nالسيرفر: '+info.build+'\nمصدر البيانات: '+info.spreadsheetId+'\nإصدار البنرات: '+info.banners.revision+'\nعنوان API المستخدم:\n'+COST_API_URL);}));
   box.append(button('إضافة رابط صورة مرفوعة سابقاً',async()=>{if(dmBannerBusy)throw new Error('انتظر انتهاء العملية الحالية');const url=prompt('ألصق رابط صورة مرفوعة سابقاً (Supabase Storage أو Drive). لا حاجة لإعادة رفع الصورة.');if(!url)return;const u=new URL(url.trim());if(u.protocol!=='https:')throw new Error('رابط HTTPS مطلوب');setPending({url:u.href});await savePending();}));
   if(pending())box.append(button('إعادة حفظ الصورة المرفوعة دون رفعها مجدداً',savePending));
  }

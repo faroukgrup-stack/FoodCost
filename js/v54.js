@@ -6,10 +6,10 @@
   'use strict';
   if (typeof BIZ_GROUPS === 'undefined' || typeof bizPage !== 'function') return;
   const T = function (s) { return window.fcI18n ? fcI18n.t(s) : s; };
-  // مجموعة جديدة في القائمة الجانبية قبل «الإدارة والإعدادات»
-  if (!BIZ_GROUPS.some(function (g) { return g[0] === 'menu54'; })) {
-    const i = BIZ_GROUPS.findIndex(function (g) { return g[0] === 'admin'; });
-    BIZ_GROUPS.splice(i < 0 ? BIZ_GROUPS.length - 1 : i, 0, ['menu54', 'المينيو: الأسعار والسعرات والاستيراد'], ['screens54', 'شاشات المطبخ والطلب الذاتي']);
+  // v5.4.1: تنظيم القائمة — مجموعة واحدة «الطلب الإلكتروني والشاشات» بعد المبيعات، وإزالة المجموعات المتفرقة
+  if (!BIZ_GROUPS.some(function (g) { return g[0] === 'screens'; })) {
+    const i = BIZ_GROUPS.findIndex(function (g) { return g[0] === 'ops'; });
+    BIZ_GROUPS.splice(i < 0 ? 1 : i + 1, 0, ['screens', 'الطلب الإلكتروني والشاشات']);
   }
   const N = function () { return window.FC_NUTRI; };
   const alChips = function (list) {
@@ -20,7 +20,7 @@
   // ============================================================
   // 1) السعرات الحرارية ومسببات الحساسية
   // ============================================================
-  bizPage('nutrition', { group: 'menu54', title: 'السعرات ومسببات الحساسية', icon: 'heart-pulse', perms: ['costing', 'digital_menu'],
+  bizPage('nutrition', { group: 'menutools', title: 'السعرات ومسببات الحساسية', icon: 'heart-pulse', perms: ['costing', 'digital_menu'],
     sub: 'حساب تلقائي للسعرات والبروتين والكربوهيدرات والدهون من مكونات كل طبق وفق قيم مرجعية عالمية (USDA) ومعاملات Atwater، مع تحديد مسببات الحساسية الـ 14 — يمكنك تعديل أي نتيجة يدوياً.',
     render: async function (body) {
       let d = await N().loadData(true);
@@ -38,7 +38,9 @@
           '<button class="btn btn-primary" id="nuApply"><i class="fas fa-check-double"></i> ' + T('تطبيق على المينيو والكاشير') + '</button>' +
           '<label class="biz-check" style="margin:0"><input type="checkbox" id="nuOnlyEmpty"> <span>' + T('الأصناف التي ليس لها سعرات فقط') + '</span></label>' +
           '<button class="btn btn-outline" id="nuMats"><i class="fas fa-flask"></i> ' + T('القيم الغذائية للمواد الأولية') + '</button>' +
-          '<button class="btn btn-outline" id="nuXl"><i class="fas fa-file-excel"></i> Excel</button></div>' +
+          '<button class="btn btn-outline" id="nuCalc"><i class="fas fa-calculator"></i> ' + T('حاسبة السعرات') + '</button>' +
+          '<button class="btn btn-outline" id="nuHow"><i class="fas fa-circle-question"></i> ' + T('طريقة الحساب') + '</button>' +
+          '</div>' +
           '<p class="muted" style="margin-top:8px;font-size:.82rem;line-height:1.8"><i class="fas fa-circle-info"></i> ' + T('يحتاج البالغ في المتوسط إلى 2000 سعرة حرارية يومياً') + ' — ' +
           T('تُعرض السعرات ومسببات الحساسية في المينيو الإلكتروني وشاشة الطلب الذاتي، وتلزم بها بعض الدول مثل السعودية (هيئة الغذاء والدواء).') + '</p></div>' +
           (unkList.length ? '<div class="biz-card" style="border-color:#f59e0b"><h4><i class="fas fa-triangle-exclamation" style="color:#f59e0b"></i> ' + T('مواد تحتاج مراجعة') + '</h4><div style="display:flex;gap:6px;flex-wrap:wrap">' +
@@ -56,6 +58,8 @@
           const m = e.target.closest('[data-mat]'); if (m && m.dataset.mat) return matEdit(m.dataset.mat);
           const ds = e.target.closest('[data-dish]'); if (ds) return dishEdit(all[+ds.dataset.dish]);
           if (e.target.closest('#nuMats')) return matsList();
+          if (e.target.closest('#nuCalc') && window.fcCalorieCalc) return fcCalorieCalc();
+          if (e.target.closest('#nuHow') && window.fcCalorieCalc) return fcCalorieCalc('how');
           if (e.target.closest('#nuXl')) return exportRowsExcel(T('السعرات ومسببات الحساسية'), [T('الطبق'), T('الوزن (غ)'), T('السعرات'), T('بروتين'), T('كربوهيدرات'), T('دهون'), T('مسببات الحساسية')],
             all.map(function (x) { return [x.rec.name, x.res.weight, x.res.kcal, x.res.protein, x.res.carbs, x.res.fat, x.res.allergens.map(function (k) { return T(N().alName(k)); }).join('، ')]; }));
           if (e.target.closest('#nuApply')) {
@@ -137,7 +141,7 @@
   // ============================================================
   // 2) رفع/خفض جميع الأسعار بنسبة مئوية
   // ============================================================
-  bizPage('pricetools', { group: 'menu54', title: 'تعديل الأسعار بنسبة', icon: 'percent', perms: ['costing', 'settings'],
+  bizPage('pricetools', { group: 'menutools', title: 'تعديل الأسعار بنسبة', icon: 'percent', perms: ['costing', 'settings'],
     sub: 'ارفع أو اخفض أسعار جميع الأصناف بنسبة واحدة بضغطة زر، مع تقريب تلقائي للكسور العشرية — معاينة قبل التنفيذ وسجل كامل للتعديلات.',
     render: async function (body) {
       const cats = new Set();
@@ -298,7 +302,7 @@
     }).filter(function (o) { return o.dish && o.material && o.quantity > 0; });
     return out;
   }
-  bizPage('importxl', { group: 'menu54', title: 'استيراد من Excel', icon: 'file-import', perms: ['costing'],
+  bizPage('importxl', { group: 'admin', title: 'استيراد البيانات من Excel', icon: 'file-import', perms: ['costing'],
     sub: 'انقل أطباقك وموادك الأولية وأسعارك ومكونات الوصفات من برنامجك السابق دفعة واحدة: حمّل القالب، الصق البيانات، ثم ارفعه — دون إعادة كتابة أي طبق.',
     render: async function (body) {
       body.innerHTML = '<div class="biz-grid-2"><div class="biz-card"><h4><i class="fas fa-download"></i> 1. ' + T('تحميل القالب') + '</h4><p class="muted" style="line-height:1.9">' +
@@ -350,180 +354,403 @@
     } });
 
   // ============================================================
-  // 4) أقسام شاشات المطبخ (KDS Stations)
+  // v5.4.1 — أدوات واجهة مضغوطة ومتناسقة (حقول صغيرة، مفاتيح تشغيل، روابط بأزرار أيقونات)
   // ============================================================
-  const ICONS = ['fire-burner', 'drumstick-bite', 'bread-slice', 'mug-hot', 'martini-glass', 'smoking', 'ice-cream', 'fish', 'pizza-slice', 'bowl-food', 'leaf', 'utensils', 'burger', 'cake-candles', 'blender'];
-  bizPage('kdsstations', { group: 'screens54', title: 'أقسام المطبخ والشاشات', icon: 'layer-group', feature: 'kitchen', perms: ['settings'], plan: 'premium',
-    pitch: 'قسّم الطلبات على شاشات المطبخ: شاشة رئيسية تجمع كل الطلب، وشاشات فرعية لكل قسم (مشويات، معجنات...) وشاشات مستقلة للبار والأراجيل.',
-    sub: 'الشاشة الرئيسية تعرض الطلب كاملاً مع شريط تجميع للأصناف المتشابهة. الأقسام «المرتبطة» تحضّر جزءها ولا يكتمل الطلب إلا بتجهيز كل الأجزاء، والأقسام «المستقلة» (بار، أراجيل) تخدم طلباتها منفصلة.',
-    render: async function (body) {
-      const prods = await entList('products').catch(function () { return []; });
-      const cats = Array.from(new Set(prods.map(function (p) { return p.category; }).filter(Boolean)));
-      const k0 = JSON.parse(JSON.stringify((B.acc.biz && B.acc.biz.kds) || {}));
-      const st = { enabled: k0.enabled !== false, mainName: k0.mainName || 'المطبخ الرئيسي', aggregate: k0.aggregate !== false, stations: (k0.stations || []).map(function (s) { return Object.assign({ categories: [] }, s); }) };
-      const prodMap = {}; prods.forEach(function (p) { prodMap[p.id] = p.station || ''; });
-      const changed = {};
-      const pid = encodeURIComponent(B.acc.publicId || currentUserEmail), br = encodeURIComponent(B.branch || '');
-      const link = function (id) { return publicBase() + 'kitchen.html?st=' + encodeURIComponent(id) + (B.branch ? '&b=' + br : ''); };
-      const draw = function () {
-        const used = {}; st.stations.forEach(function (s) { s.categories.forEach(function (c) { used[c] = s.name; }); });
-        body.innerHTML = '<div class="biz-card"><div>' + bForm([{ k: 'mainName', label: 'اسم الشاشة الرئيسية' }, { k: 'aggregate', label: 'إظهار شريط تجميع الأصناف المتشابهة', type: 'checkbox', hint: 'مثال: 5 صحون حمص من 3 فواتير مختلفة' }, { k: 'enabled', label: 'تفعيل تقسيم الأقسام', type: 'checkbox' }], st) + '</div></div>' +
-          '<div class="biz-card"><h4 style="display:flex;justify-content:space-between;align-items:center"><span><i class="fas fa-layer-group"></i> ' + T('الأقسام') + ' (' + st.stations.length + ')</span><span style="display:flex;gap:6px"><button class="btn btn-outline btn-sm" data-tpl="1"><i class="fas fa-wand-magic-sparkles"></i> ' + T('أقسام مقترحة') + '</button><button class="btn btn-primary btn-sm" id="ksAdd"><i class="fas fa-plus"></i> ' + T('إضافة قسم') + '</button></span></h4>' +
-          (st.stations.length ? st.stations.map(function (s, i) {
-            return '<div class="biz-card" style="border-inline-start:4px solid ' + h(s.color || '#b48554') + ';margin:8px 0" data-i="' + i + '"><div class="biz-form">' +
-              '<div><label class="pro-label">' + T('اسم القسم') + '</label><input data-f="name" value="' + h(s.name || '') + '" placeholder="' + T('مثال: المشويات') + '"></div>' +
-              '<div><label class="pro-label">' + T('النوع') + '</label><select data-f="type"><option value="linked"' + (s.type !== 'independent' ? ' selected' : '') + '>' + T('مرتبط بالشاشة الرئيسية (جزء من الطلب)') + '</option><option value="independent"' + (s.type === 'independent' ? ' selected' : '') + '>' + T('مستقل (بار، مشروبات، أراجيل)') + '</option></select></div>' +
-              '<div><label class="pro-label">' + T('الأيقونة') + '</label><select data-f="icon">' + ICONS.map(function (ic) { return '<option value="' + ic + '"' + (ic === s.icon ? ' selected' : '') + '>' + ic + '</option>'; }).join('') + '</select></div>' +
-              '<div><label class="pro-label">' + T('اللون') + '</label><input type="color" data-f="color" value="' + h(s.color || '#b48554') + '"></div>' +
-              '<div class="full"><label class="pro-label">' + T('التصنيفات التي تذهب لهذا القسم') + '</label><div style="display:flex;flex-wrap:wrap;gap:6px">' +
-              (cats.length ? cats.map(function (c) { const on = s.categories.indexOf(c) >= 0, other = !on && used[c]; return '<label class="biz-check" style="margin:0;padding:4px 8px;' + (other ? 'opacity:.5' : '') + '"><input type="checkbox" data-cat="' + h(c) + '"' + (on ? ' checked' : '') + '> <span>' + h(c) + (other ? ' <small>(' + h(other) + ')</small>' : '') + '</span></label>'; }).join('') : '<span class="muted">' + T('أضف منتجات بتصنيفات للكاشير أولاً') + '</span>') + '</div></div>' +
-              '<div class="full">' + linkBox(link(s.id || 'new')) + '</div></div>' +
-              '<div style="display:flex;gap:6px;margin-top:6px"><button class="btn btn-outline btn-sm danger" data-del="' + i + '"><i class="fas fa-trash"></i> ' + T('حذف') + '</button>' + (s.id ? '<a class="btn btn-outline btn-sm" target="_blank" href="' + h(qrImg(link(s.id), 300)) + '"><i class="fas fa-qrcode"></i> QR</a>' : '<small class="muted">' + T('احفظ أولاً لتفعيل الرابط') + '</small>') + '</div></div>';
-          }).join('') : '<div class="empty-state">' + T('لا توجد أقسام — كل الطلبات تظهر على الشاشة الرئيسية') + '</div>') + '</div>' +
-          '<div class="biz-card"><h4><i class="fas fa-link"></i> ' + T('رابط الشاشة الرئيسية') + '</h4>' + linkBox(link('main')) + '</div>' +
-          '<div class="biz-card"><h4><i class="fas fa-tags"></i> ' + T('تخصيص منتج لقسم (اختياري — يتقدّم على التصنيف)') + '</h4><input id="ksQ" placeholder="' + T('بحث عن منتج') + '" style="margin-bottom:8px"><div id="ksProds"></div></div>' +
-          '<div style="position:sticky;bottom:0;padding:10px 0;background:var(--bg,#0b0e17)"><button class="btn btn-primary" id="ksSave"><i class="fas fa-check"></i> ' + T('حفظ الأقسام') + '</button></div>' +
-          '<div class="biz-card"><h4><i class="fas fa-chart-column"></i> ' + T('أداء الأقسام') + '</h4>' + dateRangeBar('ksR') + '<div id="ksRep"></div></div>';
-        drawProds(); bind();
+  const PLAN_OF = { kitchen: 'premium', kiosk: 'premium', customer_display: 'pro', online_orders: 'pro', brand_app: 'premium' };
+  const lockChip = function (f) { const k = PLAN_OF[f] || 'pro'; return '<span class="plan-chip plan-' + k + ' sx-lock">' + h(fcPlanByKey(k).name) + ' <i class="fas fa-lock"></i></span>'; };
+  const sw = function (k, label, on, hint) {
+    return '<label class="sx-sw"' + (hint ? ' title="' + h(T(hint)) + '"' : '') + '><input type="checkbox" data-k="' + k + '"' + (on ? ' checked' : '') + '><span class="sx-sw-t"></span><span class="sx-sw-l">' + h(T(label)) + '</span></label>';
+  };
+  const fld = function (k, label, val, o) {
+    o = o || {};
+    let c;
+    if (o.type === 'select') c = '<select class="sx-in" data-k="' + k + '">' + o.options.map(function (x) { return '<option value="' + h(x[0]) + '"' + (String(x[0]) === String(val == null ? '' : val) ? ' selected' : '') + '>' + h(T(x[1])) + '</option>'; }).join('') + '</select>';
+    else c = '<input class="sx-in" data-k="' + k + '" type="' + (o.type || 'text') + '"' + (o.ltr ? ' dir="ltr"' : '') + ' value="' + h(val == null ? '' : val) + '"' + (o.ph ? ' placeholder="' + h(T(o.ph)) + '"' : '') + (o.max ? ' maxlength="' + o.max + '"' : '') + '>';
+    return '<label class="sx-f' + (o.cls ? ' ' + o.cls : '') + '"' + (o.prov ? ' data-prov="' + o.prov + '"' : '') + '><span>' + h(T(label)) + '</span>' + c + (o.hint ? '<small>' + h(T(o.hint)) + '</small>' : '') + '</label>';
+  };
+  const readK = function (root) {
+    const o = {};
+    root.querySelectorAll('[data-k]').forEach(function (x) { o[x.dataset.k] = x.type === 'checkbox' ? x.checked : (x.type === 'number' ? (x.value === '' ? '' : +x.value) : String(x.value).trim()); });
+    return o;
+  };
+  // v5.4.3: زر «فتح» يفتح نسخة الملفات الحالية (نفس الجهاز/الدومين) — النسخ وQR يبقيان على الرابط العام
+  const openUrl = function (url) {
+    try { const pb = publicBase(), lb = location.href.split(/[?#]/)[0].replace(/[^/]*$/, '');
+      if (pb !== lb && url.indexOf(pb) === 0) return lb + url.slice(pb.length); } catch (e) {}
+    return url;
+  };
+  window.fcOpenUrl = openUrl;
+  const linkActs = function (url, title, extra) {
+    return '<div class="sx-acts"><a class="btn btn-outline btn-sm" href="' + h(openUrl(url)) + '" target="_blank" rel="noopener" title="' + h(T('فتح')) + '"><i class="fas fa-up-right-from-square"></i></a>' +
+      '<button type="button" class="btn btn-outline btn-sm" data-copy="' + h(url) + '" title="' + h(T('نسخ الرابط')) + '"><i class="fas fa-copy"></i></button>' +
+      '<button type="button" class="btn btn-outline btn-sm" data-qr="' + h(url) + '" data-qrt="' + h(T(title || '')) + '" title="QR"><i class="fas fa-qrcode"></i></button>' + (extra || '') + '</div>';
+  };
+  const linkCard = function (title, url, note) {
+    return '<div class="sx-card-h"><h4><i class="fas fa-link"></i> ' + h(T(title)) + '</h4></div>' +
+      '<div class="sx-link"><img src="' + qrImg(url, 160) + '" alt="QR" loading="lazy"><div class="sx-link-b"><input class="sx-in sx-url" readonly dir="ltr" value="' + h(url) + '">' + linkActs(url, title) +
+      (note ? '<p class="sx-note"><i class="fas fa-circle-info"></i> <span>' + h(T(note)) + '</span></p>' : '') + '</div></div>';
+  };
+  const hubTabs = function (id, tabs, active) {
+    return '<div class="sx-tabs" id="' + id + '">' + tabs.map(function (t) {
+      const lk = t[3] && !hasF(t[3]);
+      return '<button type="button" class="sx-tab' + (t[0] === active ? ' active' : '') + (lk ? ' locked' : '') + '" data-sub="' + t[0] + '"' + (lk ? ' data-plan="' + (PLAN_OF[t[3]] || 'pro') + '"' : '') + '><i class="fas fa-' + t[2] + '"></i><span>' + h(T(t[1])) + '</span>' + (lk ? lockChip(t[3]) : '') + '</button>';
+    }).join('') + '</div>';
+  };
+  const spin = '<div class="empty-state"><i class="fas fa-spinner fa-pulse"></i></div>';
+  // أزرار مشتركة: نسخ الرابط، QR، الانتقال لتبويب، الترقية
+  function hubClicks(root, go) {
+    root.addEventListener('click', function (e) {
+      const cp = e.target.closest('[data-copy]');
+      if (cp) { e.preventDefault(); const u = cp.dataset.copy; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(function () { showToast(T('تم نسخ الرابط')); }).catch(function () { prompt('', u); }); return; }
+      const q = e.target.closest('[data-qr]');
+      if (q) { e.preventDefault(); bModal({ title: q.dataset.qrt || 'QR', icon: 'qrcode', body: '<div class="sx-qrbig"><img src="' + qrImg(q.dataset.qr, 360) + '" alt="QR"><code dir="ltr">' + h(q.dataset.qr) + '</code></div>' }); return; }
+      const g = e.target.closest('[data-go]'); if (g && go) { e.preventDefault(); go(g.dataset.go); return; }
+      const up = e.target.closest('[data-up]'); if (up) { e.preventDefault(); bizUpgradeModal(up.dataset.up); }
+    });
+  }
+  const here = function (f) { return location.origin + location.pathname.replace(/[^/]*$/, '') + f; };
+
+  // ============================================================
+  // 4) إدارة الشاشات — مكان واحد لكل الشاشات: المطبخ وأقسامه، حالة الطلبات، الطلب الذاتي، شاشة العميل، الدفع، التقارير
+  // ============================================================
+  const ICONS = ['fire-burner', 'drumstick-bite', 'bread-slice', 'pizza-slice', 'burger', 'fish', 'bowl-food', 'leaf', 'utensils', 'ice-cream', 'cake-candles', 'mug-hot', 'martini-glass', 'blender', 'smoking'];
+  const SCR = { tab: 'all' };
+  window.fcOpenScreens = function (tab) { SCR.tab = tab || 'all'; switchTab('screens'); };
+  const SV = {};
+
+  // ---------- كل الشاشات ----------
+  SV.all = async function (box) {
+    const biz = B.acc.biz || {}, kds = biz.kds || {}, ki = biz.kiosk || {}, cd = biz.cdisplay || {};
+    const br = encodeURIComponent(B.branch || ''), pid = encodeURIComponent(B.acc.publicId || currentUserEmail);
+    const kLink = function (id) { return publicBase() + 'kitchen.html?st=' + encodeURIComponent(id) + (B.branch ? '&b=' + br : ''); };
+    const onOff = function (on) { return on ? ['مفعّلة', 'on'] : ['متوقفة', 'off']; };
+    const tile = function (o) {
+      const lk = o.feature && !hasF(o.feature);
+      return '<div class="sx-tile' + (lk ? ' is-locked' : '') + '" style="--c:' + h(o.color || '#b48554') + '"><div class="sx-tile-h"><span class="sx-ic"><i class="fas fa-' + o.ic + '"></i></span><div class="sx-tt"><b>' + h(T(o.title)) + '</b><small>' + h(T(o.desc)) + '</small></div>' +
+        (lk ? lockChip(o.feature) : (o.state ? '<span class="sx-st ' + o.state[1] + '">' + h(T(o.state[0])) + '</span>' : '')) + '</div>' +
+        (lk ? '<div class="sx-acts"><button type="button" class="btn btn-primary btn-sm" data-up="' + (PLAN_OF[o.feature] || 'pro') + '"><i class="fas fa-crown"></i> ' + h(T('ترقية الباقة')) + '</button></div>'
+          : (o.url ? linkActs(o.url, o.title, o.tab ? '<button type="button" class="btn btn-outline btn-sm" data-go="' + o.tab + '" title="' + h(T('الإعدادات')) + '"><i class="fas fa-gear"></i></button>' : '')
+            : '<div class="sx-acts"><button type="button" class="btn btn-outline btn-sm" data-go="' + o.tab + '"><i class="fas fa-gear"></i> ' + h(T('الإعدادات')) + '</button></div>')) + '</div>';
+    };
+    const sts = (kds.stations || []).filter(function (s) { return s.id; });
+    const kitchenTiles = [tile({ ic: 'fire-burner', title: kds.mainName || 'المطبخ الرئيسي', desc: 'الطلب كاملاً مع شريط تجميع الأصناف المتشابهة', url: kLink('main'), feature: 'kitchen', tab: 'stations', state: onOff(true) })]
+      .concat(sts.map(function (s) { return tile({ ic: s.icon || 'utensils', color: s.color, title: s.name, desc: s.type === 'independent' ? 'قسم مستقل — يخدم طلباته منفصلة' : 'قسم مرتبط — جزء من الطلب الرئيسي', url: kLink(s.id), feature: 'kitchen', tab: 'stations', state: onOff(kds.enabled !== false) }); }))
+      .concat(hasF('kitchen') && !sts.length ? ['<button type="button" class="sx-tile sx-add" data-go="stations"><i class="fas fa-plus"></i><span>' + h(T('إضافة قسم مطبخ (مشويات، معجنات، بار، أراجيل)')) + '</span></button>'] : [])
+      .concat([tile({ ic: 'tv', title: 'شاشة حالة الطلبات', desc: 'أرقام «قيد التحضير» و«جاهز للاستلام» لمنطقة الانتظار', url: publicBase() + 'order-status.html?r=' + pid + '&b=' + br, feature: 'kitchen' })]);
+    const custTiles = [
+      tile({ ic: 'tablet-screen-button', title: 'شاشة الطلب الذاتي', desc: 'يطلب العميل ويدفع بنفسه ويصل الطلب للمطبخ', url: publicBase() + 'kiosk.html?r=' + pid + (B.branch ? '&b=' + br : ''), feature: 'kiosk', tab: 'kiosk', state: onOff(!!ki.enabled) }),
+      tile({ ic: 'display', title: 'شاشة العميل — نفس جهاز الكاشير', desc: 'شاشة ثانية موصولة بالكاشير تعرض الطلب لحظياً', url: here('customer-display.html'), feature: 'customer_display', tab: 'cd', state: onOff(cd.enabled !== false) }),
+      tile({ ic: 'tablet-alt', title: 'شاشة العميل — جهاز مستقل', desc: 'تابلت أو تلفاز أمام العميل عبر الإنترنت برمز ربط', url: cd.remote && cd.code ? publicBase() + 'customer-display.html?e=' + encodeURIComponent(currentUserEmail) + '&code=' + encodeURIComponent(cd.code) + (B.branch ? '&b=' + br : '') : '', feature: 'customer_display', tab: 'cd', state: onOff(!!(cd.remote && cd.code)) })
+    ];
+    box.innerHTML = (hasF('kitchen') ? '<div class="sx-bar">' + sw('kitchenAuto', 'إرسال الطلب للمطبخ تلقائياً عند الدفع', ((biz.pos || {}).kitchenAuto)) + '<span class="sx-hint">' + h(T('يُحفظ تلقائياً')) + '</span></div>' : '') +
+      '<div class="sx-sec"><h4><i class="fas fa-fire-burner"></i> ' + h(T('شاشات المطبخ')) + '</h4></div><div class="sx-grid">' + kitchenTiles.join('') + '</div>' +
+      '<div class="sx-sec"><h4><i class="fas fa-users"></i> ' + h(T('شاشات العملاء')) + '</h4></div><div class="sx-grid">' + custTiles.join('') + '</div>' +
+      '<p class="sx-note sx-note-b"><i class="fas fa-circle-info"></i> <span>' + h(T('شاشات المطبخ تفتح بحساب موظف بدور «مطبخ»، وشاشة الطلب الذاتي بحساب بدور «شاشة طلب ذاتي» — أنشئهما من «الموظفون والفروع».')) + '</span></p>';
+    const ka = box.querySelector('[data-k="kitchenAuto"]');
+    if (ka) ka.onchange = function () { saveBiz('pos', Object.assign({}, (B.acc.biz || {}).pos, { kitchenAuto: ka.checked })); };
+  };
+
+  // ---------- أقسام المطبخ ----------
+  SV.stations = async function (box) {
+    const prods = await entList('products').catch(function () { return []; });
+    const cats = Array.from(new Set(prods.map(function (p) { return p.category; }).filter(Boolean)));
+    const k0 = JSON.parse(JSON.stringify((B.acc.biz && B.acc.biz.kds) || {}));
+    const st = { enabled: k0.enabled !== false, mainName: k0.mainName || 'المطبخ الرئيسي', aggregate: k0.aggregate !== false, stations: (k0.stations || []).map(function (s) { return Object.assign({ categories: [] }, s); }) };
+    const prodMap = {}; prods.forEach(function (p) { prodMap[p.id] = p.station || ''; });
+    const changed = {};
+    const br = encodeURIComponent(B.branch || '');
+    const link = function (id) { return publicBase() + 'kitchen.html?st=' + encodeURIComponent(id) + (B.branch ? '&b=' + br : ''); };
+    let openDet = false;
+    const row = function (s, i, used) {
+      const color = s.color || '#b48554', icon = s.icon || 'utensils';
+      const chips = cats.length ? cats.map(function (c) {
+        const on = s.categories.indexOf(c) >= 0, other = !on && used[c];
+        return '<label class="sx-chip' + (on ? ' on' : '') + (other ? ' taken' : '') + '"' + (other ? ' title="' + h(T('مخصص لقسم') + ': ' + other) + '"' : '') + '><input type="checkbox" data-cat="' + h(c) + '"' + (on ? ' checked' : '') + '>' + h(c) + (other ? '<small>' + h(other) + '</small>' : '') + '</label>';
+      }).join('') : '<span class="sx-hint">' + h(T('أضف منتجات بتصنيفات للكاشير أولاً')) + '</span>';
+      return '<div class="sx-row" data-i="' + i + '" style="--c:' + h(color) + '"><div class="sx-row-main">' +
+        '<label class="sx-colr" title="' + h(T('اللون')) + '"><input type="color" data-f="color" value="' + h(color) + '"></label>' +
+        '<span class="sx-icwrap"><button type="button" class="sx-icbtn" data-icpick="' + i + '" title="' + h(T('الأيقونة')) + '"><i class="fas fa-' + h(icon) + '"></i></button><input type="hidden" data-f="icon" value="' + h(icon) + '"></span>' +
+        '<input class="sx-in sx-name" data-f="name" value="' + h(s.name || '') + '" placeholder="' + h(T('اسم القسم — مثال: المشويات')) + '">' +
+        '<select class="sx-in sx-type" data-f="type"><option value="linked"' + (s.type !== 'independent' ? ' selected' : '') + '>' + h(T('مرتبط بالطلب الرئيسي')) + '</option><option value="independent"' + (s.type === 'independent' ? ' selected' : '') + '>' + h(T('مستقل (بار، مشروبات، أراجيل)')) + '</option></select>' +
+        (s.id ? linkActs(link(s.id), s.name) : '<span class="sx-hint">' + h(T('احفظ لتفعيل الرابط')) + '</span>') +
+        '<button type="button" class="btn btn-outline btn-sm sx-del" data-del="' + i + '" title="' + h(T('حذف')) + '"><i class="fas fa-trash"></i></button></div>' +
+        '<div class="sx-chips"><span class="sx-chips-l">' + h(T('التصنيفات')) + '</span>' + chips + '</div></div>';
+    };
+    const draw = function () {
+      const used = {}; st.stations.forEach(function (s) { s.categories.forEach(function (c) { used[c] = s.name; }); });
+      box.innerHTML = '<div class="sx-bar">' + fld('mainName', 'اسم الشاشة الرئيسية', st.mainName, { cls: 'sx-f-row' }) + sw('enabled', 'تفعيل تقسيم الأقسام', st.enabled) +
+        sw('aggregate', 'شريط تجميع الأصناف المتشابهة', st.aggregate, 'مثال: 5 صحون حمص من 3 فواتير مختلفة') + '<span class="sx-sp"></span>' + linkActs(link('main'), st.mainName) + '</div>' +
+        '<div class="sx-sec"><h4><i class="fas fa-layer-group"></i> ' + h(T('الأقسام')) + ' <span class="sx-count">' + st.stations.length + '</span></h4><div class="sx-btns">' +
+        '<button type="button" class="btn btn-outline btn-sm" id="ksTpl"><i class="fas fa-wand-magic-sparkles"></i> ' + h(T('أقسام مقترحة')) + '</button>' +
+        '<button type="button" class="btn btn-outline btn-sm" id="ksAdd"><i class="fas fa-plus"></i> ' + h(T('إضافة قسم')) + '</button>' +
+        '<button type="button" class="btn btn-primary btn-sm" id="ksSave"><i class="fas fa-check"></i> ' + h(T('حفظ التغييرات')) + '</button></div></div>' +
+        (st.stations.length ? '<div class="sx-list">' + st.stations.map(function (s, i) { return row(s, i, used); }).join('') + '</div>'
+          : '<div class="sx-empty"><i class="fas fa-layer-group"></i><span>' + h(T('لا توجد أقسام — كل الطلبات تظهر على الشاشة الرئيسية')) + '</span></div>') +
+        '<p class="sx-note"><i class="fas fa-circle-info"></i> <span>' + h(T('القسم المرتبط يحضّر جزءه ولا يكتمل الطلب إلا بتجهيز كل الأجزاء. القسم المستقل (بار، أراجيل) يخدم طلباته منفصلة حتى لو لم يطلب العميل طعاماً.')) + '</span></p>' +
+        '<details class="sx-det"' + (openDet ? ' open' : '') + '><summary><i class="fas fa-tags"></i> ' + h(T('تخصيص منتج لقسم معين')) + ' <small>' + h(T('اختياري — يتقدّم على التصنيف')) + '</small></summary><div class="sx-det-b"><input class="sx-in" id="ksQ" placeholder="' + h(T('بحث عن منتج')) + '"><div id="ksProds"></div></div></details>';
+      drawProds(); bind();
+    };
+    const drawProds = function () {
+      const q = (box.querySelector('#ksQ') || {}).value || '';
+      const list = prods.filter(function (p) { return !q || (p.name + ' ' + (p.category || '')).indexOf(q) >= 0; }).slice(0, 300);
+      box.querySelector('#ksProds').innerHTML = bTable([{ label: 'المنتج', r: function (p) { return h(p.name); } }, { label: 'التصنيف', r: function (p) { return h(p.category || '—'); } },
+        { label: 'القسم', r: function (p) { const v = prodMap[p.id] || ''; return '<select class="sx-in sx-in-sm" data-prod="' + p.id + '"><option value="">' + h(T('حسب التصنيف')) + '</option><option value="main"' + (v === 'main' ? ' selected' : '') + '>' + h(st.mainName) + '</option>' + st.stations.filter(function (s) { return s.id; }).map(function (s) { return '<option value="' + h(s.id) + '"' + (v === s.id ? ' selected' : '') + '>' + h(s.name) + '</option>'; }).join('') + '</select>'; } }], list, { empty: 'لا توجد منتجات' });
+    };
+    const sync = function () {
+      const f = readK(box.querySelector('.sx-bar'));
+      st.mainName = f.mainName || st.mainName; st.enabled = f.enabled; st.aggregate = f.aggregate;
+      box.querySelectorAll('.sx-row[data-i]').forEach(function (card) {
+        const s = st.stations[+card.dataset.i]; if (!s) return;
+        card.querySelectorAll('[data-f]').forEach(function (inp) { s[inp.dataset.f] = inp.value; });
+        s.categories = Array.from(card.querySelectorAll('[data-cat]')).filter(function (x) { return x.checked; }).map(function (x) { return x.dataset.cat; });
+      });
+      const d = box.querySelector('.sx-det'); openDet = !!(d && d.open);
+    };
+    const closePop = function () { box.querySelectorAll('.sx-icpop').forEach(function (p) { p.remove(); }); };
+    const bind = function () {
+      box.querySelector('#ksQ').oninput = drawProds;
+      box.querySelector('#ksProds').onchange = function (e) { const s = e.target.closest('[data-prod]'); if (s) { prodMap[s.dataset.prod] = s.value; changed[s.dataset.prod] = s.value; } };
+      box.querySelector('#ksAdd').onclick = function () { sync(); st.stations.push({ id: '', name: '', type: 'linked', icon: 'utensils', color: '#b48554', categories: [] }); draw(); const n = box.querySelectorAll('.sx-name'); if (n.length) n[n.length - 1].focus(); };
+      box.querySelector('#ksTpl').onclick = function () {
+        sync();
+        [['المشويات', 'linked', 'fire-burner', '#ef4444'], ['المعجنات والفرن', 'linked', 'bread-slice', '#f59e0b'], ['البار والمشروبات', 'independent', 'mug-hot', '#3b82f6'], ['الأراجيل', 'independent', 'smoking', '#8b5cf6']].forEach(function (t) {
+          if (!st.stations.some(function (s) { return s.name === t[0]; })) st.stations.push({ id: '', name: t[0], type: t[1], icon: t[2], color: t[3], categories: [] });
+        }); draw();
       };
-      const drawProds = function () {
-        const q = (body.querySelector('#ksQ') || {}).value || '';
-        const list = prods.filter(function (p) { return !q || (p.name + ' ' + (p.category || '')).indexOf(q) >= 0; }).slice(0, 300);
-        body.querySelector('#ksProds').innerHTML = bTable([{ label: 'المنتج', r: function (p) { return h(p.name); } }, { label: 'التصنيف', r: function (p) { return h(p.category || '—'); } },
-          { label: 'القسم', r: function (p) { const v = prodMap[p.id] || ''; return '<select data-prod="' + p.id + '"><option value="">' + T('حسب التصنيف') + '</option><option value="main"' + (v === 'main' ? ' selected' : '') + '>' + h(st.mainName) + '</option>' + st.stations.filter(function (s) { return s.id; }).map(function (s) { return '<option value="' + h(s.id) + '"' + (v === s.id ? ' selected' : '') + '>' + h(s.name) + '</option>'; }).join('') + '</select>'; } }], list, { empty: 'لا توجد منتجات' });
+      box.querySelectorAll('[data-del]').forEach(function (b) { b.onclick = async function () { sync(); const s = st.stations[+b.dataset.del]; if (!(await bConfirm(T('حذف القسم') + ' «' + (s.name || '') + '»؟ ' + T('أصنافه ستعود للشاشة الرئيسية.')))) return; st.stations.splice(+b.dataset.del, 1); draw(); }; });
+      box.querySelectorAll('.sx-row [data-cat]').forEach(function (x) { x.onchange = function () { sync(); draw(); }; });
+      box.querySelectorAll('.sx-row [data-f="color"]').forEach(function (x) { x.oninput = function () { x.closest('.sx-row').style.setProperty('--c', x.value); }; });
+      box.querySelectorAll('[data-icpick]').forEach(function (b) {
+        b.onclick = function (e) {
+          e.stopPropagation(); const had = b.parentNode.querySelector('.sx-icpop'); closePop(); if (had) return;
+          const pop = document.createElement('div'); pop.className = 'sx-icpop';
+          pop.innerHTML = ICONS.map(function (ic) { return '<button type="button" data-ic="' + ic + '"><i class="fas fa-' + ic + '"></i></button>'; }).join('');
+          pop.onclick = function (ev) { const x = ev.target.closest('[data-ic]'); if (!x) return; ev.stopPropagation(); b.innerHTML = '<i class="fas fa-' + x.dataset.ic + '"></i>'; b.parentNode.querySelector('[data-f="icon"]').value = x.dataset.ic; closePop(); };
+          b.parentNode.appendChild(pop);
+        };
+      });
+      box.onclick = function (e) { if (!e.target.closest('.sx-icpop')) closePop(); };
+      box.querySelector('#ksSave').onclick = async function () {
+        sync();
+        if (st.stations.some(function (s) { return !String(s.name || '').trim(); })) { showToast('اكتب اسم كل قسم من أقسام المطبخ', true); return; }
+        const r = await bzOk('kdsConfigSave', { config: { enabled: st.enabled, mainName: st.mainName, aggregate: st.aggregate, stations: st.stations, products: changed } });
+        B.acc.biz.kds = r.kds; st.stations = r.kds.stations.map(function (s) { return Object.assign({ categories: [] }, s); });
+        Object.keys(changed).forEach(function (k) { delete changed[k]; });
+        showToast('تم حفظ الأقسام'); draw();
       };
-      const sync = function () {
-        const f = readForm(body, [{ k: 'mainName' }, { k: 'aggregate', type: 'checkbox' }, { k: 'enabled', type: 'checkbox' }]);
-        Object.assign(st, f);
-        body.querySelectorAll('[data-i]').forEach(function (card) {
-          const s = st.stations[+card.dataset.i]; if (!s) return;
-          card.querySelectorAll('[data-f]').forEach(function (inp) { s[inp.dataset.f] = inp.value; });
-          s.categories = Array.from(card.querySelectorAll('[data-cat]')).filter(function (x) { return x.checked; }).map(function (x) { return x.dataset.cat; });
-        });
-      };
-      const loadRep = async function (rg) {
+    };
+    draw();
+  };
+
+  // ---------- الطلب الذاتي ----------
+  SV.kiosk = function (box) {
+    const k = (B.acc.biz && B.acc.biz.kiosk) || {};
+    const br = encodeURIComponent(B.branch || ''), pid = encodeURIComponent(B.acc.publicId || currentUserEmail);
+    const url = publicBase() + 'kiosk.html?r=' + pid + (B.branch ? '&b=' + br : '');
+    box.innerHTML = '<div class="sx-2"><div class="sx-card" id="kiF"><div class="sx-card-h"><h4><i class="fas fa-sliders"></i> ' + h(T('إعدادات شاشة الطلب الذاتي')) + '</h4>' + sw('enabled', 'تفعيل الشاشة', k.enabled) + '</div>' +
+      '<div class="sx-fields">' + fld('welcome', 'رسالة الترحيب', k.welcome, { ph: 'أهلاً بك! اطلب وادفع من هنا', cls: 'sx-wide' }) + fld('idleSec', 'العودة للترحيب بعد خمول (ثانية)', k.idleSec != null ? k.idleSec : 90, { type: 'number' }) + '</div>' +
+      '<div class="sx-grp"><div class="sx-grp-t">' + h(T('طرق الدفع')) + '</div><div class="sx-sws">' + sw('payCounter', 'الدفع عند الكاشير', k.payCounter !== false) + sw('payOnline', 'الدفع الإلكتروني (QR / رابط)', k.payOnline) +
+      sw('payTerminal', 'البطاقة على جهاز الدفع المربوط', k.payTerminal) + sw('kitchenBeforePay', 'إرسال طلبات «الدفع عند الكاشير» للمطبخ قبل الدفع', k.kitchenBeforePay) + '</div></div>' +
+      '<div class="sx-grp"><div class="sx-grp-t">' + h(T('خيارات الطلب')) + '</div><div class="sx-sws">' + sw('dineIn', 'محلي (داخل المطعم)', k.dineIn !== false) + sw('takeaway', 'سفري', k.takeaway !== false) +
+      sw('askName', 'طلب اسم العميل لمناداته', k.askName) + sw('showCalories', 'إظهار السعرات ومسببات الحساسية', k.showCalories !== false) + '</div></div>' +
+      '<div class="sx-foot"><button type="button" class="btn btn-primary btn-sm" id="kiSave"><i class="fas fa-check"></i> ' + h(T('حفظ')) + '</button></div></div>' +
+      '<div class="sx-card">' + linkCard('رابط شاشة الطلب الذاتي', url, 'افتح الرابط على جهاز الكشك (تابلت أو شاشة لمس) وسجّل الدخول بحساب موظف بدور «شاشة طلب ذاتي» من «الموظفون والفروع»، ثم شغّل المتصفح بوضع ملء الشاشة.') +
+      (B.acc.isOwner ? '<div class="sx-mini"><span><i class="fas fa-credit-card"></i> ' + h(T('الدفع الإلكتروني والبطاقة يحتاجان إعداد بوابة الدفع')) + '</span><button type="button" class="btn btn-outline btn-sm" data-go="pay">' + h(T('بوابة الدفع')) + '</button></div>' : '') + '</div></div>';
+    box.querySelector('#kiSave').onclick = function () { const v = readK(box.querySelector('#kiF')); v.idleSec = Math.max(20, Math.min(600, parseInt(v.idleSec) || 90)); saveBiz('kiosk', Object.assign({}, k, v)); };
+  };
+
+  // ---------- بوابة الدفع ----------
+  SV.pay = async function (box) {
+    if (!B.acc.isOwner) { box.innerHTML = '<div class="sx-empty"><i class="fas fa-lock"></i><span>' + h(T('إعدادات بوابة الدفع متاحة لصاحب الحساب فقط')) + '</span></div>'; return; }
+    const r = await bzOk('paySettingsGet', {}, { loading: false }); const s = r.settings;
+    const provs = [['', '— بدون —'], ['stripe', 'Stripe (Checkout)'], ['moyasar', 'Moyasar (السعودية — مدى/Apple Pay)'], ['tap', 'Tap Payments (الخليج)'], ['iyzico', 'iyzico (تركيا)']]
+      .concat(s.provider === 'simulate' || (r.available && r.available.provider === 'simulate') ? [['simulate', 'محاكاة (للاختبار فقط)']] : []);
+    box.innerHTML = '<div class="sx-2"><div class="sx-card" id="pgF"><div class="sx-card-h"><h4><i class="fas fa-credit-card"></i> ' + h(T('بوابة الدفع الإلكتروني')) + '</h4>' +
+      (r.available.online ? '<span class="sx-st on">' + h(T('الدفع الإلكتروني جاهز')) + '</span>' : '<span class="sx-st off">' + h(T('الدفع الإلكتروني غير مُعدّ')) + '</span>') + '</div>' +
+      '<div class="sx-fields">' + fld('provider', 'البوابة', s.provider, { type: 'select', options: provs }) + fld('currency', 'رمز العملة (ISO)', s.currency, { ph: 'SAR / AED / TRY / USD', ltr: true, hint: 'اتركه فارغاً لاستخدام عملة المطعم' }) +
+      fld('stripe_sk', 'Secret key (sk_live_… / sk_test_…)', s.stripe.sk, { ltr: true, cls: 'sx-wide', prov: 'stripe' }) +
+      fld('moyasar_sk', 'Secret key', s.moyasar.sk, { ltr: true, cls: 'sx-wide', prov: 'moyasar' }) + fld('tap_sk', 'Secret key', s.tap.sk, { ltr: true, cls: 'sx-wide', prov: 'tap' }) +
+      fld('iyzico_apiKey', 'API key', s.iyzico.apiKey, { ltr: true, prov: 'iyzico' }) + fld('iyzico_secret', 'Secret key', s.iyzico.secret, { ltr: true, prov: 'iyzico' }) +
+      fld('iyzico_city', 'المدينة', s.iyzico.city || 'Istanbul', { prov: 'iyzico' }) + fld('iyzico_country', 'الدولة', s.iyzico.country || 'Turkey', { prov: 'iyzico' }) + '</div>' +
+      '<div data-prov="iyzico" class="sx-sws" style="margin-top:6px">' + sw('iyzico_sandbox', 'وضع تجريبي (Sandbox)', s.iyzico.sandbox) + '</div>' +
+      '<div class="sx-grp"><div class="sx-grp-t">' + h(T('جهاز الدفع بالبطاقة (Stripe Terminal)')) + (r.available.terminal ? ' <span class="sx-st on">' + h(T('جهاز البطاقة مربوط')) + '</span>' : '') + '</div><div class="sx-fields">' +
+      fld('terminal_readerId', 'Reader ID (tmr_…)', s.terminal.readerId, { ltr: true }) + fld('terminal_sk', 'Secret key (اختياري إذا كان نفس مفتاح Stripe)', s.terminal.sk, { ltr: true }) + '</div></div>' +
+      '<div class="sx-foot"><button type="button" class="btn btn-outline btn-sm" id="pgTest"><i class="fas fa-plug"></i> ' + h(T('اختبار الاتصال')) + '</button><button type="button" class="btn btn-primary btn-sm" id="pgSave"><i class="fas fa-lock"></i> ' + h(T('حفظ')) + '</button></div><div id="pgRes"></div></div>' +
+      '<div class="sx-card"><div class="sx-card-h"><h4><i class="fas fa-shield-halved"></i> ' + h(T('كيف يعمل الدفع')) + '</h4></div><ul class="sx-ul">' +
+      '<li>' + h(T('الدفع الإلكتروني: تظهر للعميل صفحة دفع آمنة من البوابة على الشاشة ورمز QR ليدفع من جواله (مدى، Apple Pay، فيزا...). يُؤكَّد الدفع من البوابة مباشرة ثم يُغلق الطلب ويُرسل للمطبخ تلقائياً.')) + '</li>' +
+      '<li>' + h(T('جهاز البطاقة: يدعم أجهزة Stripe Terminal الذكية (مثل BBPOS WisePOS E و Stripe Reader S700) في الدول المتاح فيها Stripe. الأجهزة الأخرى مثل أجهزة البنوك المحلية (مدى/Geidea/Foodics Pay) تتطلب تكامل SDK من مزوّد الجهاز.')) + '</li>' +
+      '<li>' + h(T('المفاتيح تُحفظ مشفّرة النقل على السيرفر ولا تظهر كاملة مرة أخرى، ولا تُضمَّن في النسخة الاحتياطية.')) + '</li>' +
+      '<li>' + h(T('عنوان العودة بعد الدفع')) + ': <code dir="ltr">' + h(r.returnUrl) + '</code></li></ul></div></div>';
+    const f = box.querySelector('#pgF');
+    const showProv = function () { const v = f.querySelector('[data-k="provider"]').value; f.querySelectorAll('[data-prov]').forEach(function (x) { x.style.display = x.dataset.prov === v ? '' : 'none'; }); };
+    f.querySelector('[data-k="provider"]').onchange = showProv; showProv();
+    box.querySelector('#pgSave').onclick = async function () {
+      const x = readK(f);
+      await bzOk('paySettingsSave', { settings: { provider: x.provider, currency: x.currency, stripe: { sk: x.stripe_sk }, moyasar: { sk: x.moyasar_sk }, tap: { sk: x.tap_sk },
+        iyzico: { apiKey: x.iyzico_apiKey, secret: x.iyzico_secret, sandbox: x.iyzico_sandbox, city: x.iyzico_city, country: x.iyzico_country }, terminal: { readerId: x.terminal_readerId, sk: x.terminal_sk } } });
+      showToast('تم حفظ إعدادات الدفع'); SV.pay(box);
+    };
+    box.querySelector('#pgTest').onclick = async function () {
+      const t = await bzOk('paySettingsTest', {});
+      box.querySelector('#pgRes').innerHTML = (t.results || []).map(function (x) { return '<div class="sx-res ' + (x.ok ? 'ok' : 'bad') + '"><i class="fas fa-' + (x.ok ? 'check' : 'xmark') + '"></i> <b>' + h(x.name) + '</b> — ' + h(x.msg || '') + '</div>'; }).join('');
+    };
+  };
+
+  // ---------- شاشة العميل ----------
+  SV.cd = function (box) {
+    const c = Object.assign({}, (B.acc.biz && B.acc.biz.cdisplay) || {});
+    if (!c.code) c.code = String(Math.floor(100000 + Math.random() * 900000));
+    const br = encodeURIComponent(B.branch || '');
+    const same = here('customer-display.html');
+    const remote = publicBase() + 'customer-display.html?e=' + encodeURIComponent(currentUserEmail) + '&code=' + encodeURIComponent(c.code) + (B.branch ? '&b=' + br : '');
+    box.innerHTML = '<div class="sx-card" id="cdF"><div class="sx-card-h"><h4><i class="fas fa-display"></i> ' + h(T('إعدادات شاشة العميل')) + '</h4>' + sw('enabled', 'تفعيل شاشة العميل في الكاشير', c.enabled !== false) + '</div>' +
+      '<div class="sx-fields">' + fld('welcome', 'رسالة الترحيب', c.welcome, { ph: 'أهلاً بك', cls: 'sx-wide' }) + fld('code', 'رمز الربط للجهاز المستقل', c.code, { ltr: true, max: 10 }) + '</div>' +
+      '<div class="sx-sws" style="margin-top:8px">' + sw('showLogo', 'إظهار الشعار', c.showLogo !== false) + sw('remote', 'تشغيل على جهاز مستقل عبر الإنترنت', c.remote, 'إذا كانت الشاشة الثانية موصولة بنفس جهاز الكاشير لا تحتاج هذا الخيار') + '</div>' +
+      '<div class="sx-foot"><button type="button" class="btn btn-primary btn-sm" id="cdSave"><i class="fas fa-check"></i> ' + h(T('حفظ')) + '</button></div></div>' +
+      '<div class="sx-2"><div class="sx-card">' + linkCard('شاشة موصولة بجهاز الكاشير', same, 'اضغط زر «شاشة العميل» في الكاشير أو افتح الرابط على نفس الجهاز، اسحب النافذة إلى الشاشة الثانية واجعلها ملء الشاشة (F11) — تتحدث فوراً أثناء إدخال الطلب.') + '</div>' +
+      '<div class="sx-card' + (c.remote ? '' : ' sx-dim') + '">' + linkCard('شاشة على جهاز مستقل (تابلت / تلفاز)', remote, c.remote ? 'افتح الرابط على الجهاز المواجه للعميل — يتحدث كل ثانيتين تقريباً.' : 'فعّل «تشغيل على جهاز مستقل» واحفظ لتفعيل هذا الرابط.') + '</div></div>';
+    box.querySelector('#cdSave').onclick = function () {
+      const v = readK(box.querySelector('#cdF'));
+      if (v.remote && !/^\d{4,10}$/.test(v.code)) { showToast('رمز الربط يجب أن يكون من 4 إلى 10 أرقام', true); return; }
+      saveBiz('cdisplay', Object.assign({}, c, v)).then(function () { SV.cd(box); });
+    };
+  };
+
+  // ---------- التقارير ----------
+  SV.rep = function (box) {
+    const kOn = hasF('kitchen'), kiOn = hasF('kiosk');
+    box.innerHTML = dateRangeBar('scR') + '<div class="sx-2 sx-2-top"><div class="sx-card"><div class="sx-card-h"><h4><i class="fas fa-layer-group"></i> ' + h(T('أداء أقسام المطبخ')) + '</h4>' + (kOn ? '' : lockChip('kitchen')) + '</div><div id="scK"></div></div>' +
+      '<div class="sx-card"><div class="sx-card-h"><h4><i class="fas fa-tablet-screen-button"></i> ' + h(T('مبيعات الطلب الذاتي')) + '</h4>' + (kiOn ? '' : lockChip('kiosk')) + '</div><div id="scKi"></div></div></div>';
+    const locked = function (f) { return '<div class="sx-empty"><i class="fas fa-lock"></i><span>' + h(T('متاح في باقة')) + ' ' + h(fcPlanByKey(PLAN_OF[f]).name) + '</span><button type="button" class="btn btn-primary btn-sm" data-up="' + PLAN_OF[f] + '"><i class="fas fa-crown"></i> ' + h(T('ترقية الباقة')) + '</button></div>'; };
+    const load = async function (rg) {
+      const kb = box.querySelector('#scK'), ib = box.querySelector('#scKi');
+      if (!kOn) kb.innerHTML = locked('kitchen');
+      else {
+        kb.innerHTML = spin;
         const r = await bz('kdsReport', rg || {});
-        if (!r.success) { body.querySelector('#ksRep').innerHTML = '<div class="empty-state">' + h(r.error || '') + '</div>'; return; }
-        body.querySelector('#ksRep').innerHTML = bTable([{ label: 'القسم', r: function (x) { return '<b>' + h(x.name) + '</b>'; } }, { label: 'الطلبات', num: true, r: function (x) { return nf(x.orders, 0); } }, { label: 'الكمية', num: true, r: function (x) { return nf(x.qty, 0); } },
+        kb.innerHTML = !r.success ? '<div class="sx-empty">' + h(r.error || '') + '</div>' : bTable([{ label: 'القسم', r: function (x) { return '<b>' + h(x.name) + '</b>'; } }, { label: 'الطلبات', num: true, r: function (x) { return nf(x.orders, 0); } }, { label: 'الكمية', num: true, r: function (x) { return nf(x.qty, 0); } },
           { label: 'متوسط الانتظار (د)', num: true, r: function (x) { return x.avgWait != null ? nf(x.avgWait, 1) : '—'; } }, { label: 'متوسط التحضير (د)', num: true, r: function (x) { return x.avgPrep != null ? nf(x.avgPrep, 1) : '—'; } },
-          { label: 'متوسط الإجمالي (د)', num: true, r: function (x) { return x.avgTotal != null ? nf(x.avgTotal, 1) : '—'; } }, { label: 'متأخر', num: true, r: function (x) { return nf(x.late, 0) + ' (' + nf(x.latePct, 0) + '%)'; } }], r.stations, { empty: 'لا توجد طلبات في هذه الفترة' }) +
-          (r.items && r.items.length ? '<h5 style="margin:10px 0 4px">' + T('أكثر الأصناف تحضيراً') + '</h5>' + bTable([{ label: 'القسم', r: function (x) { return h(x.station); } }, { label: 'الصنف', r: function (x) { return h(x.name); } }, { label: 'الكمية', num: true, r: function (x) { return nf(x.qty, 0); } }], r.items.slice(0, 30)) : '');
-      };
-      const bind = function () {
-        body.querySelector('#ksQ').oninput = drawProds;
-        body.querySelector('#ksProds').onchange = function (e) { const s = e.target.closest('[data-prod]'); if (s) { prodMap[s.dataset.prod] = s.value; changed[s.dataset.prod] = s.value; } };
-        body.querySelector('#ksAdd').onclick = function () { sync(); st.stations.push({ id: '', name: '', type: 'linked', icon: 'utensils', color: '#b48554', categories: [] }); draw(); };
-        body.querySelector('[data-tpl]').onclick = function () {
-          sync();
-          [['المشويات', 'linked', 'fire-burner', '#ef4444'], ['المعجنات والفرن', 'linked', 'bread-slice', '#f59e0b'], ['البار والمشروبات', 'independent', 'mug-hot', '#3b82f6'], ['الأراجيل', 'independent', 'smoking', '#8b5cf6']].forEach(function (t) {
-            if (!st.stations.some(function (s) { return s.name === t[0]; })) st.stations.push({ id: '', name: t[0], type: t[1], icon: t[2], color: t[3], categories: [] });
-          }); draw();
-        };
-        body.querySelectorAll('[data-del]').forEach(function (b) { b.onclick = async function () { sync(); const s = st.stations[+b.dataset.del]; if (!(await bConfirm(T('حذف القسم') + ' «' + (s.name || '') + '»؟ ' + T('أصنافه ستعود للشاشة الرئيسية.')))) return; st.stations.splice(+b.dataset.del, 1); draw(); }; });
-        body.querySelectorAll('[data-i] [data-cat]').forEach(function (x) { x.onchange = function () { sync(); draw(); }; });
-        body.querySelector('#ksSave').onclick = async function () {
-          sync();
-          if (st.stations.some(function (s) { return !String(s.name || '').trim(); })) { showToast('اكتب اسم كل قسم من أقسام المطبخ', true); return; }
-          const r = await bzOk('kdsConfigSave', { config: { enabled: st.enabled, mainName: st.mainName, aggregate: st.aggregate, stations: st.stations, products: changed } });
-          B.acc.biz.kds = r.kds; st.stations = r.kds.stations.map(function (s) { return Object.assign({ categories: [] }, s); });
-          Object.keys(changed).forEach(function (k) { delete changed[k]; });
-          showToast('تم حفظ الأقسام'); draw();
-        };
-        const get = bindRange(body, 'ksR', loadRep); loadRep(get());
-      };
-      draw();
-    } });
+          { label: 'متأخر', num: true, r: function (x) { return nf(x.late, 0) + ' (' + nf(x.latePct, 0) + '%)'; } }], r.stations, { empty: 'لا توجد طلبات في هذه الفترة' }) +
+          (r.items && r.items.length ? '<h5 class="sx-h5">' + h(T('أكثر الأصناف تحضيراً')) + '</h5>' + bTable([{ label: 'القسم', r: function (x) { return h(x.station); } }, { label: 'الصنف', r: function (x) { return h(x.name); } }, { label: 'الكمية', num: true, r: function (x) { return nf(x.qty, 0); } }], r.items.slice(0, 15)) : '');
+      }
+      if (!kiOn) ib.innerHTML = locked('kiosk');
+      else {
+        ib.innerHTML = spin;
+        const r = await bzOk('kioskReport', rg, { loading: false });
+        const stN = { open: 'مفتوح', paid: 'مدفوع', cancelled: 'ملغى', refunded: 'مسترجع' }, psN = { pending: 'بانتظار الدفع', paid: 'مدفوع', failed: 'فشل', cancelled: 'ملغى', paid_unposted: 'مدفوع (يحتاج مراجعة)' };
+        ib.innerHTML = kpis([['طلبات مدفوعة', nf(r.paidOrders, 0)], ['المبيعات', money(r.paidTotal)], ['متوسط الفاتورة', money(r.avgTicket)]]) +
+          bTable([{ label: 'الحالة', r: function (x) { return h(T(stN[x.status] || x.status)); } }, { label: 'الطلبات', num: true, r: function (x) { return nf(x.orders, 0); } }, { label: 'الإجمالي', num: true, r: function (x) { return money(x.total); } }], r.byStatus, { empty: 'لا توجد طلبات من شاشة الطلب الذاتي' }) +
+          '<h5 class="sx-h5">' + h(T('عمليات الدفع الإلكتروني')) + '</h5>' + bTable([{ label: 'البوابة', r: function (x) { return h(x.provider); } }, { label: 'الحالة', r: function (x) { return h(T(psN[x.status] || x.status)); } }, { label: 'العدد', num: true, r: function (x) { return nf(x.n, 0); } }, { label: 'المبلغ', num: true, r: function (x) { return money(x.amount); } }], r.payments, { empty: 'لا توجد عمليات دفع' });
+      }
+    };
+    const get = bindRange(box, 'scR', load); load(get());
+  };
 
-  // ============================================================
-  // 5) شاشة الطلب الذاتي (Kiosk) + بوابة الدفع + شاشة العميل
-  // ============================================================
-  bizPage('kiosk', { group: 'screens54', title: 'الطلب الذاتي وشاشة العميل', icon: 'tablet-screen-button', feature: 'kiosk', perms: ['settings'], plan: 'premium',
-    pitch: 'شاشة طلب ذاتي للمطاعم السريعة: يختار العميل ويدفع إلكترونياً أو بالبطاقة أو عند الكاشير، ويصل الطلب للمطبخ مباشرة — مع شاشة عميل تعرض طلبه أثناء إدخاله.',
-    sub: 'شاشة لمس يطلب منها العميل بنفسه ويدفع (QR / بطاقة على جهاز الدفع / عند الكاشير) — وشاشة عميل خارجية تعرض الطلب أثناء إدخاله على الكاشير.',
+  bizPage('screens', { group: 'screens', title: 'إدارة الشاشات', icon: 'display', perms: ['settings'],
+    sub: 'كل شاشات المطعم في مكان واحد: المطبخ وأقسامه، حالة الطلبات، الطلب الذاتي وشاشة العميل — مع الروابط والإعدادات والتقارير.',
     render: async function (body) {
-      body.innerHTML = subTabs('kiT', [['set', 'إعدادات الشاشة', 'sliders'], ['pay', 'بوابة الدفع', 'credit-card'], ['cd', 'شاشة العميل', 'display'], ['rep', 'التقرير', 'chart-line']], 'set') + '<div id="kiB"></div>';
-      const box = body.querySelector('#kiB');
-      const pid = encodeURIComponent(B.acc.publicId || currentUserEmail), br = encodeURIComponent(B.branch || '');
-      const views = {
-        set: function () {
-          const k = (B.acc.biz && B.acc.biz.kiosk) || {};
-          const F = [{ k: 'enabled', label: 'تفعيل شاشة الطلب الذاتي', type: 'checkbox' }, { k: 'welcome', label: 'رسالة الترحيب', ph: 'أهلاً بك! اطلب وادفع من هنا', full: true },
-            { type: 'section', label: 'طرق الدفع' }, { k: 'payCounter', label: 'الدفع عند الكاشير', type: 'checkbox', def: true }, { k: 'payOnline', label: 'الدفع الإلكتروني (QR / رابط على الشاشة)', type: 'checkbox' },
-            { k: 'payTerminal', label: 'الدفع بالبطاقة على جهاز الدفع المربوط', type: 'checkbox' }, { k: 'kitchenBeforePay', label: 'إرسال طلبات «الدفع عند الكاشير» للمطبخ قبل الدفع', type: 'checkbox' },
-            { type: 'section', label: 'الطلب' }, { k: 'dineIn', label: 'محلي (داخل المطعم)', type: 'checkbox', def: true }, { k: 'takeaway', label: 'سفري', type: 'checkbox', def: true },
-            { k: 'askName', label: 'طلب اسم العميل لمناداته', type: 'checkbox' }, { k: 'showCalories', label: 'إظهار السعرات ومسببات الحساسية', type: 'checkbox', def: true },
-            { k: 'idleSec', label: 'العودة لشاشة الترحيب بعد خمول (ثانية)', type: 'number', def: 90 }];
-          const url = publicBase() + 'kiosk.html?r=' + pid + (B.branch ? '&b=' + br : '');
-          box.innerHTML = '<div class="biz-grid-2"><div class="biz-card">' + bForm(F, k) + '<button class="btn btn-primary" id="kiSave" style="margin-top:10px"><i class="fas fa-check"></i> ' + T('حفظ') + '</button></div>' +
-            '<div class="biz-card"><h4><i class="fas fa-link"></i> ' + T('رابط شاشة الطلب الذاتي') + '</h4>' + linkBox(url) + '<div class="qr-tiles" style="margin-top:10px"><div class="qr-tile"><img src="' + qrImg(url, 200) + '"><div>Kiosk</div></div></div>' +
-            '<div class="notif notif-info" style="margin-top:10px"><i class="fas fa-circle-info"></i><div>' + T('افتح الرابط على جهاز الكشك (تابلت أو شاشة لمس) وسجّل الدخول بحساب موظف بدور «شاشة طلب ذاتي» — أنشئه من «الموظفين والصلاحيات». شغّل المتصفح بوضع ملء الشاشة (Kiosk mode).') + '</div></div></div></div>';
-          box.querySelector('#kiSave').onclick = function () { const v = readForm(box, F); v.idleSec = Math.max(20, Math.min(600, parseInt(v.idleSec) || 90)); saveBiz('kiosk', Object.assign({}, k, v)); };
-        },
-        pay: async function () {
-          if (!B.acc.isOwner) { box.innerHTML = '<div class="empty-state">' + T('إعدادات بوابة الدفع متاحة لصاحب الحساب فقط') + '</div>'; return; }
-          const r = await bzOk('paySettingsGet', {}, { loading: false }); const s = r.settings;
-          const F = [{ k: 'provider', label: 'بوابة الدفع الإلكتروني', type: 'select', options: [['', '— بدون —'], ['stripe', 'Stripe (Checkout)'], ['moyasar', 'Moyasar (السعودية — مدى/Apple Pay)'], ['tap', 'Tap Payments (الخليج)'], ['iyzico', 'iyzico (تركيا)']].concat(s.provider === 'simulate' || (r.available && r.available.provider === 'simulate') ? [['simulate', 'محاكاة (للاختبار فقط)']] : []) },
-            { k: 'currency', label: 'رمز العملة (ISO)', ph: 'SAR / AED / TRY / USD', ltr: true, hint: 'اتركه فارغاً لاستخدام عملة المطعم' },
-            { type: 'section', label: 'Stripe' }, { k: 'stripe_sk', label: 'Secret key (sk_live_… / sk_test_…)', ltr: true, full: true },
-            { type: 'section', label: 'Moyasar' }, { k: 'moyasar_sk', label: 'Secret key', ltr: true, full: true },
-            { type: 'section', label: 'Tap' }, { k: 'tap_sk', label: 'Secret key', ltr: true, full: true },
-            { type: 'section', label: 'iyzico' }, { k: 'iyzico_apiKey', label: 'API key', ltr: true }, { k: 'iyzico_secret', label: 'Secret key', ltr: true }, { k: 'iyzico_city', label: 'المدينة', def: 'Istanbul' }, { k: 'iyzico_country', label: 'الدولة', def: 'Turkey' }, { k: 'iyzico_sandbox', label: 'وضع تجريبي (Sandbox)', type: 'checkbox' },
-            { type: 'section', label: 'جهاز الدفع بالبطاقة (Stripe Terminal)' }, { k: 'terminal_readerId', label: 'Reader ID (tmr_…)', ltr: true }, { k: 'terminal_sk', label: 'Secret key (اختياري إذا كان نفس مفتاح Stripe)', ltr: true }];
-          const v = { provider: s.provider, currency: s.currency, stripe_sk: s.stripe.sk, moyasar_sk: s.moyasar.sk, tap_sk: s.tap.sk, iyzico_apiKey: s.iyzico.apiKey, iyzico_secret: s.iyzico.secret, iyzico_city: s.iyzico.city, iyzico_country: s.iyzico.country, iyzico_sandbox: s.iyzico.sandbox, terminal_readerId: s.terminal.readerId, terminal_sk: s.terminal.sk };
-          box.innerHTML = '<div class="biz-grid-2"><div class="biz-card">' + bForm(F, v) + '<div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-primary" id="pgSave"><i class="fas fa-lock"></i> ' + T('حفظ') + '</button><button class="btn btn-outline" id="pgTest"><i class="fas fa-plug"></i> ' + T('اختبار الاتصال') + '</button></div><div id="pgRes" style="margin-top:8px"></div></div>' +
-            '<div class="biz-card"><h4><i class="fas fa-shield-halved"></i> ' + T('كيف يعمل الدفع') + '</h4><ul style="line-height:2;padding-inline-start:18px">' +
-            '<li>' + T('الحالة') + ': ' + (r.available.online ? '<span class="badge badge-success">' + T('الدفع الإلكتروني جاهز') + ' (' + h(r.available.provider) + ')</span>' : '<span class="badge badge-dog">' + T('الدفع الإلكتروني غير مُعدّ') + '</span>') + ' ' + (r.available.terminal ? '<span class="badge badge-success">' + T('جهاز البطاقة مربوط') + '</span>' : '') + '</li>' +
-            '<li>' + T('الدفع الإلكتروني: تظهر للعميل صفحة دفع آمنة من البوابة على الشاشة ورمز QR ليدفع من جواله (مدى، Apple Pay، فيزا...). يُؤكَّد الدفع من البوابة مباشرة ثم يُغلق الطلب ويُرسل للمطبخ تلقائياً.') + '</li>' +
-            '<li>' + T('جهاز البطاقة: يدعم أجهزة Stripe Terminal الذكية (مثل BBPOS WisePOS E و Stripe Reader S700) في الدول المتاح فيها Stripe. الأجهزة الأخرى مثل أجهزة البنوك المحلية (مدى/Geidea/Foodics Pay) تتطلب تكامل SDK من مزوّد الجهاز.') + '</li>' +
-            '<li>' + T('المفاتيح تُحفظ مشفّرة النقل على السيرفر ولا تظهر كاملة مرة أخرى، ولا تُضمَّن في النسخة الاحتياطية.') + '</li>' +
-            '<li>' + T('عنوان العودة بعد الدفع') + ': <code dir="ltr" style="font-size:.75rem;word-break:break-all">' + h(r.returnUrl) + '</code></li></ul></div></div>';
-          box.querySelector('#pgSave').onclick = async function () {
-            const x = readForm(box, F);
-            await bzOk('paySettingsSave', { settings: { provider: x.provider, currency: x.currency, stripe: { sk: x.stripe_sk }, moyasar: { sk: x.moyasar_sk }, tap: { sk: x.tap_sk },
-              iyzico: { apiKey: x.iyzico_apiKey, secret: x.iyzico_secret, sandbox: x.iyzico_sandbox, city: x.iyzico_city, country: x.iyzico_country }, terminal: { readerId: x.terminal_readerId, sk: x.terminal_sk } } });
-            showToast('تم حفظ إعدادات الدفع'); views.pay();
-          };
-          box.querySelector('#pgTest').onclick = async function () {
-            const t = await bzOk('paySettingsTest', {});
-            box.querySelector('#pgRes').innerHTML = (t.results || []).map(function (x) { return '<div class="notif ' + (x.ok ? 'notif-success' : 'notif-danger') + '"><i class="fas fa-' + (x.ok ? 'check' : 'xmark') + '"></i><div><b>' + h(x.name) + '</b> — ' + h(x.msg || '') + '</div></div>'; }).join('');
-          };
-        },
-        cd: function () {
-          const c = (B.acc.biz && B.acc.biz.cdisplay) || {};
-          if (!c.code) c.code = String(Math.floor(100000 + Math.random() * 900000));
-          const F = [{ k: 'enabled', label: 'تفعيل شاشة العميل في الكاشير', type: 'checkbox', def: true }, { k: 'welcome', label: 'رسالة الترحيب', ph: 'أهلاً بك', full: true }, { k: 'showLogo', label: 'إظهار الشعار', type: 'checkbox', def: true },
-            { k: 'remote', label: 'شاشة على جهاز آخر (تابلت/تلفاز) عبر الإنترنت', type: 'checkbox', hint: 'إذا كانت الشاشة الثانية موصولة بنفس جهاز الكاشير لا تحتاج هذا الخيار' }, { k: 'code', label: 'رمز الربط (6 أرقام)', ltr: true }];
-          const same = publicBase() + 'customer-display.html';
-          const remote = same + '?e=' + encodeURIComponent(currentUserEmail) + '&code=' + encodeURIComponent(c.code) + (B.branch ? '&b=' + br : '');
-          box.innerHTML = '<div class="biz-grid-2"><div class="biz-card">' + bForm(F, c) + '<button class="btn btn-primary" id="cdSave" style="margin-top:10px"><i class="fas fa-check"></i> ' + T('حفظ') + '</button></div>' +
-            '<div class="biz-card"><h4><i class="fas fa-display"></i> ' + T('تشغيل شاشة العميل') + '</h4><p class="muted" style="line-height:1.9">' + T('شاشة موصولة بجهاز الكاشير نفسه: افتح الرابط التالي واسحب النافذة إلى الشاشة الثانية واجعلها ملء الشاشة (F11) — تتحدث فوراً أثناء إدخال الطلب.') + '</p>' + linkBox(same) +
-            '<p class="muted" style="line-height:1.9;margin-top:10px">' + T('شاشة على جهاز مستقل (تابلت أمام العميل): فعّل الخيار ثم افتح هذا الرابط على الجهاز — يتحدث كل ثانيتين تقريباً.') + '</p>' + linkBox(remote) + '<div class="qr-tiles" style="margin-top:8px"><div class="qr-tile"><img src="' + qrImg(remote, 180) + '"><div>' + T('شاشة العميل') + '</div></div></div></div></div>';
-          box.querySelector('#cdSave').onclick = function () { const v = readForm(box, F); if (v.remote && !/^\d{4,10}$/.test(v.code)) { showToast('رمز الربط يجب أن يكون من 4 إلى 10 أرقام', true); return; } saveBiz('cdisplay', Object.assign({}, c, v)).then(function () { views.cd(); }); };
-        },
-        rep: function () {
-          box.innerHTML = dateRangeBar('kiR') + '<div id="kiRep"></div>';
-          const load = async function (rg) {
-            const r = await bzOk('kioskReport', rg, { loading: false });
-            const stN = { open: 'مفتوح', paid: 'مدفوع', cancelled: 'ملغى', refunded: 'مسترجع' }, psN = { pending: 'بانتظار الدفع', paid: 'مدفوع', failed: 'فشل', cancelled: 'ملغى', paid_unposted: 'مدفوع (يحتاج مراجعة)' };
-            box.querySelector('#kiRep').innerHTML = kpis([['طلبات مدفوعة', nf(r.paidOrders, 0)], ['المبيعات', money(r.paidTotal)], ['متوسط الفاتورة', money(r.avgTicket)]]) +
-              bTable([{ label: 'الحالة', r: function (x) { return h(T(stN[x.status] || x.status)); } }, { label: 'الطلبات', num: true, r: function (x) { return nf(x.orders, 0); } }, { label: 'الإجمالي', num: true, r: function (x) { return money(x.total); } }], r.byStatus, { empty: 'لا توجد طلبات من شاشة الطلب الذاتي' }) +
-              '<h5 style="margin:10px 0 4px">' + T('عمليات الدفع الإلكتروني') + '</h5>' + bTable([{ label: 'البوابة', r: function (x) { return h(x.provider); } }, { label: 'الحالة', r: function (x) { return h(T(psN[x.status] || x.status)); } }, { label: 'العدد', num: true, r: function (x) { return nf(x.n, 0); } }, { label: 'المبلغ', num: true, r: function (x) { return money(x.amount); } }], r.payments, { empty: 'لا توجد عمليات دفع' });
-          };
-          const get = bindRange(box, 'kiR', load); load(get());
-        }
+      const tabs = [['all', 'كل الشاشات', 'grip'], ['stations', 'أقسام المطبخ', 'layer-group', 'kitchen'], ['kiosk', 'الطلب الذاتي', 'tablet-screen-button', 'kiosk'], ['cd', 'شاشة العميل', 'display', 'customer_display']];
+      if (B.acc.isOwner) tabs.push(['pay', 'بوابة الدفع', 'credit-card', 'kiosk']);
+      tabs.push(['rep', 'التقارير', 'chart-column']);
+      let cur = SCR.tab; const t0 = tabs.find(function (t) { return t[0] === cur; });
+      if (!t0 || (t0[3] && !hasF(t0[3]))) cur = 'all';
+      body.innerHTML = hubTabs('scT', tabs, cur) + '<div id="scB" class="sx"></div>';
+      const box = body.querySelector('#scB');
+      const go = function (k) {
+        const t = tabs.find(function (x) { return x[0] === k; }); if (!t) return;
+        if (t[3] && !hasF(t[3])) { bizUpgradeModal(PLAN_OF[t[3]] || 'pro'); return; }
+        SCR.tab = k;
+        body.querySelectorAll('#scT .sx-tab').forEach(function (x) { x.classList.toggle('active', x.dataset.sub === k); });
+        box.innerHTML = spin; box.onclick = null;
+        Promise.resolve(SV[k](box)).catch(function (e) { box.innerHTML = '<div class="sx-empty">' + h(e.message) + '</div>'; });
       };
-      bindSubTabs(body, 'kiT', function (k) { box.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-pulse"></i></div>'; Promise.resolve(views[k]()).catch(function (e) { box.innerHTML = '<div class="empty-state">' + h(e.message) + '</div>'; }); });
-      views.set();
+      body.querySelector('#scT').onclick = function (e) { const b = e.target.closest('[data-sub]'); if (b) go(b.dataset.sub); };
+      hubClicks(body, go);
+      go(cur);
     } });
 
+  // الطلب أونلاين والتطبيق — نُقل من «الموارد البشرية» إلى مجموعة «الطلب الإلكتروني والشاشات»
+  if (B.pages.presence) {
+    Object.assign(B.pages.presence, { group: 'screens', title: 'الطلب أونلاين والتطبيق', icon: 'mobile-screen-button',
+      pitch: 'استقبال الطلبات من المينيو الإلكتروني مباشرة في الكاشير، QR لكل طاولة، وتطبيق خاص باسم نشاطك.',
+      render: async function (body) {
+        body.innerHTML = hubTabs('prSub', [['order', 'الطلب من المينيو', 'qrcode'], ['app', 'تطبيق باسم نشاطك', 'mobile-alt', 'brand_app']], 'order') + '<div id="prBody"></div>' +
+          '<div class="sx-mini" style="margin-top:12px"><span><i class="fas fa-display"></i> ' + h(T('شاشات المطبخ وحالة الطلبات والطلب الذاتي وشاشة العميل في «إدارة الشاشات»')) + '</span><button type="button" class="btn btn-outline btn-sm" onclick="fcOpenScreens(\'all\')">' + h(T('إدارة الشاشات')) + '</button></div>';
+        const el = body.querySelector('#prBody');
+        body.querySelector('#prSub').onclick = function (e) {
+          const b = e.target.closest('[data-sub]'); if (!b) return;
+          if (b.classList.contains('locked')) { bizUpgradeModal(b.dataset.plan); return; }
+          body.querySelectorAll('#prSub .sx-tab').forEach(function (x) { x.classList.toggle('active', x === b); });
+          (b.dataset.sub === 'app' ? appView : orderingView)(el);
+        };
+        orderingView(el);
+      } });
+  }
+  // روابط قديمة محفوظة → الصفحات الجديدة
+  bizPage('kdsstations', { group: '_alias', title: 'أقسام المطبخ', icon: 'layer-group', perms: ['settings'], render: async function () { setTimeout(function () { fcOpenScreens('stations'); }, 0); } });
+  bizPage('kiosk', { group: '_alias', title: 'الطلب الذاتي', icon: 'tablet-screen-button', perms: ['settings'], render: async function () { setTimeout(function () { fcOpenScreens('kiosk'); }, 0); } });
 
   // ============================================================
-  // 6) شاشة العميل من الكاشير: بث محتوى السلة لحظياً (نفس الجهاز) أو عبر السيرفر (جهاز آخر)
+  // 5) أدوات المينيو داخل «المينيو الإلكتروني»: السعرات ومسببات الحساسية + تعديل الأسعار بنسبة
   // ============================================================
-  const CD = { bc: ('BroadcastChannel' in window) ? new BroadcastChannel('fcCustDisplay') : null, last: '', t: null, pushAt: 0 };
+  const MT = { cur: 'main' };
+  function menuToolsInit() {
+    const tab = document.getElementById('tab5'); if (!tab || tab.querySelector('#dmTools')) return;
+    const bar = document.createElement('div'); bar.id = 'dmTools'; bar.className = 'sx-tabs sx-tabs-menu';
+    bar.innerHTML = [['main', 'الأصناف والإعدادات', 'utensils'], ['nutrition', 'السعرات ومسببات الحساسية', 'heart-pulse'], ['pricetools', 'تعديل الأسعار بنسبة', 'percent']].map(function (t) {
+      return '<button type="button" class="sx-tab' + (t[0] === 'main' ? ' active' : '') + '" data-mt="' + t[0] + '"><i class="fas fa-' + t[2] + '"></i><span>' + h(T(t[1])) + '</span></button>';
+    }).join('');
+    const body = document.createElement('div'); body.id = 'dmToolsBody'; body.className = 'sx'; body.style.display = 'none';
+    tab.insertBefore(body, tab.firstChild); tab.insertBefore(bar, body);
+    bar.onclick = function (e) { const b = e.target.closest('[data-mt]'); if (b) menuToolShow(b.dataset.mt); };
+    menuToolPerms();
+  }
+  function menuToolPerms() {
+    const bar = document.getElementById('dmTools'); if (!bar || !B.acc) return;
+    bar.querySelectorAll('[data-mt]').forEach(function (b) { const p = B.pages[b.dataset.mt]; b.style.display = !p || !p.perms || canP.apply(null, p.perms) ? '' : 'none'; });
+  }
+  async function menuToolShow(k) {
+    menuToolsInit();
+    const tab = document.getElementById('tab5'), bar = document.getElementById('dmTools'), body = document.getElementById('dmToolsBody'); if (!tab) return;
+    MT.cur = k;
+    bar.querySelectorAll('[data-mt]').forEach(function (b) { b.classList.toggle('active', b.dataset.mt === k); });
+    Array.from(tab.children).forEach(function (c) {
+      if (c === bar || c === body) return;
+      if (k === 'main') { if (c.dataset.mtHide) { c.style.display = c.dataset.mtDisp || ''; delete c.dataset.mtHide; } }
+      else if (!c.dataset.mtHide) { c.dataset.mtDisp = c.style.display; c.dataset.mtHide = '1'; c.style.display = 'none'; }
+    });
+    if (k === 'main') { body.style.display = 'none'; body.innerHTML = ''; return; }
+    const p = B.pages[k]; if (!p) return;
+    if (!B.acc) await loadAccount();
+    body.style.display = 'block';
+    body.innerHTML = '<p class="sx-sub">' + h(T(p.sub || '')) + '</p><div class="mt-body">' + spin + '</div>';
+    try { await p.render(body.querySelector('.mt-body')); } catch (e) { body.querySelector('.mt-body').innerHTML = '<div class="sx-empty">' + h(e.message) + '</div>'; }
+  }
+  window.fcOpenMenuTool = function (k) { switchTab(5); setTimeout(function () { menuToolShow(k || 'main'); }, 30); };
+  (function () {
+    const sw0 = window.switchTab;
+    window.switchTab = function (n) {
+      if (n === 'nutrition' || n === 'pricetools') return window.fcOpenMenuTool(n);
+      const r = sw0.apply(this, arguments);
+      if (String(n) === '5') { try { menuToolsInit(); menuToolPerms(); } catch (e) { } }
+      return r;
+    };
+  })();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', menuToolsInit); else menuToolsInit();
+
+  // ============================================================
+  // 6) شاشة العميل من الكاشير: بث محتوى السلة لحظياً
+  //    v5.4.1: النافذة تُفتح من نفس عنوان الكاشير + رسائل مباشرة للنافذة (postMessage) + نبض دوري
+  //    + طلب الحالة عند فتح الشاشة، ويعمل حتى لو اختلف الدومين (www / دومين خاص)
+  // ============================================================
+  const CD = { bc: ('BroadcastChannel' in window) ? new BroadcastChannel('fcCustDisplay') : null, last: '', t: null, pushAt: 0, win: null, hb: null };
   function cdOn() { return hasF('customer_display') && !(B.acc && B.acc.biz && B.acc.biz.cdisplay && B.acc.biz.cdisplay.enabled === false); }
+  function cdBrand() {
+    const biz = (B.acc && B.acc.biz) || {}, c = biz.cdisplay || {}, app = biz.app || {};
+    return { name: app.name || (B.acc && B.acc.restaurantName) || '', color: app.color || '#b48554', logo: c.showLogo === false ? '' : (app.icon || (biz.business || {}).logo || ''), welcome: c.welcome || '', showLogo: c.showLogo !== false };
+  }
   function cdState() {
-    if (typeof POS === 'undefined' || !POS.o || !POS.boot) return null;
+    if (typeof POS === 'undefined' || !POS.o || !POS.boot) return { lines: [], status: 'idle', subtotal: 0, total: 0 };
     const o = POS.o, t = posTotals();
     const lines = o.items.filter(function (l) { return !(!l.productId && l.name === 'رسوم التوصيل'); }).map(function (l) {
       const unit = l.base + l.extras.reduce(function (a, e) { return a + e.price * e.qty; }, 0);
@@ -531,16 +758,15 @@
     });
     return { lines: lines, subtotal: t.sub, discount: t.disc, tax: t.tax, total: t.total, currency: typeof curName === 'function' ? curName() : '', status: lines.length ? 'ordering' : 'idle', number: o.number || null };
   }
-  function cdSend(st) {
+  function cdSend(st, force) {
     if (!st || !cdOn()) return;
-    const key = JSON.stringify(st); if (key === CD.last) return; CD.last = key;
+    st.brand = cdBrand();
+    const key = JSON.stringify(st); if (key === CD.last && !force) return; CD.last = key;
     st.at = Date.now();
-    const c = B.acc.biz.cdisplay || {}, app = B.acc.biz.app || {};
-    try {
-      if (CD.bc) CD.bc.postMessage(st);
-      localStorage.setItem('fcCustDisplayState', JSON.stringify(st));
-      localStorage.setItem('fcCustDisplayBrand', JSON.stringify({ name: app.name || B.acc.restaurantName || '', color: app.color || '#b48554', logo: c.showLogo === false ? '' : (app.icon || (B.acc.biz.business || {}).logo || ''), welcome: c.welcome || '', showLogo: c.showLogo !== false }));
-    } catch (e) { }
+    const c = (B.acc.biz && B.acc.biz.cdisplay) || {};
+    try { if (CD.bc) CD.bc.postMessage(st); } catch (e) { }
+    try { if (CD.win && !CD.win.closed) CD.win.postMessage({ fcCd: 1, st: st }, '*'); } catch (e) { }
+    try { localStorage.setItem('fcCustDisplayState', JSON.stringify(st)); localStorage.setItem('fcCustDisplayBrand', JSON.stringify(st.brand)); } catch (e) { }
     if (c.remote && c.code) {
       clearTimeout(CD.t);
       const wait = Math.max(0, 700 - (Date.now() - CD.pushAt));
@@ -548,6 +774,20 @@
     }
   }
   window.fcCustDisplaySend = cdSend;
+  // الشاشة تطلب الحالة الحالية عند فتحها أو إعادة تحميلها
+  const cdHello = function () { try { cdSend(cdState(), true); } catch (e) { } };
+  if (CD.bc) CD.bc.addEventListener('message', function (e) { if (e.data && e.data.fcCdHello) cdHello(); });
+  window.addEventListener('message', function (e) { if (e.data && e.data.fcCdHello) { if (e.source && !CD.win) CD.win = e.source; cdHello(); } });
+  window.fcOpenCustomerDisplay = function () {
+    const c = (B.acc.biz && B.acc.biz.cdisplay) || {};
+    const url = here('customer-display.html') + (c.remote && c.code ? '?e=' + encodeURIComponent(currentUserEmail) + '&code=' + encodeURIComponent(c.code) + (B.branch ? '&b=' + encodeURIComponent(B.branch) : '') + '&local=1' : '');
+    CD.win = window.open(url, 'fcCustDisplay', 'width=1024,height=700');
+    if (!CD.win) { showToast(T('اسمح بالنوافذ المنبثقة لفتح شاشة العميل'), true); return; }
+    CD.last = '';
+    [500, 1200, 2500].forEach(function (ms) { setTimeout(cdHello, ms); });
+    clearInterval(CD.hb);
+    CD.hb = setInterval(function () { if (!CD.win || CD.win.closed) { clearInterval(CD.hb); CD.win = null; return; } cdHello(); }, 4000);
+  };
   if (typeof posRenderCart === 'function' && !posRenderCart.__cd) {
     const oc = posRenderCart;
     window.posRenderCart = posRenderCart = function () { const r = oc.apply(this, arguments); try { cdSend(cdState()); } catch (e) { } return r; };
@@ -560,29 +800,15 @@
       try {
         const bar = POS.root && POS.root.querySelector('.pos-topbar');
         if (bar && cdOn() && !bar.querySelector('[data-cd]')) {
-          const b = document.createElement('button'); b.className = 'btn btn-outline btn-sm'; b.dataset.cd = '1'; b.title = T('افتح هذه الصفحة على الشاشة الثانية المواجهة للعميل');
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-outline btn-sm'; b.dataset.cd = '1'; b.title = T('افتح هذه الصفحة على الشاشة الثانية المواجهة للعميل');
           b.innerHTML = '<i class="fas fa-display"></i> ' + T('شاشة العميل');
-          b.onclick = function (e) { e.stopPropagation(); window.open(publicBase() + 'customer-display.html', 'fcCustDisplay', 'width=1024,height=700'); CD.last = ''; setTimeout(function () { cdSend(cdState()); }, 1200); };
+          b.onclick = function (e) { e.stopPropagation(); window.fcOpenCustomerDisplay(); };
           const rl = bar.querySelector('[data-a="reload"]'); bar.insertBefore(b, rl || null);
         }
       } catch (e) { }
       return r;
     };
     posRender.__cd = true;
-  }
-
-  // روابط سريعة من صفحة «الشاشات» الحالية
-  if (typeof screensView === 'function' && !screensView.__v54) {
-    const old = screensView;
-    window.screensView = screensView = function (el) {
-      old(el);
-      const d = document.createElement('div'); d.className = 'biz-card'; d.style.marginTop = '12px';
-      d.innerHTML = '<h4><i class="fas fa-layer-group"></i> ' + T('شاشات إضافية (v5.4)') + '</h4><div style="display:flex;gap:8px;flex-wrap:wrap">' +
-        '<button class="btn btn-outline" onclick="switchTab(\'kdsstations\')"><i class="fas fa-layer-group"></i> ' + T('أقسام المطبخ والشاشات') + '</button>' +
-        '<button class="btn btn-outline" onclick="switchTab(\'kiosk\')"><i class="fas fa-tablet-screen-button"></i> ' + T('الطلب الذاتي وشاشة العميل') + '</button></div>';
-      el.appendChild(d);
-    };
-    screensView.__v54 = true;
   }
   if (B.acc && typeof buildBizSidebar === 'function') buildBizSidebar();
 })();

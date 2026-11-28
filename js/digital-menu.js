@@ -127,7 +127,7 @@ function renderDigitalMenuUI() {
           <div class="dm-meta">
             <span class="badge badge-info">${escapeHtml(it.category || '—')}</span>
             ${it.visible === false ? '<span class="badge badge-dog">مخفي</span>' : '<span class="badge badge-success">ظاهر</span>'}
-            ${it.recipeName ? `<span class="badge badge-warning" title="مرتبط بوصفة">🔗 ${escapeHtml(it.recipeName)}</span>` : ''}
+            ${it.recipeName ? `<span class="badge badge-warning" title="مرتبط بوصفة"><i class="fas fa-link"></i> ${escapeHtml(it.recipeName)}</span>` : ''}
           </div>
           <div class="dm-sizes">${escapeHtml(sizesTxt)}</div>
         </div>
@@ -894,7 +894,7 @@ renderCategoryChips = function() {
     const del=document.createElement('button');del.type='button';del.className='btn btn-sm btn-outline';del.textContent='حذف';del.onclick=()=>removeDigitalCategory(name);
     row.append(grip,text,rename,del);box.append(row);
   });
-  const hint=document.createElement('p');hint.textContent='اسحب من المقبض لترتيب الأقسام والأصناف؛ يُحفظ الترتيب تلقائياً. يمكن نقل الصنف إلى قسم آخر بالسحب.';hint.style.fontSize='12px';box.append(hint);
+  const hint=document.createElement('p');hint.textContent='رتّب الأقسام والأصناف بأزرار الأعلى والأسفل بجانب كل صف، أو بالسحب من المقبض؛ يُحفظ الترتيب تلقائياً.';hint.style.fontSize='12px';box.append(hint);
 };
 function dmRenameCategory(old) {
   const next=prompt('اسم القسم الجديد',old)?.trim();

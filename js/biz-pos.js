@@ -82,6 +82,7 @@ fcScannerListen(function (c) { posHandleCode(c); }, function () { return B.curre
 async function posLoad() {
   const r = await bzOk('posBootstrap', {}, { loading: false });
   POS.boot = r;
+  if (window.fcI18n && fcI18n.names) fcI18n.names(r.names || {});
   POS.shift = r.shift;
   if (!POS.cat || r.categories.indexOf(POS.cat) < 0) POS.cat = '';
   if (POS.o && POS.o.id && !r.openOrders.some(function (x) { return x.id === POS.o.id; })) POS.o = null;
@@ -149,7 +150,8 @@ function posAvailLeft(p) {
   const saved = POS.o && POS.o.id ? ((POS.boot.openOrders.find(function (x) { return x.id === POS.o.id; }) || {}).items || []).filter(function (l) { return l.productId === p.id; }).reduce(function (s, l) { return s + (+l.qty || 0); }, 0) : 0;
   return p.avail - Math.max(0, inCart - saved);
 }
-function posSoldOut(p) { return !!(POS.boot && POS.boot.settings.pos.autoSoldOut && posAvailLeft(p) < 1); }
+// v5.4.2: «السماح بالبيع عند نفاد المخزون» يتقدم على الإيقاف التلقائي — المنتج يبقى متاحاً مع تنبيه فقط
+function posSoldOut(p) { return !!(POS.boot && POS.boot.settings.pos.autoSoldOut && !POS.boot.settings.pos.allowNegativeStock && posAvailLeft(p) < 1); }
 // معالج موحّد لكل رمز يُقرأ بالكاميرا أو القارئ: منتج ← كود خصم ← بطاقة هدية ← جوال عميل
 async function posHandleCode(code) {
   code = String(code || '').trim(); if (!code) return;
@@ -299,14 +301,28 @@ function posPrintKot(o) {
 }
 async function posCancel() {
   const so = POS.boot.openOrders.find(function (x) { return x.id === POS.o.id; }) || {};
-  const r = await cancelReasonModal({ title: 'إلغاء الطلب #' + POS.o.number, kitchen: so.kitchen_status || 'none', sent: (so.items || []).some(function (l) { return l.sent; }) });
+  const started0 = ['preparing', 'ready', 'served'].indexOf(so.kitchen_status) >= 0;
+  const r = await cancelReasonModal({ title: 'إلغاء الطلب #' + POS.o.number, kitchen: so.kitchen_status || 'none', sent: (so.items || []).some(function (l) { return l.sent; }), items: started0 ? (so.items || []).filter(function (l) { return l.sent; }).length ? so.items.filter(function (l) { return l.sent; }) : so.items : null });
   if (!r) return;
-  const x = await bzOk('posCancelOrder', { id: POS.o.id, reason: r.reason, prepared: r.prepared });
+  const x = await bzOk('posCancelOrder', { id: POS.o.id, reason: r.reason, prepared: r.prepared, returnLines: r.returnLines });
   showToast('تم إلغاء الطلب' + (x.waste ? ' وتسجيل تالف بقيمة ' + money(x.waste) : '')); POS.o = posNewOrder(); await posLoad(); posRender();
 }
 var CANCEL_REASONS = ['طلب العميل', 'تأخر التحضير', 'خطأ في إدخال الطلب', 'نفاد مكوّن', 'شكوى جودة / طعم', 'لم يستلم العميل الطلب', 'طلب مكرر', 'أخرى'];
 // نافذة سبب الإلغاء/الاسترجاع (إلزامي) مع خيار التالف
-function cancelReasonModal(o) {
+// v5.4.2: قائمة أسطر الطلب مع مفتاح «يعود للمخزون» لكل سطر — المنتج المستقل (سلعة جاهزة) مفعّل تلقائياً، والطبق المحضّر يُسجّل تالفاً
+async function crLinesHtml(items) {
+  if (!items || !items.length) return '';
+  let pm = {};
+  try { const list = (POS.boot && POS.boot.products) || await entList('products'); list.forEach(function (x) { pm[x.id] = x; }); } catch (e) { /* */ }
+  return '<div class="sx-card" style="margin-top:10px"><div class="sx-card-h"><h4><i class="fas fa-boxes-stacked"></i> ماذا يعود للمخزون؟</h4><span class="sx-hint">المنتج المستقل (مثل المشروبات المغلقة) يعود للمخزون، والطبق المحضّر من مواد أولية يُسجّل تالفاً</span></div>' +
+    items.map(function (l, i) {
+      const pr = pm[l.productId] || {}; const stand = !!pr.track_stock;
+      return '<div class="sx-lrow"><span class="sx-lrow-t">' + nf(l.qty, l.qty % 1 ? 2 : 0) + ' × ' + h(l.name) + (l.variant ? ' (' + h(l.variant) + ')' : '') + ' <span class="sx-chip">' + (stand ? 'منتج مستقل' : pr.recipe_name ? 'طبق محضّر' : 'منتج') + '</span></span>' +
+        '<label class="sx-sw"><input type="checkbox" data-ret="' + i + '"' + (stand ? ' checked' : '') + '><span class="sx-sw-t"></span> يعود للمخزون</label></div>';
+    }).join('') + '</div>';
+}
+async function cancelReasonModal(o) {
+  const linesHtml = o.items ? await crLinesHtml(o.items) : '';
   return new Promise(function (res) {
     let done = false;
     const started = ['preparing', 'ready', 'served'].indexOf(o.kitchen) >= 0;
@@ -317,7 +333,8 @@ function cancelReasonModal(o) {
       body: (stageTxt && !refund ? '<div class="muted" style="margin-bottom:8px">حالة المطبخ: <b>' + h(stageTxt) + '</b></div>' : '') +
         '<div class="opt-chips" id="crChips" style="margin-bottom:10px">' + CANCEL_REASONS.map(function (x) { return '<button type="button" class="opt-chip" data-r="' + h(x) + '">' + h(x) + '</button>'; }).join('') + '</div>' +
         '<label class="muted">تفاصيل السبب</label><textarea id="crNote" rows="2" placeholder="اكتب السبب بوضوح..." style="width:100%"></textarea>' +
-        (refund ? '<label class="biz-check" style="margin-top:10px"><input type="checkbox" id="crRestock"> <span>إرجاع الكميات للمخزون (الأصناف لم تُحضّر/لم تُستهلك). بدون تحديد تُسجّل الكميات تالفاً.</span></label>'
+        (refund && linesHtml ? linesHtml : refund ? '<label class="biz-check" style="margin-top:10px"><input type="checkbox" id="crRestock"> <span>إرجاع الكميات للمخزون (الأصناف لم تُحضّر/لم تُستهلك). بدون تحديد تُسجّل الكميات تالفاً.</span></label>'
+          : started && linesHtml ? '<div class="muted" style="margin-top:10px"><i class="fas fa-exclamation-triangle" style="color:#f59e0b"></i> تم بدء التحضير — الأطباق المحضّرة تُسجّل تالفاً.</div>' + linesHtml
           : started ? '<div class="biz-card" style="margin-top:10px;border-color:#f59e0b"><i class="fas fa-exclamation-triangle" style="color:#f59e0b"></i> تم بدء التحضير — لن تعود الكميات للمخزون وستُسجَّل <b>تالفاً</b>.</div>'
           : o.sent ? '<label class="biz-check" style="margin-top:10px"><input type="checkbox" id="crPrep"> <span>بدأ المطبخ بالتحضير فعلاً (تسجيل الكميات تالفاً)</span></label>' : ''),
       foot: '<button class="btn btn-cancel" data-x>رجوع</button><button class="btn btn-danger" data-act="ok"><i class="fas fa-check"></i> ' + (refund ? 'تأكيد الاسترجاع' : 'تأكيد الإلغاء') + '</button>',
@@ -327,7 +344,8 @@ function cancelReasonModal(o) {
         const reason = [chip ? chip.dataset.r : '', note].filter(Boolean).join(' — ');
         if (reason.length < 3 || (chip && chip.dataset.r === 'أخرى' && !note)) { showToast('اختر سبباً أو اكتب التفاصيل', true); return; }
         done = true; const rs = mm.$('#crRestock'), pp = mm.$('#crPrep');
-        res({ reason: reason, restock: rs ? rs.checked : false, prepared: pp ? pp.checked : started }); mm.close();
+        const rl = mm.$$('[data-ret]'); const ret = rl.length ? rl.filter(function (x) { return x.checked; }).map(function (x) { return +x.dataset.ret; }) : undefined;
+        res({ reason: reason, restock: rs ? rs.checked : false, prepared: pp ? pp.checked : started, returnLines: ret }); mm.close();
       } } });
     m.$('#crChips').onclick = function (e) { const b = e.target.closest('[data-r]'); if (!b) return; m.$$('#crChips .opt-chip').forEach(function (x) { x.classList.toggle('on', x === b); }); };
   });
@@ -607,9 +625,13 @@ async function posShiftModal() {
       }
     } });
   function cashMove(kind) {
-    bPrompt(kind === 'in' ? 'إيداع نقدية في الدرج' : 'سحب نقدية من الدرج', [{ k: 'amount', label: 'المبلغ', type: 'number', req: true }, { k: 'note', label: 'السبب', full: true }], {}, async function (d) {
-      await bzOk('shiftCashMove', Object.assign({ kind: kind }, d)); showToast('تم التسجيل');
-    });
+    // v5.4.3: السبب إلزامي وكل حركة تذهب للمحاسب للاعتماد وتثبيت القيد
+    const R = kind === 'in' ? [['change', 'فكة / تغذية الصندوق'], ['owner', 'إيداع من المالك'], ['advance', 'سداد سلفة موظف'], ['other', 'أخرى']]
+      : [['supplier', 'دفع لمورد'], ['expense', 'مصروف'], ['bank', 'إيداع في البنك'], ['owner', 'سحب للمالك'], ['advance', 'سلفة موظف'], ['other', 'أخرى']];
+    bPrompt(kind === 'in' ? 'إيداع نقدية في الدرج' : 'سحب نقدية من الدرج', [{ k: 'amount', label: 'المبلغ', type: 'number', req: true }, { k: 'reason', label: 'نوع الحركة', type: 'select', req: true, options: [['', '—']].concat(R) },
+      { k: 'note', label: 'التفاصيل (اسم المورد، رقم الفاتورة، المستلم...)', full: true, req: true }], {}, async function (d) {
+      await bzOk('shiftCashMove', Object.assign({ kind: kind }, d)); showToast('تم التسجيل — بانتظار اعتماد المحاسب');
+    }, { icon: kind === 'in' ? 'arrow-down' : 'arrow-up', sub: 'تظهر الحركة فوراً في «الحسابات والمصروفات › حركات الصندوق» ليعتمدها المحاسب ويثبت القيد.' });
   }
 }
 async function shiftReportModal(id) {
@@ -638,7 +660,7 @@ function ordersView(el) {
     const r = await bzOk('getOrders', f || get(), { loading: false });
     const rows = r.orders;
     const tot = rows.filter(function (o) { return o.status === 'paid'; }).reduce(function (s, o) { return s + +o.total; }, 0);
-    el.querySelector('#ordList').innerHTML = '<div class="muted" style="margin-bottom:8px">' + rows.length + ' طلب · المدفوع: ' + money(tot) + ' <button class="btn btn-outline btn-sm" id="ordX"><i class="fas fa-file-excel"></i> Excel</button></div>' +
+    el.querySelector('#ordList').innerHTML = '<div class="muted" style="margin-bottom:8px">' + rows.length + ' طلب · المدفوع: ' + money(tot) + ' </div>' +
       bTable([{ label: '#', r: function (o) { return '<b>' + o.number + '</b>'; } }, { label: 'التاريخ', r: function (o) { return dt(o.created_at); } }, { label: 'النوع', r: function (o) { return h(ORDER_TYPES[o.order_type]) + (o.table_name ? ' · ' + h(o.table_name) : '') + (o.source === 'menu' ? ' <span class="badge badge-info">مينيو</span>' : ''); } },
         { label: 'العميل', r: function (o) { return h(o.customer_name || '—'); } }, { label: 'الموظف', r: function (o) { return h(o.staff_name); } }, { label: 'الحالة', r: function (o) { return stBadge(ORDER_STATUS, o.status); } }, { label: 'الإجمالي', num: true, r: function (o) { return money(o.total); } }],
         rows, { rowAttr: function (o) { return 'data-click="1" data-id="' + o.id + '"'; } });
@@ -663,8 +685,8 @@ async function orderDetails(id, after) {
       pi: function (m, el) { printInvoice(el.dataset.id); },
       edit: function (m) { m.close(); POS.o = posFromServer(o); switchTab('pos'); },
       refund: async function (m) {
-        const rr = await cancelReasonModal({ title: 'استرجاع الطلب #' + o.number, refund: true }); if (!rr) return;
-        const x = await bzOk('posRefund', { id: o.id, reason: rr.reason, restock: rr.restock }); m.close(); showToast('تم الاسترجاع وإصدار إشعار دائن #' + x.invoice.number); if (after) after();
+        const rr = await cancelReasonModal({ title: 'استرجاع الطلب #' + o.number, refund: true, items: o.items || [] }); if (!rr) return;
+        const x = await bzOk('posRefund', { id: o.id, reason: rr.reason, restock: rr.restock, returnLines: rr.returnLines }); m.close(); showToast('تم الاسترجاع وإصدار إشعار دائن #' + x.invoice.number); if (after) after();
       }
     } });
 }
@@ -675,7 +697,7 @@ function invoicesView(el) {
     const r = await bzOk('invoicesList', f || get(), { loading: false });
     const rows = r.invoices || r.rows || [];
     el.querySelector('#invList').innerHTML = bTable([{ label: 'رقم', r: function (i) { return '<b>' + i.number + '</b>'; } }, { label: 'النوع', r: function (i) { return i.kind === 'refund' ? '<span class="badge badge-dog">إشعار دائن</span>' : '<span class="badge badge-success">بيع</span>'; } }, { label: 'التاريخ', r: function (i) { return dt(i.issued_at); } }, { label: 'طلب', r: function (i) { return i.order_number ? '#' + i.order_number : '—'; } }, { label: 'العميل', r: function (i) { return h(i.customer_name || '—'); } }, { label: 'الضريبة', num: true, r: function (i) { return money(i.tax_total); } }, { label: 'الإجمالي', num: true, r: function (i) { return money(i.total); } }, { label: '', r: function (i) { return '<button class="ico-btn" data-pi="' + i.id + '" title="طباعة"><i class="fas fa-print"></i></button>'; } }], rows) +
-      (rows.length ? '<button class="btn btn-outline btn-sm" id="invX" style="margin-top:8px"><i class="fas fa-file-excel"></i> تصدير Excel</button>' : '');
+      (rows.length ? '' : '');
     el.querySelector('#invList').onclick = function (e) { const b = e.target.closest('[data-pi]'); if (b) printInvoice(b.dataset.pi); if (e.target.closest('#invX')) exportRowsExcel('الفواتير', ['الرقم', 'النوع', 'التاريخ', 'الطلب', 'العميل', 'المجموع', 'الخصم', 'الضريبة', 'الإجمالي', 'الموظف'], rows.map(function (i) { return [i.number, i.kind === 'refund' ? 'إشعار دائن' : 'بيع', dt(i.issued_at), i.order_number, i.customer_name, +i.subtotal, +i.discount_total, +i.tax_total, +i.total, i.staff_name]; })); };
   }
   load();

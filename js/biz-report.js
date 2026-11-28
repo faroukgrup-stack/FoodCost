@@ -211,10 +211,11 @@ async function rptXCover(wb, o) {
 }
 // قائمة أزرار التصدير الموحدة
 function rptButtons(id) {
-  return '<div class="rpt-btns" id="' + id + '"><button class="btn btn-primary btn-sm" data-rp="print"><i class="fas fa-print"></i> طباعة التقرير</button><button class="btn btn-outline btn-sm" data-rp="word"><i class="fas fa-file-word"></i> Word</button><button class="btn btn-outline btn-sm" data-rp="excel"><i class="fas fa-file-excel"></i> Excel</button></div>';
+  return '<div class="rpt-btns" id="' + id + '"><button class="btn btn-primary btn-sm" data-rp="print"><i class="fas fa-print"></i> طباعة التقرير</button></div>'; // v5.4.2: Word و Excel من أيقونات أعلى الصفحة فقط (نفس التقرير الاحترافي)
 }
 function rptBind(root, id, build) {
   const box = root.querySelector('#' + id); if (!box) return;
+  box.__build = build;
   box.onclick = async function (e) {
     const b = e.target.closest('[data-rp]'); if (!b) return;
     b.disabled = true; showLoading();
@@ -308,6 +309,9 @@ document.addEventListener('click', function (e) {
   const root = document.getElementById('tabBiz'); if (!root) return;
   const ttl = (root.querySelector('.biz-page-head h2') || {}).textContent || 'تقرير';
   const act = root.querySelector('.biz-subtab.active');
+  // v5.4.2: إن كان في الصفحة تقرير مخصص (طباعة التقرير) نصدّر نفس التقرير بالصيغة المطلوبة
+  const rb = Array.from(root.querySelectorAll('.rpt-btns')).find(function (x) { return x.__build && x.offsetParent !== null; });
+  if (rb) { (async function () { showLoading(); try { const o = await rb.__build(); if (b.dataset.pt === 'print') rptPrint(o); else if (b.dataset.pt === 'word') rptWord(o); else await rptExcel(o); } catch (err) { showToast('تعذر التصدير: ' + err.message, true); } finally { hideLoading(); } })(); return; }
   rptElExport(b.dataset.pt, ttl.trim() + (act ? ' — ' + act.textContent.trim() : ''), root.querySelector('.biz-page-body')).catch(function (err) { showToast('تعذر التصدير: ' + err.message, true); });
 });
 

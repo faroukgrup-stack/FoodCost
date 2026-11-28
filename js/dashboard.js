@@ -149,7 +149,7 @@ async function loadDashboard() {
                     <td style="color:#f87171; font-weight:700;">${(d.cost - d.price).toFixed(2)}</td>
                 </tr>`).join('')}</tbody></table>`;
         } else {
-            lossDiv.innerHTML = '<p style="color:var(--text-muted); text-align:center;">لا توجد أطباق خاسرة 👍</p>';
+            lossDiv.innerHTML = '<p style="color:var(--text-muted); text-align:center;">لا توجد أطباق خاسرة</p>';
         }
 
         

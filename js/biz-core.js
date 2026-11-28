@@ -130,7 +130,7 @@ function readForm(root, fields) {
 function bTable(cols, rows, o) {
   o = o || {};
   if (!rows || !rows.length) return '<div class="empty-state"><i class="fas fa-' + (o.emptyIcon || 'inbox') + '" style="font-size:2rem;opacity:.5"></i><p style="margin-top:10px">' + h(o.empty || 'لا توجد بيانات بعد') + '</p></div>';
-  return '<div class="table-container biz-table' + (cols.length >= 8 ? ' dense' : '') + '"><table><thead><tr>' + cols.map(function (c) { return '<th' + (c.num ? ' class="num"' : '') + '>' + h(c.label) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+  return '<div class="table-container biz-table' + (cols.length >= 8 ? ' dense' : '') + '"><table><thead><tr>' + cols.map(function (c) { return '<th' + (c.num ? ' class="num"' : c.html ? ' class="sel"' : '') + '>' + (c.html || h(c.label)) + '</th>'; }).join('') + '</tr></thead><tbody>' +
     rows.map(function (r, i) { return '<tr' + (o.rowAttr ? ' ' + o.rowAttr(r, i) : '') + '>' + cols.map(function (c) { return '<td' + (c.num ? ' class="num"' : c.wrap || /ملاحظ|البيان|السبب|الوصف|التفاصيل|العنوان|البنود|الأصناف|المحتوى/.test(c.label || '') ? ' class="wrap"' : '') + '>' + c.r(r, i) + '</td>'; }).join('') + '</tr>'; }).join('') +
     '</tbody>' + (o.foot ? '<tfoot>' + o.foot + '</tfoot>' : '') + '</table></div>';
 }
@@ -382,7 +382,7 @@ async function loadAccount() {
   if (hasF('notifications')) { refreshNotifications(); clearInterval(B.notifTimer); B.notifTimer = setInterval(refreshNotifications, 30000); }
   if (typeof bizLiveStart === 'function') bizLiveStart();
   setTimeout(bizPaymentReturn, 300);
-  const vb = document.querySelector('.version-badge'); if (vb) vb.innerHTML = '<i class="fas fa-code-branch"></i> الإصدار ' + (typeof APP_VERSION !== 'undefined' ? APP_VERSION : '5.4.0') + ' · ' + planBadge(r.plan);
+  const vb = document.querySelector('.version-badge'); if (vb) vb.innerHTML = '<i class="fas fa-code-branch"></i> الإصدار ' + (typeof APP_VERSION !== 'undefined' ? APP_VERSION : '5.4.3') + ' · ' + planBadge(r.plan);
   return r;
 }
 function renderHeaderExtras() {
@@ -412,12 +412,19 @@ async function refreshNotifications() {
   const n = document.getElementById('bizBellN');
   if (n) { n.textContent = B.notifs.length; n.style.display = B.notifs.length ? '' : 'none'; }
 }
+// v5.4.3: فتح تبويب فرعي محدد بعد الانتقال للصفحة (مثل الورديات من الإشعار)
+function fcGoSub(sub, tries) {
+  tries = tries || 0;
+  const b = document.querySelector('.biz-page.active [data-sub="' + sub + '"], [data-sub="' + sub + '"]');
+  if (b && b.offsetParent) { if (!b.classList.contains('active')) b.click(); return; }
+  if (tries < 30) setTimeout(function () { fcGoSub(sub, tries + 1); }, 120);
+}
 function showNotifications() {
   const list = B.notifs.length ? B.notifs.map(function (x, i) {
     return '<div class="notif notif-' + x.level + '" data-act="go" data-i="' + i + '"><i class="fas fa-' + x.icon + '"></i><div><b>' + h(x.title) + '</b><div>' + h(x.message) + '</div></div></div>';
   }).join('') : '<div class="empty-state">لا توجد إشعارات حالياً</div>';
   bModal({ title: 'الإشعارات الذكية', icon: 'bell', body: list,
-    actions: { go: function (m, el) { const x = B.notifs[+el.dataset.i]; m.close(); if (x && x.tab && B.pages[x.tab]) switchTab(x.tab); } } });
+    actions: { go: function (m, el) { const x = B.notifs[+el.dataset.i]; m.close(); if (x && x.tab && B.pages[x.tab]) { switchTab(x.tab); if (x.sub) fcGoSub(x.sub); } } } });
 }
 
 // ---------- ربط switchTab والتهيئة ----------
@@ -586,6 +593,9 @@ function exportRowsExcel(name, headers, rows) {
   ws.columns.forEach(function (c) { c.width = 18; });
   wb.xlsx.writeBuffer().then(function (buf) { saveAs(new Blob([buf]), name + '_' + isoLocal() + '.xlsx'); });
 }
+// v5.4.3: حساب جهاز (شاشة الطلب الذاتي) وليس موظفاً
+function fcT(s) { return window.fcI18n && fcI18n.t ? fcI18n.t(s) : s; }
+function fcIsDevice(s) { const p = (s && s.permissions) || []; return !!s && (s.role === 'kiosk' || (p.length === 1 && p[0] === 'kiosk')); }
 function publicBase() {
   if (typeof PUBLIC_APP_URL === 'string' && PUBLIC_APP_URL) return PUBLIC_APP_URL.replace(/\/?$/, '/');
   return location.origin + location.pathname.replace(/[^/]*$/, '');

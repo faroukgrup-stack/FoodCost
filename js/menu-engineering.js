@@ -135,7 +135,7 @@ function analyzeMenuEngineering() {
             if (marginPct < marginThresholdPct) {
                 const targetPrice = d.cost / (1 - marginThresholdPct / 100);
                 const lift = Math.max(0, Math.ceil(targetPrice - d.price));
-                rec = `⚠️ مبيعات عالية لكن الهامش ${marginPct.toFixed(0)}% < الحد ${marginThresholdPct}% — ارفع السعر بـ ${lift} ${appCurrency} أو خفّض التكلفة`;
+                rec = `مبيعات عالية لكن الهامش ${marginPct.toFixed(0)}% < الحد ${marginThresholdPct}% — ارفع السعر بـ ${lift} ${appCurrency} أو خفّض التكلفة`;
             } else {
                 rec = `🐄 مبيعات عالية. هامش ${marginPct.toFixed(0)}% مقبول — راقب التكلفة`;
             }
@@ -176,7 +176,7 @@ function analyzeMenuEngineering() {
     }
     if (cashCowsLowMargin.length) {
         strategyHtml += `<div style="background:rgba(245,158,11,0.12); border:1px solid #f59e0b; color:#fcd34d; border-radius:12px; padding:10px 14px; font-size:0.9rem;">
-            <strong>⚠️ أطباق مبيعات عالية بهامش ضعيف:</strong> ${cashCowsLowMargin.map(r => r.name + ' (' + r.marginPct.toFixed(0) + '%)').join('، ')} — راجع التسعير فوراً.
+            <strong>أطباق مبيعات عالية بهامش ضعيف:</strong> ${cashCowsLowMargin.map(r => r.name + ' (' + r.marginPct.toFixed(0) + '%)').join('، ')} — راجع التسعير فوراً.
         </div>`;
     }
     if (questions.length) {

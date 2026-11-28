@@ -101,7 +101,7 @@ bizPage('customers', { group: 'crm', title: 'العملاء والولاء', ico
     customersView(el);
   } });
 function customersView(el) {
-  el.innerHTML = '<div class="biz-toolbar"><input class="biz-search grow" id="cuQ" placeholder="بحث بالاسم أو الجوال أو البريد"><button class="btn btn-primary btn-sm" id="cuNew"><i class="fas fa-user-plus"></i> عميل جديد</button><button class="btn btn-outline btn-sm" id="cuX"><i class="fas fa-file-excel"></i> Excel</button></div><div id="cuList"></div>';
+  el.innerHTML = '<div class="biz-toolbar"><input class="biz-search grow" id="cuQ" placeholder="بحث بالاسم أو الجوال أو البريد"><button class="btn btn-primary btn-sm" id="cuNew"><i class="fas fa-user-plus"></i> عميل جديد</button></div><div id="cuList"></div>';
   let rows = [];
   const load = async function () {
     rows = await entList('customers', { q: el.querySelector('#cuQ').value.trim() });
@@ -113,7 +113,7 @@ function customersView(el) {
   };
   let tm; el.querySelector('#cuQ').oninput = function () { clearTimeout(tm); tm = setTimeout(load, 300); };
   el.querySelector('#cuNew').onclick = function () { custEdit(null, load); };
-  el.querySelector('#cuX').onclick = function () { exportRowsExcel('العملاء', ['الاسم', 'الجوال', 'البريد', 'الميلاد', 'الزيارات', 'المشتريات', 'النقاط', 'الآجل', 'حد الآجل'], rows.map(function (c) { return [c.name, c.phone, c.email, c.birthday || '', c.visits, +c.total_spent, +c.points, +c.balance, +c.credit_limit || 'بلا حد']; })); };
+  (el.querySelector('#cuX') || {}).onclick = function () { exportRowsExcel('العملاء', ['الاسم', 'الجوال', 'البريد', 'الميلاد', 'الزيارات', 'المشتريات', 'النقاط', 'الآجل', 'حد الآجل'], rows.map(function (c) { return [c.name, c.phone, c.email, c.birthday || '', c.visits, +c.total_spent, +c.points, +c.balance, +c.credit_limit || 'بلا حد']; })); };
   el.querySelector('#cuList').onclick = async function (e) {
     const v = e.target.closest('[data-v]'), ed = e.target.closest('[data-e]'), d = e.target.closest('[data-d]');
     if (v) customerProfile(v.dataset.v, load);
@@ -272,11 +272,11 @@ async function ledgerCustomer(id) {
 
 // ---------- التسويق: الخصومات، الولاء، بطاقة Google ----------
 bizPage('marketing', { group: 'crm', title: 'العروض والتسويق', icon: 'bullhorn', feature: 'discounts', perms: ['marketing'], plan: 'pro',
-  pitch: 'خصومات وعروض بأكواد وفترات زمنية، إعداد برنامج الولاء، بطاقة تقييمات Google قابلة للطباعة، والإشعارات الذكية.',
+  pitch: 'خصومات وعروض بأكواد وفترات زمنية، إعداد برنامج الولاء، بطاقة تقييمات Google قابلة للطباعة.',
   render: async function (body) {
-    body.innerHTML = subTabs('mkSub', [['disc', 'الخصومات والعروض', 'tags'], ['loyalty', 'برنامج الولاء', 'star', !hasF('loyalty')], ['google', 'بطاقة تقييمات Google', 'google', !hasF('google_card')], ['notify', 'الإشعارات الذكية', 'bell', !hasF('notifications')]], 'disc') + '<div id="mkBody"></div>';
+    body.innerHTML = subTabs('mkSub', [['disc', 'الخصومات والعروض', 'tags'], ['loyalty', 'برنامج الولاء', 'star', !hasF('loyalty')], ['google', 'بطاقة تقييمات Google', 'google', !hasF('google_card')]], 'disc') + '<div id="mkBody"></div>';
     const el = body.querySelector('#mkBody');
-    bindSubTabs(body, 'mkSub', function (k) { ({ disc: discountsView, loyalty: loyaltyView, google: googleView, notify: notifyView })[k](el); });
+    bindSubTabs(body, 'mkSub', function (k) { ({ disc: discountsView, loyalty: loyaltyView, google: googleView })[k](el); });
     discountsView(el);
   } });
 async function discountsView(el) {
@@ -322,6 +322,6 @@ function googleView(el) {
   el.querySelector('#gcPrint').onclick = function () { printHtml('بطاقة Google', card(), 'a4'); };
 }
 function notifyView(el) {
-  settingsForm(el, 'notify', [{ k: 'lowStock', label: 'تنبيه انخفاض المخزون', type: 'checkbox' }, { k: 'reservations', label: 'تنبيه الحجوزات القريبة والجديدة', type: 'checkbox' }, { k: 'birthdays', label: 'أعياد ميلاد العملاء (اليوم)', type: 'checkbox' }, { k: 'credit', label: 'ديون الآجل المتأخرة', type: 'checkbox' }, { k: 'giftExpiry', label: 'بطاقات هدايا تنتهي قريباً', type: 'checkbox' }],
+  settingsForm(el, 'notify', [{ k: 'lowStock', label: 'تنبيه انخفاض المخزون', type: 'checkbox' }, { k: 'reservations', label: 'تنبيه الحجوزات القريبة والجديدة', type: 'checkbox' }, { k: 'birthdays', label: 'أعياد ميلاد العملاء (اليوم)', type: 'checkbox' }, { k: 'credit', label: 'ديون الآجل المتأخرة', type: 'checkbox' }, { k: 'giftExpiry', label: 'بطاقات هدايا تنتهي قريباً', type: 'checkbox' }, { k: 'cashMoves', label: 'حركات صندوق الكاشير بانتظار اعتماد المحاسب', type: 'checkbox' }],
     'تظهر الإشعارات في جرس أعلى الشاشة وتُحدّث تلقائياً كل دقيقة ونصف: طلبات المينيو الجديدة، المخزون المنخفض، الحجوزات، الطلبات الجاهزة في المطبخ، وتجديد الاشتراك.');
 }

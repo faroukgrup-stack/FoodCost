@@ -16,6 +16,10 @@
     lang: function () { return lang; }, langs: LANGS,
     set: function (l) { if (!LANGS[l]) return; try { localStorage.setItem(LS, l); } catch (e) { /* */ } location.reload(); },
     t: function (s) { return s; },
+    // v5.4.2: أسماء المستخدم (منتجات/أقسام/أطباق) — تُعرض بالترجمة التي أدخلها المستخدم فقط، ولا يترجمها قاموس الواجهة
+    names: function (m) { if (!m || typeof m !== 'object') return; var u = window.FC_UN = window.FC_UN || {}; Object.keys(m).forEach(function (k) { var kk = String(k).replace(/\s+/g, ' ').trim(); if (kk) u[kk] = m[k] || {}; }); if (api._clr) api._clr(); },
+    // v5.4.3: الاسم الأساسي قد يكون بأي لغة (src) — إن لم تتوفر ترجمة للغة الواجهة يُعرض الاسم الأساسي
+    name: function (s) { var u = window.FC_UN || {}, k = String(s == null ? '' : s).replace(/\s+/g, ' ').trim(), e = u[k]; if (!e) return s; return e[lang] || (lang === 'ar' || e.src ? s : (e.en || e.tr || s)); },
     menu: function (ev) {
       if (ev) { ev.stopPropagation(); ev.preventDefault(); }
       var old = document.getElementById('fcLangPop'); if (old) { old.remove(); return; }
@@ -49,7 +53,13 @@
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-setlang]'); if (b) { e.preventDefault(); api.set(b.getAttribute('data-setlang')); } }, true);
   document.addEventListener('DOMContentLoaded', pickers);
 
-  if (lang === 'ar') { new MutationObserver(function () { pickers(); }).observe(document.documentElement, { childList: true, subtree: true }); return; }
+  // v5.4.3: أسماء مسجلة بلغة غير العربية (مثل الإنجليزية فقط) تُعرض بترجمتها العربية إن وُجدت
+  function arNames(root) {
+    var u = window.FC_UN; if (!u || !root) return;
+    var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), n;
+    while ((n = w.nextNode())) { var v = n.nodeValue; if (!v || v.length > 200 || /[\u0600-\u06FF]/.test(v)) continue; var k = v.replace(/\s+/g, ' ').trim(), e = k && u[k]; if (e && e.ar && e.src && e.src !== 'ar' && !(n.parentNode && n.parentNode.closest && n.parentNode.closest('[data-i18n-skip],input,textarea,script,style'))) n.nodeValue = v.replace(k, e.ar); }
+  }
+  if (lang === 'ar') { var arQ = false; new MutationObserver(function (l) { pickers(); if (!window.FC_UN || arQ) return; arQ = true; (window.requestAnimationFrame || setTimeout)(function () { arQ = false; for (var i = 0; i < l.length; i++) for (var j = 0; j < l[i].addedNodes.length; j++) { var x = l[i].addedNodes[j]; if (x.nodeType === 3) arNames(x.parentNode); else if (x.nodeType === 1) arNames(x); } }); }).observe(document.documentElement, { childList: true, subtree: true }); return; }
 
   // تحميل قاموس اللغة (متزامن أثناء تحليل الصفحة)
   document.write('<script src="' + base + 'i18n-' + lang + '.js' + (ver ? '?' + ver : '') + '"><\/script>');
@@ -63,17 +73,18 @@
   function D() { return window.FC_I18N || {}; }
   function norm(s) { return s.replace(/\s+/g, ' ').trim(); }
   function digits(s) { return s.replace(/[\u0660-\u0669]/g, function (c) { return String(c.charCodeAt(0) - 0x660); }).replace(/[\u06F0-\u06F9]/g, function (c) { return String(c.charCodeAt(0) - 0x6F0); }).replace(/(\d)\s?ص(?![\u0600-\u06FF])/g, '$1 AM').replace(/(\d)\s?م(?![\u0600-\u06FF])/g, '$1 PM').replace(/٫/g, '.').replace(/٬/g, ','); }
+  function un(k) { var u = window.FC_UN; if (!u) return null; var e = u[k]; if (!e) return null; return e[lang] || (e.src ? k : (e.en || e.tr || k)); }
   function seg(m) {
-    var d = D(), k = norm(m); if (d[k] !== undefined) return d[k];
+    var d = D(), k = norm(m), x0 = un(k); if (x0 !== null) return x0; if (d[k] !== undefined) return d[k];
     // تجزئة إضافية عند علامات الترقيم
     var parts = m.split(/([،؛:.!؟«»\(\)\-–—\/|•·])/);
-    if (parts.length > 1) return parts.map(function (x) { var y = norm(x); return y && d[y] !== undefined ? x.replace(y, d[y]) : wordsFb(x); }).join('');
+    if (parts.length > 1) return parts.map(function (x) { var y = norm(x), z = y ? un(y) : null; return z !== null ? x.replace(y, z) : y && d[y] !== undefined ? x.replace(y, d[y]) : wordsFb(x); }).join('');
     return wordsFb(m);
   }
   // v5.3.2: عنوان ثابت + اسم متغير (مثل «تسوية ترينديول» أو «كشف حساب مورد») — نترجم الجزء الثابت ونترك الاسم كما هو
   var LBL = { 'تسوية': 1, 'أرصدة': 1, 'بطاقة': 1, 'تقييم': 1, 'تسليم': 1, 'قيد': 1, 'فاتورة': 1, 'طلب': 1, 'كشف': 1, 'فرع': 1, 'الفرع': 1, 'منصة': 1, 'عميل': 1, 'العميل': 1, 'مورد': 1, 'المورد': 1, 'موظف': 1, 'الموظف': 1, 'تقرير': 1, 'ملصقات': 1, 'تحويل': 1, 'إغلاق': 1, 'فتح': 1, 'دليل': 1, 'مسير': 1, 'حساب': 1, 'إقفال': 1, 'عكس': 1, 'سند': 1, 'أمر': 1, 'مطابقة': 1, 'سداد': 1, 'تحصيل': 1, 'وصفة': 1, 'دفعة': 1, 'جرد': 1, 'طاولة': 1, 'وردية': 1, 'صندوق': 1, 'سائق': 1, 'السائق': 1, 'قناة': 1, 'القناة': 1, 'عهدة': 1, 'باقة': 1 };
   function wordsFb(x) {
-    var d = D(), y = norm(x); if (!y || y.indexOf(' ') < 0) return x;
+    var d = D(), y = norm(x); if (!y || y.indexOf(' ') < 0) return x; var z0 = un(y); if (z0 !== null) return x.replace(y, z0);
     var w = y.split(' '), i, k;
     for (i = w.length - 1; i >= 1; i--) { k = w.slice(0, i).join(' '); if (d[k] !== undefined && (i >= 2 || LBL[k])) { var rest = w.slice(i).join(' '); var r2 = wordsFb(rest); return x.replace(y, d[k] + ' ' + r2); } }
     for (i = 1; i < w.length - 0; i++) { k = w.slice(i).join(' '); if (d[k] !== undefined && (w.length - i >= 2 || LBL[k])) return x.replace(y, w.slice(0, i).join(' ') + ' ' + d[k]); }
@@ -90,7 +101,8 @@
   function tr1(s) {
     var d = D(), n = norm(s), out, x;
     var lead = s.match(/^\s*/)[0], tail = s.match(/\s*$/)[0];
-    if (d[n] !== undefined) out = lead + d[n] + tail;
+    if ((x = un(n)) !== null) out = lead + x + tail;
+    else if (d[n] !== undefined) out = lead + d[n] + tail;
     else if ((x = trNum(n)) !== null) out = lead + x + tail;
     else out = s.replace(SEG, seg);
     return out;
@@ -106,11 +118,11 @@
     if (++cacheN > 20000) { cache = {}; cacheN = 0; }
     cache[s0] = out; return out;
   }
-  api.t = tr;
+  api.t = tr; api._clr = function () { cache = {}; cacheN = 0; };
   var SKIP = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, NOSCRIPT: 1, CODE: 1 };
   var ATTRS = ['placeholder', 'title', 'aria-label', 'alt'];
   function skip(el) { for (var e = el; e && e.nodeType === 1; e = e.parentNode) { if (SKIP[e.tagName] || e.hasAttribute('data-i18n-skip') || e.isContentEditable) return true; } return false; }
-  function doText(n) { var v = n.nodeValue; if (!v || !HASX.test(v)) return; if (n.parentNode && skip(n.parentNode)) return; var t = tr(v); if (t !== v) n.nodeValue = t; }
+  function doText(n) { var v = n.nodeValue; if (!v) return; if (!HASX.test(v)) { var u0 = window.FC_UN, k0 = u0 && v.length < 200 && norm(v), e0 = k0 && u0[k0]; if (e0 && e0[lang] && e0.src && e0.src !== lang && !(n.parentNode && skip(n.parentNode))) n.nodeValue = v.replace(k0, e0[lang]); return; } if (n.parentNode && skip(n.parentNode)) return; var t = tr(v); if (t !== v) n.nodeValue = t; }
   function doEl(el) {
     if (el.nodeType !== 1) return;
     // v5.0.2: حقول النص الطويل — نترجم التلميح (placeholder) فقط ولا نلمس ما يكتبه المستخدم

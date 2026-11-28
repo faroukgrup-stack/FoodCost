@@ -195,8 +195,10 @@ async function opsSeedTypes() {
 async function opsBase(force) {
   if (OPS.owner !== currentUserEmail) { OPS = { owner: currentUserEmail, emps: null, types: null, cfgRow: null, tpls: null, week: null, evMonth: null }; }
   if (OPS.emps && !force) return;
-  const r = await Promise.all([opsL('employee'), opsL('shift_type'), opsL('ops_cfg'), opsL('sop_tpl')]);
-  OPS.emps = r[0].sort(function (a, b) { return String(a.data.dept).localeCompare(String(b.data.dept)) || a.title.localeCompare(b.title, 'ar'); });
+  const r = await Promise.all([opsL('employee'), opsL('shift_type'), opsL('ops_cfg'), opsL('sop_tpl'), canP('team') ? entList('staff').catch(function () { return []; }) : Promise.resolve([])]);
+  // v5.4.3: حسابات أجهزة الطلب الذاتي ليست موظفين — تُستبعد من الفريق والورديات والتقييم وتحليل العمالة
+  const devIds = {}; (r[4] || []).forEach(function (s) { if (fcIsDevice(s)) devIds[s.id] = 1; });
+  OPS.emps = r[0].filter(function (e) { return !(e.data && e.data.staffId && devIds[e.data.staffId]); }).sort(function (a, b) { return String(a.data.dept).localeCompare(String(b.data.dept)) || a.title.localeCompare(b.title, 'ar'); });
   OPS.types = r[1].sort(function (a, b) { return opsMin(a.data.start) - opsMin(b.data.start); }); OPS.cfgRow = r[2][0] || null; OPS.tpls = r[3];
   if (canP('ops')) {
     if (!OPS.tpls.length && !(OPS.cfgRow && OPS.cfgRow.data.seeded)) { await opsSeed(); await opsSaveCfg({ seeded: true }, true); }
@@ -799,8 +801,24 @@ function opsEvalScore(scores, crit) { let tw = 0, s = 0; crit.forEach(function (
 async function opsEval(el) {
   const month = OPS.evMonth || isoLocal().slice(0, 7); OPS.evMonth = month;
   const c = opsCfg(), crit = c.criteria, emps = opsActiveEmps();
-  const r = await Promise.all([opsL('eval', { from: opsMonthStart(month), to: opsMonthStart(month) }), bz('opsInsights', { days: 30 }, { loading: false })]);
-  const evals = r[0], ins = r[1].success ? r[1] : null;
+  // v5.4.3: نحمّل آخر 6 أشهر لقراءة اتجاه الأداء (تقدم / تراجع) لكل موظف
+  const mAdd = function (m, k) { const d = new Date(m + '-15T12:00:00'); d.setMonth(d.getMonth() + k); return d.toISOString().slice(0, 7); };
+  const months6 = [-5, -4, -3, -2, -1, 0].map(function (k) { return mAdd(month, k); }), prevM = mAdd(month, -1);
+  const r = await Promise.all([opsL('eval', { from: opsMonthStart(months6[0]), to: opsMonthStart(month) }), bz('opsInsights', { days: 30 }, { loading: false })]);
+  const allEv = r[0], ins = r[1].success ? r[1] : null;
+  const evM = function (x) { return String(x.period || '').slice(0, 7); };
+  const evals = allEv.filter(function (x) { return evM(x) === month; });
+  const hist = {}; allEv.forEach(function (x) { (hist[x.staffId] = hist[x.staffId] || {})[evM(x)] = +x.score || 0; });
+  const prevEvals = allEv.filter(function (x) { return evM(x) === prevM; });
+  const prevAvg = prevEvals.length ? prevEvals.reduce(function (s, x) { return s + (+x.score || 0); }, 0) / prevEvals.length : null;
+  const trend = function (id) {
+    const H = hist[id] || {}, cur = H[month], pv = H[prevM];
+    const spark = '<span class="ev-spark" title="' + h(fcT('آخر 6 أشهر')) + '">' + months6.map(function (m) { const v = H[m]; return '<i style="height:' + (v ? Math.max(8, v) : 4) + '%;background:' + (v ? opsRate(v)[1] : 'rgba(148,163,184,.25)') + '" title="' + m + (v ? ': ' + nf(v, 0) + '%' : '') + '"></i>'; }).join('') + '</span>';
+    if (cur === undefined) return spark;
+    if (pv === undefined) return spark + '<span class="ev-tr ev-new">' + h(fcT('أول تقييم')) + '</span>';
+    const d = Math.round(cur - pv);
+    return spark + (d > 0 ? '<span class="ev-tr ev-up"><i class="fas fa-arrow-trend-up"></i> +' + d + '% ' + h(fcT('تقدم')) + '</span>' : d < 0 ? '<span class="ev-tr ev-down"><i class="fas fa-arrow-trend-down"></i> ' + d + '% ' + h(fcT('تراجع')) + '</span>' : '<span class="ev-tr ev-flat"><i class="fas fa-minus"></i> ' + h(fcT('ثابت')) + '</span>');
+  };
   const byEmp = {}; evals.forEach(function (x) { byEmp[x.staffId] = x; });
   const salesOf = function (e) { if (!ins) return null; const s = ins.staff.find(function (x) { return (e.data.staffId && x.staffId === e.data.staffId) || x.name === e.title; }); return s || null; };
   const ranked = emps.map(function (e) { return { e: e, ev: byEmp[e.id], s: salesOf(e) }; }).sort(function (a, b) { return ((b.ev && b.ev.score) || -1) - ((a.ev && a.ev.score) || -1); });
@@ -808,10 +826,11 @@ async function opsEval(el) {
   const critAvg = crit.map(function (cr) { const v = evals.map(function (x) { return +(x.data.scores || {})[cr.k] || 0; }).filter(Boolean); return { c: cr, v: v.length ? v.reduce(function (a, b) { return a + b; }, 0) / v.length : 0 }; });
   const weakest = critAvg.filter(function (x) { return x.v; }).sort(function (a, b) { return a.v - b.v; })[0];
   el.innerHTML = '<div class="ops-week"><label>الشهر <input type="month" id="opsEvM" value="' + month + '"></label><button class="btn btn-outline btn-sm" id="opsCrit"><i class="fas fa-sliders-h"></i> معايير التقييم</button>' + rptButtons('opsEvRpt') + '</div>' +
-    kpis([['تم تقييمهم', evals.length + ' / ' + emps.length], ['متوسط الأداء', avg === null ? '—' : nf(avg, 0) + '%', avg === null ? '' : opsRate(avg)[0], avg === null ? '' : opsRate(avg)[1]],
-      ['الأفضل', ranked[0] && ranked[0].ev ? h(ranked[0].e.title) : '—', ranked[0] && ranked[0].ev ? nf(ranked[0].ev.score, 0) + '%' : ''], ['المعيار الأضعف', weakest ? h(weakest.c.n) : '—', weakest ? nf(weakest.v, 1) + ' / 5 — أولوية التدريب' : '', weakest ? '#f59e0b' : '']]) +
+    kpis([['تم تقييمهم', evals.length + ' / ' + emps.length], ['متوسط الأداء', avg === null ? '—' : nf(avg, 0) + '%', avg === null ? '' : opsRate(avg)[0] + (prevAvg !== null ? ' · ' + (avg - prevAvg >= 0 ? '+' : '') + nf(avg - prevAvg, 0) + '% ' + fcT('عن الشهر السابق') : ''), avg === null ? '' : opsRate(avg)[1]],
+      ['الأفضل', ranked[0] && ranked[0].ev ? '<span class="kpi-txt">' + h(ranked[0].e.title) + '</span>' : '—', ranked[0] && ranked[0].ev ? nf(ranked[0].ev.score, 0) + '%' : ''], ['المعيار الأضعف', weakest ? '<span class="kpi-txt">' + h(weakest.c.n) + '</span>' : '—', weakest ? nf(weakest.v, 1) + ' / 5 — أولوية التدريب' : '', weakest ? '#f59e0b' : '']]) +
     (emps.length ? bTable([{ label: '#', r: function (x, i) { return x.ev ? '<b>' + (i + 1) + '</b>' : '—'; } }, { label: 'الموظف', r: function (x) { return '<b>' + h(x.e.title) + '</b><div class="muted" style="font-size:.72rem">' + h(OPS_DEPTS[x.e.data.dept] || '') + (x.e.data.job ? ' · ' + h(x.e.data.job) : '') + '</div>'; } },
       { label: 'النتيجة', r: function (x) { return x.ev ? opsScoreBadge(x.ev.score) : '<span class="muted">لم يُقيّم</span>'; } },
+      { label: 'اتجاه الأداء', r: function (x) { return '<div class="ev-trend">' + trend(x.e.id) + '</div>'; } },
       { label: 'نقاط القوة / التطوير', r: function (x) { if (!x.ev) return '—'; const sc = x.ev.data.scores || {}, l = crit.filter(function (cr) { return sc[cr.k]; }).sort(function (a, b) { return sc[b.k] - sc[a.k]; }); return l.length ? '<span style="color:#10b981">' + h(l[0].n) + '</span><br><span style="color:#f59e0b">' + h(l[l.length - 1].n) + '</span>' : '—'; } },
       { label: 'مبيعات 30 يوم', num: true, r: function (x) { return x.s ? money(x.s.sales) + '<div class="muted" style="font-size:.7rem">' + x.s.orders + ' طلب · متوسط ' + nf(x.s.avg, 0) + '</div>' : '—'; } },
       { label: '', r: function (x) { return '<div class="ops-row-acts"><button class="btn btn-' + (x.ev ? 'outline' : 'primary') + ' btn-sm" data-ev="' + x.e.id + '"><i class="fas fa-' + (x.ev ? 'pen' : 'star') + '"></i> ' + (x.ev ? 'تعديل' : 'تقييم') + '</button>' + (x.ev ? '<button class="btn btn-outline btn-sm" data-pr="' + x.e.id + '" title="طباعة بطاقة التقييم"><i class="fas fa-print"></i></button>' : '') + '</div>'; } }], ranked) : '<div class="empty-state">أضف فريق العمل أولاً</div>') +
@@ -825,7 +844,7 @@ async function opsEval(el) {
   };
   rptBind(el, 'opsEvRpt', function () {
     return { title: 'تقرير تقييم أداء الموظفين', period: month, kpis: [['تم تقييمهم', evals.length + ' / ' + emps.length], ['متوسط الأداء', avg === null ? '—' : nf(avg, 0) + '%']],
-      sections: [{ title: 'ترتيب الموظفين', table: { headers: ['#', 'الموظف', 'القسم', 'النتيجة %', 'التقدير', 'المقيّم'], pct: [3], rows: ranked.filter(function (x) { return x.ev; }).map(function (x, i) { return [i + 1, x.e.title, OPS_DEPTS[x.e.data.dept] || '', +x.ev.score, opsRate(x.ev.score)[0], x.ev.data.evaluator || x.ev.createdBy]; }) } },
+      sections: [{ title: 'ترتيب الموظفين', table: { headers: ['#', 'الموظف', 'القسم', 'النتيجة %', 'التقدير', 'الشهر السابق %', 'التغير', 'المقيّم'], pct: [3, 5], rows: ranked.filter(function (x) { return x.ev; }).map(function (x, i) { const pv = (hist[x.e.id] || {})[prevM]; return [i + 1, x.e.title, OPS_DEPTS[x.e.data.dept] || '', +x.ev.score, opsRate(x.ev.score)[0], pv === undefined ? '—' : pv, pv === undefined ? '—' : (x.ev.score - pv > 0 ? fcT('تقدم') + ' +' : x.ev.score - pv < 0 ? fcT('تراجع') + ' ' : fcT('ثابت') + ' ') + Math.round(x.ev.score - pv) + '%', x.ev.data.evaluator || x.ev.createdBy]; }) } },
         { title: 'متوسط الفريق لكل معيار', table: { headers: ['المعيار', 'الوزن %', 'المتوسط من 5'], rows: critAvg.map(function (x) { return [x.c.n, +x.c.w, Math.round(x.v * 10) / 10]; }) } }], signature: true };
   });
 }
@@ -978,7 +997,7 @@ async function opsEmps(el) {
       let staff; try { staff = await entList('staff'); } catch (er) { return; }
       const linked = {}; all.forEach(function (x) { if (x.data.staffId) linked[x.data.staffId] = 1; });
       const map = { kitchen: 'kitchen', cashier: 'cashier', waiter: 'service', driver: 'delivery', manager: 'management', accountant: 'management', storekeeper: 'management' };
-      const add = staff.filter(function (s) { return s.active !== false && !linked[s.id] && !all.some(function (x) { return x.title === s.name; }); });
+      const add = staff.filter(function (s) { return s.active !== false && !fcIsDevice(s) && !linked[s.id] && !all.some(function (x) { return x.title === s.name; }); });
       if (!add.length) { showToast('كل حسابات الموظفين مستوردة مسبقاً'); return; }
       showLoading();
       try { for (const s of add) await opsS('employee', { title: s.name, data: { job: (B.acc.roleNames || {})[s.role] || s.role, dept: map[s.role] || 'service', phone: s.phone || '', staffId: s.id, active: true } }, true); } finally { hideLoading(); }
@@ -992,7 +1011,7 @@ async function opsEmpModal(e, done) {
     { k: 'wage', label: 'الراتب الشهري (شامل البدلات)', type: 'number' }, { k: 'phone', label: 'الهاتف', ltr: true }, { k: 'startDate', label: 'تاريخ التعيين', type: 'date' },
     { k: 'defShift', label: 'الوردية الافتراضية', type: 'select', options: [['', '—']].concat((OPS.types || []).map(function (t) { return [t.id, t.title]; })) },
     { k: 'offDay', label: 'يوم الراحة الثابت', type: 'select', options: [['', 'متغير (توزيع تلقائي)']].concat(OPS_DAYS.map(function (d, i) { return [String(i), d]; })) },
-    { k: 'staffId', label: 'ربط بحساب موظف في النظام', type: 'select', options: [['', 'بدون ربط']].concat(staff.map(function (s) { return [s.id, s.name]; })), hint: 'الربط يجلب مبيعاته من الكاشير تلقائياً في التقييم' },
+    { k: 'staffId', label: 'ربط بحساب موظف في النظام', type: 'select', options: [['', 'بدون ربط']].concat(staff.filter(function (s) { return !fcIsDevice(s); }).map(function (s) { return [s.id, s.name]; })), hint: 'الربط يجلب مبيعاته من الكاشير تلقائياً في التقييم' },
     { k: 'active', label: 'موظف نشط', type: 'checkbox', def: true }, { k: 'notes', label: 'ملاحظات', type: 'textarea', full: true, rows: 2 }];
   bPrompt(e ? 'تعديل الموظف' : 'موظف جديد', f, e ? Object.assign({ title: e.title }, e.data, { offDay: e.data.offDay === undefined ? '' : String(e.data.offDay) }) : { dept: 'service', active: true }, async function (d) {
     const t = d.title; delete d.title;

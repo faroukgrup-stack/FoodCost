@@ -56,8 +56,8 @@ body{font-family:Tajawal,system-ui,sans-serif;background:#0b0e17;color:#e8ecf5;o
 <div class="v" id="thanks"><i class="fas fa-circle-check"></i><h1>شكراً لك</h1><div class="num" id="tnum"></div><p style="font-size:1.4rem;color:#aab7d4">نتمنى لك وجبة شهية</p></div>
 <div class="v" id="code"><h2><i class="fas fa-display"></i> شاشة العميل</h2><p style="color:#aab7d4">أدخل رمز الربط من إعدادات «الطلب الذاتي وشاشة العميل»</p><input id="ci" inputmode="numeric" maxlength="10" dir="ltr"><button id="cb">ربط</button><div id="err"></div><div data-lang-picker></div></div>
 <div id="conn"></div>
-<script src="js/config.js?v=5.4.0"></script>
-<script src="js/i18n.js?v=5.4.0"></script>
+<script src="js/config.js?v=5.4.3"></script>
+<script src="js/i18n.js?v=5.4.3"></script>
 <script>
 (function () {
   'use strict';
@@ -96,13 +96,18 @@ body{font-family:Tajawal,system-ui,sans-serif;background:#0b0e17;color:#e8ecf5;o
       (st.status === 'checkout' || st.status === 'paying' ? '<div class="st"><i class="fas fa-credit-card"></i> ' + T('بانتظار الدفع…') + '</div>' : '');
     view('order');
   }
-  if (!remote) {
-    // نفس الجهاز: قناة بث + تخزين محلي
-    if ('BroadcastChannel' in window) new BroadcastChannel('fcCustDisplay').onmessage = e => render(e.data);
-    window.addEventListener('storage', e => { if (e.key === 'fcCustDisplayState' && e.newValue) try { render(JSON.parse(e.newValue)); } catch (x) { } });
-    try { const s = JSON.parse(localStorage.getItem('fcCustDisplayState') || 'null'); if (s && Date.now() - (s.at || 0) < 600000) render(s); } catch (e) { }
-    try { const b = JSON.parse(localStorage.getItem('fcCustDisplayBrand') || 'null'); if (b) setBrand(b); } catch (e) { }
-  } else {
+  // v5.4.2: استقبال محلي دائماً (نفس الجهاز): رسائل مباشرة من نافذة الكاشير + قناة بث + تخزين محلي
+  const take = st => { if (!st || typeof st !== 'object' || st.fcCdHello) return; if (st.at && st.at < lastAt) return; if (st.at) lastAt = st.at; render(st); };
+  window.addEventListener('message', e => { if (e.data && e.data.fcCd) take(e.data.st); });
+  let bc = null;
+  if ('BroadcastChannel' in window) { bc = new BroadcastChannel('fcCustDisplay'); bc.onmessage = e => take(e.data); }
+  window.addEventListener('storage', e => { if (e.key === 'fcCustDisplayState' && e.newValue) try { take(JSON.parse(e.newValue)); } catch (x) { } });
+  try { const b = JSON.parse(localStorage.getItem('fcCustDisplayBrand') || 'null'); if (b) setBrand(b); } catch (e) { }
+  try { const s = JSON.parse(localStorage.getItem('fcCustDisplayState') || 'null'); if (s && Date.now() - (s.at || 0) < 600000) take(s); } catch (e) { }
+  // اطلب الحالة الحالية من الكاشير فور الفتح
+  const hello = () => { try { if (window.opener) window.opener.postMessage({ fcCdHello: 1 }, '*'); } catch (e) { } try { if (bc) bc.postMessage({ fcCdHello: 1 }); } catch (e) { } };
+  hello(); setTimeout(hello, 800);
+  if (remote) {
     let fails = 0;
     const pull = async () => {
       if (!code) { view('code'); return; }
@@ -112,7 +117,7 @@ body{font-family:Tajawal,system-ui,sans-serif;background:#0b0e17;color:#e8ecf5;o
         localStorage.setItem('fcCdCode', code); fails = 0; $('#conn').textContent = '';
         cur = r.currency || cur; setBrand(r.brand);
         const st = r.state || {};
-        if ((st.at || 0) !== lastAt) { lastAt = st.at || 0; if (Date.now() - lastAt > 600000 && st.status !== 'paid') view('idle'); else render(st); }
+        if ((st.at || 0) > lastAt) { if (Date.now() - st.at > 600000 && st.status !== 'paid') { lastAt = st.at; view('idle'); } else take(st); }
       } catch (e) { fails++; if (fails > 3) $('#conn').textContent = '● ' + T('جارٍ إعادة الاتصال…'); }
       setTimeout(pull, 1500);
     };
@@ -121,5 +126,6 @@ body{font-family:Tajawal,system-ui,sans-serif;background:#0b0e17;color:#e8ecf5;o
   }
 })();
 </script>
+<script src="js/logo-clean.js?v=5.4.3"></script>
 </body>
 </html>

@@ -49,7 +49,7 @@
     return out([Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255), a]);
   }
   function relLum(c) { var f = function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); }
-  var INK = [15, 23, 42];               // نص داكن أساسي (slate-900)
+  var INK = [28, 25, 23];               // v5.4.3: نص فحمي دافئ #1c1917 بدل الأسود/الأزرق الحاد
   function ink(a) { return out([INK[0], INK[1], INK[2], a]); }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
@@ -66,18 +66,18 @@
           if (o.overlay && a < 0.99) return ink(0.45);                                   // خلفيات النوافذ المنبثقة
           if (a < 0.5) return ink(clamp(a * 0.25, 0.02, 0.08));                         // تعتيم خفيف
           var A = a >= 0.6 ? 1 : a;
-          if (l < 0.075) return out([244, 246, 250, A]);                                 // خلفية الصفحة
-          if (l < 0.15) return out([255, 255, 255, A]);                                  // البطاقات والأسطح
-          return out([241, 245, 249, A]);                                                // الحقول والعناصر المرتفعة
+          if (l < 0.075) return out([236, 232, 225, A]);                                 // خلفية الصفحة — عاجي دافئ #ece8e1
+          if (l < 0.15) return out([247, 245, 240, A]);                                  // البطاقات والأسطح — أبيض دافئ #f7f5f0
+          return out([250, 248, 245, A]);                                                // الحقول والعناصر المرتفعة #faf8f5
         }
         return str;
       }
-      if (l < 0.22) { if (o.overlay && a < 0.99) return ink(0.45); return fromHsl(H[0], clamp(s * 0.6, 0, 0.6), 0.955, a >= 0.6 ? 1 : a); }
+      if (l < 0.22) { if (o.overlay && a < 0.99) return ink(0.45); return fromHsl(H[0], clamp(s * 0.45, 0, 0.45), 0.94, a >= 0.6 ? 1 : a); }
       return str;
     }
     if (ctx === 'text') {
       if (o.coloredBg) return str;
-      if (neutral || (s < 0.45 && l > 0.6)) return l > 0.55 ? fromHsl(H[0], Math.min(s, 0.22), clamp(1.08 - l, 0.12, 0.42), a) : str;
+      if (neutral || (s < 0.45 && l > 0.6)) return l > 0.55 ? fromHsl(28, Math.min(s, 0.1), clamp(1.08 - l, 0.1, 0.33), a) : str;
       if (l <= 0.3) return str;
       // v5.3.3: نص ملوّن بتباين لا يقل عن 4.5:1 على الخلفية البيضاء (WCAG AA)
       var L2 = Math.min(l, 0.46), sat = Math.min(1, s * 1.05), cand;
@@ -86,8 +86,8 @@
     }
     if (ctx === 'border') {
       if (neutral) {
-        if (l > 0.85) return a < 0.6 ? ink(clamp(a * 1.1, 0.07, 0.16)) : 'rgb(226, 232, 240)';
-        if (l < 0.36) return a < 0.6 ? ink(0.1) : 'rgb(226, 232, 240)';
+        if (l > 0.85) return a < 0.6 ? ink(clamp(a * 1.1, 0.07, 0.16)) : 'rgb(220, 213, 202)';
+        if (l < 0.36) return a < 0.6 ? ink(0.1) : 'rgb(220, 213, 202)';
         return str;
       }
       if (l < 0.22) return fromHsl(H[0], clamp(s * 0.5, 0, 0.5), 0.86, 1);
@@ -260,14 +260,14 @@
     try {
       if (typeof Chart === 'undefined' || !Chart.defaults || Chart.defaults.__fcTheme) return;
       var D = Chart.defaults, cv = D.color, bc = D.borderColor;
-      Object.defineProperty(D, 'color', { configurable: true, get: function () { return theme === 'light' && /^#(aab7d4|f|e|d|c)/i.test(String(cv)) ? '#475569' : cv; }, set: function (v) { cv = v; } });
-      Object.defineProperty(D, 'borderColor', { configurable: true, get: function () { return theme === 'light' ? 'rgba(15,23,42,0.08)' : bc; }, set: function (v) { bc = v; } });
+      Object.defineProperty(D, 'color', { configurable: true, get: function () { return theme === 'light' && /^#(aab7d4|f|e|d|c)/i.test(String(cv)) ? '#57534e' : cv; }, set: function (v) { cv = v; } });
+      Object.defineProperty(D, 'borderColor', { configurable: true, get: function () { return theme === 'light' ? 'rgba(28,25,23,0.08)' : bc; }, set: function (v) { bc = v; } });
       D.__fcTheme = true;
     } catch (e) { /* */ }
   }
   function meta() {
     var m = document.querySelector('meta[name="theme-color"]');
-    if (m) { if (!m.getAttribute('data-dark')) m.setAttribute('data-dark', m.getAttribute('content') || '#b48554'); m.setAttribute('content', theme === 'light' ? '#ffffff' : m.getAttribute('data-dark')); }
+    if (m) { if (!m.getAttribute('data-dark')) m.setAttribute('data-dark', m.getAttribute('content') || '#b48554'); m.setAttribute('content', theme === 'light' ? '#ece8e1' : m.getAttribute('data-dark')); }
   }
   var api = window.fcTheme = {
     get: function () { return theme; },

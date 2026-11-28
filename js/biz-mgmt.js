@@ -166,6 +166,7 @@ function srRenderList(body) {
     '<select class="biz-search" id="srF" style="min-width:140px"><option value="">كل الحالات</option>' + Object.keys(SR_ST).map(function (k) { return '<option value="' + k + '">' + SR_ST[k][0] + '</option>'; }).join('') + '<option value="change">طلبات تعديل</option></select>' +
     (cats.length ? '<select class="biz-search" id="srC" style="min-width:130px"><option value="">كل التصنيفات</option>' + cats.map(function (c) { return '<option>' + h(c) + '</option>'; }).join('') + '</select>' : '') +
     (srCanWrite() ? '<button class="btn btn-success btn-sm" id="srNew"><i class="fas fa-plus"></i> وصفة قياسية جديدة</button>' : '') +
+    (srCanWrite() ? '<button class="btn btn-outline btn-sm" id="srFromMenu"><i class="fas fa-book-open"></i> سحب من المنيو الإلكتروني</button>' : '') +
     '<button class="btn btn-outline btn-sm" id="srPrAll"><i class="fas fa-print"></i> طباعة المعتمدة</button>' +
     (own ? '<button class="btn btn-outline btn-sm" id="srCfg"><i class="fas fa-sliders-h"></i> إعدادات البطاقة</button>' : '') + '</div>' +
     (own && pend ? '<div class="sr-alert"><i class="fas fa-user-shield"></i> لديك ' + pend + ' وصفة/تعديل بانتظار موافقتك. لا يُطبَّق أي تعديل على الوصفة المعتمدة إلا بعد موافقتك.</div>' : '') +
@@ -195,6 +196,7 @@ function srRenderList(body) {
     const v = e.target.closest('[data-v]');
     if (v) srView(rows.find(function (r) { return r.id === v.dataset.v; }), reload);
     if (e.target.closest('#srNew')) srEdit(null, reload);
+    if (e.target.closest('#srFromMenu')) srFromMenu(rows, reload);
     if (e.target.closest('#srCfg')) srSettings(function () { srRenderList(body); });
     if (e.target.closest('#srPrAll')) {
       const ap = rows.filter(function (r) { return r.data.status === 'approved'; });
@@ -432,6 +434,38 @@ function srMatPicker(cb) {
     foot: '<button class="btn btn-cancel" data-x>إلغاء</button><button class="btn btn-primary" data-act="ok"><i class="fas fa-check"></i> إضافة المحدد</button>',
     onOpen: function (m) { m.$('#mpQ').oninput = function () { const q = this.value.trim().toLowerCase(); m.$$('[data-n]').forEach(function (l) { l.style.display = !q || l.dataset.n.indexOf(q) >= 0 ? '' : 'none'; }); }; },
     actions: { ok: function (m) { cb(m.$$('[data-mp]').filter(function (x) { return x.checked; }).map(function (x) { return mats[+x.dataset.mp]; })); m.close(); } } });
+}
+// v5.4.3: سحب صنف من المنيو الإلكتروني إلى وصفة قياسية جديدة (الاسم، التصنيف، الصورة، الوصف، السعر، الحساسية، ومقادير وصفة التكلفة المرتبطة)
+async function srFromMenu(rows, reload) {
+  await mgLoadMats();
+  const items = (await mgLoadMenu()).slice();
+  if (!items.length) { showToast('لا توجد أصناف في المنيو الإلكتروني بعد', true); return; }
+  const has = {}; (rows || []).forEach(function (r) { has[String(r.title || '').trim()] = 1; if (r.data && r.data.menuItemId) has['#' + r.data.menuItemId] = 1; });
+  const done = function (x) { return !!(has[String(x.name || '').trim()] || has['#' + x.id]); };
+  items.sort(function (a, b) { return done(a) - done(b) || String(a.category || '').localeCompare(String(b.category || '')); });
+  const cats = Array.from(new Set(items.map(function (x) { return x.category; }).filter(Boolean)));
+  bModal({ title: 'سحب من المنيو الإلكتروني', icon: 'book-open', wide: true, print: false, sub: 'اختر الصنف لإنشاء وصفة قياسية جاهزة بالاسم والصورة والتصنيف ومقادير وصفة التكلفة المرتبطة',
+    body: '<div class="biz-toolbar" style="margin:0 0 8px"><input class="biz-search grow" id="fmQ" placeholder="بحث">' + (cats.length ? '<select class="biz-search" id="fmC" style="min-width:140px"><option value="">كل الأقسام</option>' + cats.map(function (c) { return '<option>' + h(c) + '</option>'; }).join('') + '</select>' : '') + '</div>' +
+      '<div class="sr-menu-grid">' + items.map(function (x, i) { const dn = done(x); return '<button type="button" class="sr-menu-it' + (dn ? ' sr-mi-done' : '') + '" data-mi="' + i + '" data-c="' + h(x.category || '') + '" data-n="' + h(String(x.name || '').toLowerCase()) + '">' + (x.imageUrl ? '<img src="' + h(mgImg(x.imageUrl)) + '" alt="" loading="lazy">' : '<span class="sr-mi-ph"><i class="fas fa-utensils"></i></span>') + '<span>' + h(x.name) + '</span>' + (x.recipeName ? '<small class="sr-mi-tag"><i class="fas fa-link"></i> ' + h(fcT('وصفة تكلفة')) + '</small>' : '') + (dn ? '<small class="sr-mi-tag sr-mi-ok"><i class="fas fa-check"></i> ' + h(fcT('لها وصفة قياسية')) + '</small>' : '') + '</button>'; }).join('') + '</div>',
+    onOpen: function (m) {
+      const flt = function () { const q = m.$('#fmQ').value.trim().toLowerCase(), c = m.$('#fmC') ? m.$('#fmC').value : ''; m.$$('[data-mi]').forEach(function (b) { b.style.display = (!q || b.dataset.n.indexOf(q) >= 0) && (!c || b.dataset.c === c) ? '' : 'none'; }); };
+      m.$('#fmQ').oninput = flt; if (m.$('#fmC')) m.$('#fmC').onchange = flt;
+      m.el.addEventListener('click', async function (e) {
+        const b = e.target.closest('[data-mi]'); if (!b) return;
+        const x = items[+b.dataset.mi];
+        if (done(x) && !(await bConfirm('يوجد وصفة قياسية بنفس الاسم «' + x.name + '». إنشاء وصفة أخرى؟'))) return;
+        let ings = [];
+        const rec = x.recipeName ? (MG.recipes || []).find(function (r) { return r.name === x.recipeName; }) : null;
+        if (rec) {
+          const r = await bz('getRecipeIngredients', { recipeName: rec.name }, { loading: false });
+          ings = ((r && r.success && r.ingredients) || []).map(function (g) { const mm = (MG.mats || []).find(function (k) { return String(k.id) === String(g.materialId); }) || mgMatByName(g.materialName) || {}; return { materialId: mm.id || g.materialId, name: mm.name || g.materialName, qty: g.quantity, unit: mm.unit || '', price: mm.price || 0, note: '' }; });
+        }
+        const price = rec && rec.sellingPrice ? rec.sellingPrice : (x.sizes && x.sizes[0] ? x.sizes[0].price : '');
+        m.close();
+        srEdit({ title: x.name, data: { menuItemId: x.id, category: x.category || '', image: x.imageUrl || '', recipeName: rec ? rec.name : '', sellPrice: price || '', description: x.description || '', allergens: Array.isArray(x.allergens) ? x.allergens.slice() : [], ings: ings, steps: [''] } }, reload, true);
+        showToast(ings.length ? fcT('تم سحب الصنف ومقادير وصفة التكلفة — أكمل طريقة التحضير ثم احفظ') : fcT('تم سحب الصنف — أضف المقادير وطريقة التحضير ثم احفظ'));
+      });
+    } });
 }
 async function srMenuPicker(cb, hint) {
   const items = (await mgLoadMenu()).filter(function (x) { return x.imageUrl; });
@@ -681,7 +715,7 @@ function varianceView(el) {
       '<div class="fcv-f"><h4><i class="fas fa-book-open"></i> التكلفة النظرية</h4><div class="fcv-eq"><span>Σ الكمية المباعة<b>' + nf(s.soldQty, 0) + '</b></span><i>×</i><span>تكلفة الوصفة القياسية</span><i>=</i><span class="res">النظرية<b>' + nf(s.theo) + ' ' + h(cur) + '</b></span></div></div>' +
       '<div class="fcv-f"><h4><i class="fas fa-balance-scale-left"></i> تحليل الفرق</h4><div class="fcv-eq"><span>هدر مسجل<b>' + nf(s.waste) + '</b></span><span>فروقات جرد<b>' + nf(-s.countAdj) + '</b></span><span>تسويات أخرى<b>' + nf(-s.adjust) + '</b></span><span class="res" style="--c:' + (vc || '#64748b') + '">الفرق<b>' + nf(s.variance) + '</b></span></div>' +
       '<p class="muted" style="margin:6px 0 0">أقل من 1% ممتاز · 1% - 2% مقبول · أكثر من 2% يحتاج تحقيق (هدر غير مسجل، حصص زائدة، أخطاء استلام أو جرد، تسريب).</p></div></div>' +
-      '<div class="biz-toolbar"><input class="biz-search grow" id="fvQ" placeholder="بحث عن صنف"><label class="biz-check" style="margin:0"><input type="checkbox" id="fvOnly"> <span>الأصناف ذات الفرق فقط</span></label><button class="btn btn-outline btn-sm" id="fvXl"><i class="fas fa-file-excel"></i> Excel</button><button class="btn btn-outline btn-sm" id="fvPr"><i class="fas fa-print"></i> طباعة</button></div><div id="fvTbl"></div>' +
+      '<div class="biz-toolbar"><input class="biz-search grow" id="fvQ" placeholder="بحث عن صنف"><label class="biz-check" style="margin:0"><input type="checkbox" id="fvOnly"> <span>الأصناف ذات الفرق فقط</span></label><button class="btn btn-outline btn-sm" id="fvPr"><i class="fas fa-print"></i> طباعة</button></div><div id="fvTbl"></div>' +
       ((r.unmatched || []).length ? '<div class="biz-sec">أصناف مباعة بدون مقادير مرتبطة</div><div class="fcv-un">' + r.unmatched.map(function (u) { return '<span>' + h(u.name) + ' <b>' + nf(u.qty, 0) + '</b></span>'; }).join('') + '</div>' : '');
     const cols = [{ label: 'الصنف', r: function (i) { return '<b>' + h(i.name) + '</b> <small class="muted">' + h(i.unit || '') + '</small>'; } }, { label: 'أول المدة', num: true, r: function (i) { return srQ(i.opening); } }, { label: 'المشتريات', num: true, r: function (i) { return srQ(i.purchases); } },
       { label: 'تحويلات/إنتاج', num: true, r: function (i) { return srQ(i.transfers); } }, { label: 'آخر المدة', num: true, r: function (i) { return srQ(i.closing); } }, { label: 'الاستهلاك الفعلي', num: true, r: function (i) { return '<b>' + srQ(i.actual) + '</b>'; } },
@@ -693,7 +727,7 @@ function varianceView(el) {
       el.querySelector('#fvTbl').innerHTML = bTable(cols, L, { empty: 'لا توجد حركة مخزون في هذه الفترة', foot: '<tr><td><b>الإجمالي</b></td><td colspan="4"></td><td class="num"><b>' + nf(s.actual) + '</b></td><td class="num"><b>' + nf(s.theo) + '</b></td><td></td><td class="num"><b>' + nf(s.variance) + '</b></td><td></td></tr>' });
     };
     el.querySelector('#fvQ').oninput = drawT; el.querySelector('#fvOnly').onchange = drawT; drawT();
-    el.querySelector('#fvXl').onclick = function () {
+    (el.querySelector('#fvXl') || {}).onclick = function () {
       exportRowsExcel('التكلفة الفعلية والنظرية', ['الصنف', 'الوحدة', 'سعر الوحدة', 'أول المدة', 'المشتريات', 'تحويلات/إنتاج', 'آخر المدة', 'الفعلي', 'النظري', 'فرق الكمية', 'فرق %', 'قيمة الفعلي', 'قيمة النظري', 'قيمة الفرق', 'الهدر'],
         items.map(function (i) { return [i.name, i.unit, i.price, i.opening, i.purchases, i.transfers, i.closing, i.actual, i.theo, i.varQty, i.varPct, i.actualValue, i.theoValue, i.varValue, i.waste]; }).concat([[], ['صافي المبيعات', s.netSales], ['التكلفة الفعلية', s.actual, s.actualPct], ['التكلفة النظرية', s.theo, s.theoPct], ['الفرق', s.variance, s.variancePct]]));
     };

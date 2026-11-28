@@ -31,6 +31,9 @@
     return { key: TAB_PAGES[t] || 'dashboard', title: btn ? btn.textContent.trim() : '' };
   }
   var CHIPS = {
+    screens: [['كيف أشغّل شاشة المطبخ حسب المحطة؟', 'How do I run a kitchen screen per station?', 'İstasyon bazlı mutfak ekranını nasıl çalıştırırım?'], ['كيف أربط شاشة العميل والكشك؟', 'How do I link the customer display and kiosk?', 'Müşteri ekranını ve kiosku nasıl bağlarım?']],
+    products: [['كيف أحذف عدة منتجات دفعة واحدة؟', 'How do I delete several products at once?', 'Birden fazla ürünü aynı anda nasıl silerim?'], ['ماذا يعود للمخزون عند الإلغاء؟', 'What returns to stock on cancellation?', 'İptalde stoğa ne geri döner?']],
+    importxl: [['كيف أستورد بياناتي من Excel؟', 'How do I import my data from Excel?', 'Verilerimi Excel\'den nasıl içe aktarırım?']],
     _: [['كيف أبدأ بإعداد مطعمي؟', 'How do I set up my restaurant?', 'Restoranımı nasıl kurarım?'], ['ما الفرق بين الباقات؟', 'What is the difference between plans?', 'Paketler arasındaki fark nedir?']],
     pos: [['كيف أفتح وردية وأبيع؟', 'How do I open a shift and sell?', 'Vardiya açıp nasıl satış yaparım?'], ['كيف ألغي طلباً؟', 'How do I cancel an order?', 'Siparişi nasıl iptal ederim?']],
     statements: [['كيف أعتمد مسير الرواتب مع خصم؟', 'How do I post payroll with a deduction?', 'Kesintili bordroyu nasıl onaylarım?'], ['كيف أسجل سلفة لموظف؟', 'How do I record an employee advance?', 'Çalışana avans nasıl kaydedilir?']],

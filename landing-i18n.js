@@ -1,4 +1,4 @@
-/* Mataami Pro — Landing page content in 3 languages (ar / en / tr) — v5.3.2
+/* Mataami Pro — Landing page content in 3 languages (ar / en / tr) — v5.4.3
    اختيار اللغة يُحفظ في localStorage.fcLang (نفس مفتاح البرنامج) ويُمرَّر ?lang= لروابط الاشتراك والدخول */
 (function () {
   'use strict';
@@ -95,6 +95,17 @@
     kds_badge: T('الباقة المتقدمة', 'Advanced plan', 'Gelişmiş paket'),
     kds_title: T('شاشة مطبخ وشاشة حالة الطلبات', 'Kitchen display & order status screen', 'Mutfak ekranı ve sipariş durum ekranı'),
     kds_text: T('الطلبات تصل للمطبخ لحظياً من الكاشير والمينيو وتطبيق العميل ومنصات التوصيل، وتظهر للعملاء على شاشة الانتظار.', 'Orders reach the kitchen in real time from the cashier, digital menu, customer app and delivery platforms, and appear to guests on the waiting screen.', 'Siparişler kasadan, dijital menüden, müşteri uygulamasından ve teslimat platformlarından mutfağa anında ulaşır ve bekleme ekranında misafirlere görünür.'),
+    ks_badge: T('الطلب الذاتي وشاشة العميل', 'Kiosk & customer display', 'Kiosk ve müşteri ekranı'),
+    ks_title: T('اطلب وادفع بنفسك — وشاهد طلبك لحظياً', 'Order and pay yourself — and see your order live', 'Kendin sipariş ver, öde — siparişini anlık gör'),
+    ks_text: T('كشك طلب ذاتي بالدفع الإلكتروني يخفف الضغط عن الكاشير، وشاشة مواجهة للعميل تعرض الأصناف والإجمالي أثناء إدخال الطلب.', 'A self-order kiosk with online payment takes pressure off the cashier, and a customer-facing display shows items and totals while the order is entered.', 'Online ödemeli self servis kiosk kasanın yükünü hafifletir; müşteriye dönük ekran sipariş girilirken ürünleri ve toplamı gösterir.'),
+    ks_cd: T('شاشة العميل', 'Customer display', 'Müşteri ekranı'),
+    ks_h: T('الطلب الذاتي', 'Self-order', 'Self servis'),
+    ks_i1: T('برجر لحم', 'Beef burger', 'Dana burger'),
+    ks_i2: T('بطاطا مقلية', 'French fries', 'Patates kızartması'),
+    ks_i3: T('عصير برتقال', 'Orange juice', 'Portakal suyu'),
+    ks_total: T('الإجمالي', 'Total', 'Toplam'),
+    ks_pay: T('ادفع الآن', 'Pay now', 'Şimdi öde'),
+    ks_cal: T('السعرات', 'Calories', 'Kalori'),
     new_title: T('أحدث المزايا', 'Latest features', 'En yeni özellikler'),
     new_sub: T('تحديثات مستمرة مبنية على احتياجات المطاعم الفعلية.', 'Continuous updates built on real restaurant needs.', 'Gerçek restoran ihtiyaçlarına dayalı sürekli güncellemeler.'),
     faq_title: T('الأسئلة الشائعة', 'Frequently asked questions', 'Sıkça sorulan sorular'),
@@ -111,7 +122,8 @@
     T('7 أقسام ERP', '7 ERP areas', '7 ERP alanı'),
     T('محاسبة IFRS', 'IFRS accounting', 'UFRS muhasebe'),
     T('3 تطبيقات PWA', '3 PWA apps', '3 PWA uygulaması'),
-    T('شاشة مطبخ (KDS)', 'Kitchen display (KDS)', 'Mutfak ekranı (KDS)'),
+    T('شاشات مطبخ حسب الأقسام', 'Kitchen screens by station', 'İstasyon bazlı mutfak ekranları'),
+    T('طلب ذاتي (كشك) ودفع إلكتروني', 'Self-order kiosk & e-payment', 'Self servis kiosk ve e-ödeme'),
     T('مساعد ذكي AI', 'AI assistant', 'Yapay zekâ asistanı'),
     T('تقارير Excel و Word وطباعة', 'Excel, Word & print reports', 'Excel, Word ve baskı raporları')
   ];
@@ -119,7 +131,7 @@
   var STATS = [
     ['fa-layer-group', '7', T('أقسام ERP', 'ERP areas', 'ERP alanı')],
     ['fa-puzzle-piece', '50+', T('ميزة ووحدة', 'features & modules', 'özellik ve modül')],
-    ['fa-mobile-alt', '6', T('تطبيقات وشاشات', 'apps & screens', 'uygulama ve ekran')],
+    ['fa-mobile-alt', '9', T('تطبيقات وشاشات', 'apps & screens', 'uygulama ve ekran')],
     ['fa-language', '3', T('لغات لكل المخرجات', 'languages for every output', 'tüm çıktılar için dil')],
     ['fa-book', '7', T('أدلة امتياز جاهزة', 'ready franchise manuals', 'hazır franchise kılavuzu')]
   ];
@@ -142,7 +154,17 @@
       T('هندسة المينيو BCG: النجوم، الأحصنة، الألغاز، الكلاب', 'BCG menu engineering: stars, plowhorses, puzzles, dogs', 'BCG menü mühendisliği: yıldızlar, iş atları, bilmeceler, köpekler'),
       T('تحليل نقطة التعادل وهامش المساهمة', 'Break-even and contribution margin analysis', 'Başabaş ve katkı marjı analizi'),
       T('المينيو الإلكتروني و QR مع الدومين الخاص', 'Digital menu & QR with your own domain', 'Kendi alan adınızla dijital menü ve QR'),
-      T('تقييمات العملاء بثلاث لغات وتقارير الرضا', 'Customer reviews in 3 languages with satisfaction reports', '3 dilde müşteri değerlendirmeleri ve memnuniyet raporları')
+      T('تقييمات العملاء بثلاث لغات وتقارير الرضا', 'Customer reviews in 3 languages with satisfaction reports', '3 dilde müşteri değerlendirmeleri ve memnuniyet raporları'),
+      T('حاسبة السعرات والقيم الغذائية ومسببات الحساسية الـ 14 تظهر في المينيو', 'Calorie & nutrition calculator plus the 14 allergens shown on the menu', 'Kalori ve besin değeri hesaplayıcı, menüde gösterilen 14 alerjen'),
+      T('رفع أو خفض كل الأسعار بنسبة مع تقريب تلقائي ومعاينة وسجل', 'Raise or lower all prices by a percentage with auto-rounding, preview and history', 'Tüm fiyatları yüzdeyle artırma/azaltma, otomatik yuvarlama, önizleme ve geçmiş'),
+      T('استيراد المواد والأطباق والمنتجات من Excel بقالب جاهز', 'Import ingredients, dishes and products from Excel with a ready template', 'Hazır şablonla Excel\'den malzeme, yemek ve ürün içe aktarma')
+    ]},
+    { ic: 'fa-display', t: T('الشاشات والطلب الذاتي', 'Screens & self-ordering', 'Ekranlar ve self servis'), plan: 'premium', li: [
+      T('شاشات مطبخ منفصلة لكل قسم: مشويات، معجنات، بار، أراجيل', 'Separate kitchen screens per station: grill, bakery, bar, shisha', 'Her istasyon için ayrı mutfak ekranı: ızgara, hamur işi, bar, nargile'),
+      T('شريط تجميع الأصناف المتشابهة من كل الفواتير المفتوحة', 'Aggregation bar for similar items across all open orders', 'Tüm açık siparişlerdeki benzer ürünler için toplama çubuğu'),
+      T('شاشة طلب ذاتي (كشك) بالدفع الإلكتروني أو البطاقة أو عند الكاشير', 'Self-order kiosk with online, card or pay-at-counter payment', 'Online, kart veya kasada ödemeli self servis kiosk'),
+      T('شاشة العميل المواجهة للكاشير — على نفس الجهاز أو جهاز مستقل (من الإنطلاقة)', 'Customer-facing display — on the same POS or a separate device (from Starter)', 'Müşteriye dönük ekran — aynı kasada veya ayrı cihazda (Başlangıç\'tan itibaren)'),
+      T('كل الشاشات وروابطها وإعداداتها وتقاريرها في مكان واحد', 'All screens, links, settings and reports in one place', 'Tüm ekranlar, bağlantılar, ayarlar ve raporlar tek yerde')
     ]},
     { ic: 'fa-cash-register', t: T('المبيعات ونقاط البيع (SD)', 'Sales & POS (SD)', 'Satış ve POS (SD)'), plan: 'pro', li: [
       T('كاشير سريع مع قارئ QR بالكاميرا والطباعة الحرارية', 'Fast POS with camera QR scanner and thermal printing', 'Kamera QR okuyucu ve termal baskılı hızlı POS'),
@@ -212,6 +234,9 @@
     ['fa-mobile-alt', T('تطبيق العميل', 'Customer app', 'Müşteri uygulaması'), T('طلب وحجز ونقاط ولاء وحالة الطلب، باسم مطعمك وألوانه.', 'Ordering, booking, loyalty points and order tracking — in your brand and colors.', 'Markanız ve renklerinizle sipariş, rezervasyon, sadakat puanı ve sipariş takibi.')],
     ['fa-motorcycle', T('تطبيق السائق', 'Driver app', 'Kurye uygulaması'), T('استلام الطلبات والتوصيل وتحصيل المبالغ وعهدة كل سائق.', 'Pick up and deliver orders, collect payments and track each driver\'s custody.', 'Siparişleri al ve teslim et, tahsilat yap ve her kuryenin zimmetini izle.')],
     ['fa-fire-burner', T('شاشة المطبخ KDS', 'Kitchen display (KDS)', 'Mutfak ekranı (KDS)'), T('ترتيب الطلبات حسب الوقت والقناة مع تنبيهات التأخير.', 'Orders sorted by time and channel with delay alerts.', 'Gecikme uyarılarıyla zamana ve kanala göre sıralanmış siparişler.')],
+    ['fa-layer-group', T('شاشات أقسام المطبخ', 'Kitchen station screens', 'Mutfak istasyon ekranları'), T('شاشة لكل قسم مع تجميع الأصناف المتشابهة وأقسام مرتبطة أو مستقلة.', 'A screen per station with similar-item aggregation and linked or independent stations.', 'Benzer ürün toplama ve bağlı/bağımsız istasyonlarla her istasyon için bir ekran.')],
+    ['fa-tablet-screen-button', T('شاشة الطلب الذاتي (كشك)', 'Self-order kiosk', 'Self servis kiosk'), T('يطلب العميل ويدفع إلكترونياً أو بالبطاقة ويصل الطلب للمطبخ مباشرة.', 'Guests order and pay online or by card, and the order goes straight to the kitchen.', 'Misafir sipariş verip online veya kartla öder, sipariş doğrudan mutfağa gider.')],
+    ['fa-display', T('شاشة العميل', 'Customer display', 'Müşteri ekranı'), T('شاشة مواجهة للعميل تعرض الطلب والإجمالي لحظياً أثناء الكاشير.', 'A customer-facing screen showing the order and total live at the POS.', 'Kasada siparişi ve toplamı anlık gösteren müşteriye dönük ekran.')],
     ['fa-tv', T('شاشة حالة الطلبات', 'Order status screen', 'Sipariş durum ekranı'), T('أرقام قيد التحضير وجاهز للاستلام لعملاء الصالة.', 'Preparing and ready numbers for dine-in guests.', 'Salon misafirleri için hazırlanıyor ve hazır numaraları.')],
     ['fa-qrcode', T('المينيو الإلكتروني وصفحة التقييم', 'Digital menu & review page', 'Dijital menü ve değerlendirme sayfası'), T('مينيو QR بدومين خاص وصفحة تقييم سريعة بثلاث لغات.', 'QR menu on a custom domain and a quick review page in 3 languages.', 'Özel alan adlı QR menü ve 3 dilde hızlı değerlendirme sayfası.')]
   ];
@@ -242,11 +267,29 @@
   var KDS_LIST = [
     T('استقبال لحظي من كل القنوات', 'Real-time intake from every channel', 'Tüm kanallardan anlık sipariş alımı'),
     T('ترتيب حسب الوقت وتنبيهات التأخير', 'Time-based ordering and delay alerts', 'Zamana göre sıralama ve gecikme uyarıları'),
+    T('شاشة مستقلة لكل قسم: مشويات، معجنات، بار، أراجيل', 'A separate screen per station: grill, bakery, bar, shisha', 'Her istasyona ayrı ekran: ızgara, hamur işi, bar, nargile'),
+    T('تجميع الأصناف المتشابهة من كل الطلبات المفتوحة', 'Aggregation of similar items across open orders', 'Açık siparişlerdeki benzer ürünlerin toplanması'),
     T('شاشة انتظار للعملاء: قيد التحضير / جاهز', 'Guest waiting screen: preparing / ready', 'Misafir bekleme ekranı: hazırlanıyor / hazır'),
     T('ربط مع تطبيق السائق للطلبات الخارجية', 'Linked to the driver app for delivery orders', 'Paket siparişler için kurye uygulamasıyla bağlantı')
   ];
 
+  var KS_LIST = [
+    T('دفع إلكتروني بـ QR أو بالبطاقة أو عند الكاشير', 'Pay by QR, card or at the counter', 'QR, kart veya kasada ödeme'),
+    T('السعرات ومسببات الحساسية بجانب كل صنف', 'Calories and allergens next to every item', 'Her ürünün yanında kalori ve alerjenler'),
+    T('الطلب يصل لقسمه في المطبخ تلقائياً', 'The order reaches its kitchen station automatically', 'Sipariş mutfaktaki istasyonuna otomatik ulaşır'),
+    T('شاشة العميل على نفس جهاز الكاشير أو جهاز مستقل', 'Customer display on the same POS or a separate device', 'Müşteri ekranı aynı kasada veya ayrı cihazda')
+  ];
+
   var NEWS = [
+    ['fa-language', T('أسماء الأصناف بثلاث لغات', 'Item names in 3 languages', '3 dilde ürün adları'), T('سجّل اسم كل صنف وقسم بالعربية والإنجليزية والتركية؛ المينيو والكشك والتطبيق تعرض لكل عميل لغته، ولا يترجم البرنامج أسماءك آلياً.', 'Enter each item and category name in Arabic, English and Turkish; the menu, kiosk and app show every customer their own language, and your names are never machine-translated.', 'Her ürün ve kategori adını Arapça, İngilizce ve Türkçe girin; menü, kiosk ve uygulama her müşteriye kendi dilini gösterir ve adlarınız asla otomatik çevrilmez.')],
+    ['fa-rotate-left', T('إرجاع ذكي للمخزون عند الإلغاء', 'Smart return to stock on cancel', 'İptalde akıllı stok iadesi'), T('المنتج المستقل المغلق مثل المشروبات الغازية يعود للمخزون، والطبق المحضّر يُسجّل تالفاً، مع مفتاح لكل سطر.', 'Sealed standalone products such as soft drinks return to stock, prepared dishes are recorded as waste, with a switch on every line.', 'Gazlı içecek gibi açılmamış bağımsız ürünler stoğa döner, hazırlanan yemekler fire olarak kaydedilir; her satırda bir anahtar bulunur.')],
+    ['fa-calculator', T('حاسبة السعرات بالمعايير الدولية', 'Calorie calculator to international standards', 'Uluslararası standartlarda kalori hesaplayıcı'), T('معاملات Atwater وقاعدة USDA لسعرات الأطباق، ومعادلة Mifflin-St Jeor للاحتياج اليومي ومؤشر كتلة الجسم.', 'Atwater factors and the USDA database for dish calories, plus the Mifflin-St Jeor equation for daily needs and BMI.', 'Yemek kalorileri için Atwater katsayıları ve USDA veritabanı; günlük ihtiyaç için Mifflin-St Jeor denklemi ve VKİ.')],
+    ['fa-eraser', T('تهيئة البيانات بأمان', 'Safe data reset', 'Güvenli veri sıfırlama'), T('زر «تهيئة البيانات» في النسخ الاحتياطي يلزمك بتنزيل نسخة احتياطية أولاً مع تحذير وتأكيد كتابي، وحذف عدة منتجات دفعة واحدة.', 'The data reset button in backups requires downloading a backup first, with a warning and typed confirmation; plus bulk deletion of products.', 'Yedeklemedeki veri sıfırlama düğmesi önce yedek indirmeyi, uyarı ve yazılı onayı zorunlu kılar; ayrıca toplu ürün silme.')],
+    ['fa-clone', T('منع تكرار الأسماء', 'Duplicate-name prevention', 'Yinelenen ad engelleme'), T('لا يقبل البرنامج نفس الاسم مرتين في الأقسام أو المنتجات أو الأطباق، حتى مع اختلاف الهمزات والتاء المربوطة.', 'The same name is never accepted twice in categories, products or dishes, even with different hamza or taa marbuta spellings.', 'Aynı ad kategorilerde, ürünlerde veya yemeklerde iki kez kabul edilmez; yazım farklarında bile.')],
+    ['fa-layer-group', T('شاشات المطبخ حسب الأقسام', 'Kitchen screens by station', 'İstasyon bazlı mutfak ekranları'), T('قسّم المطبخ إلى مشويات ومعجنات وبار وأراجيل، لكل قسم شاشته مع شريط تجميع الأصناف المتشابهة.', 'Split the kitchen into grill, bakery, bar and shisha — each station gets its own screen with a similar-items aggregation bar.', 'Mutfağı ızgara, hamur işi, bar ve nargileye ayırın; her istasyonun benzer ürün toplama çubuklu kendi ekranı olsun.')],
+    ['fa-tablet-screen-button', T('الطلب الذاتي وشاشة العميل', 'Self-order kiosk & customer display', 'Self servis kiosk ve müşteri ekranı'), T('كشك يطلب ويدفع فيه العميل بنفسه، وشاشة مواجهة للعميل تعرض طلبه لحظياً — وكل الشاشات في مكان واحد.', 'A kiosk where guests order and pay themselves, plus a customer-facing display showing the order live — all screens managed in one place.', 'Misafirin kendisi sipariş verip ödediği kiosk ve siparişi anlık gösteren müşteri ekranı — tüm ekranlar tek yerden yönetilir.')],
+    ['fa-heart-pulse', T('السعرات ومسببات الحساسية', 'Calories & allergens', 'Kalori ve alerjenler'), T('حساب تلقائي للسعرات والقيم الغذائية من مكونات كل طبق، ومسببات الحساسية تظهر في المينيو والكشك.', 'Automatic calories and nutrition from each dish\'s ingredients, with allergens shown on the menu and kiosk.', 'Her yemeğin malzemelerinden otomatik kalori ve besin değerleri; alerjenler menüde ve kioskta görünür.')],
+    ['fa-percent', T('تعديل الأسعار بنسبة واستيراد Excel', 'Bulk price % & Excel import', 'Toplu fiyat % ve Excel içe aktarma'), T('ارفع كل الأسعار بنسبة واحدة مع التقريب، واستورد بياناتك من أي برنامج آخر بقالب Excel جاهز.', 'Raise all prices by one percentage with rounding, and import your data from any other system with a ready Excel template.', 'Tüm fiyatları yuvarlamayla tek yüzdeyle artırın, verilerinizi hazır Excel şablonuyla başka sistemlerden aktarın.')],
     ['fa-language', T('كل المخرجات بلغة الواجهة', 'Every output in the interface language', 'Tüm çıktılar arayüz dilinde'), T('الفواتير والإيصالات والتقارير وملفات Excel و Word والطباعة ورسائل واتساب تصدر بالعربية أو الإنجليزية أو التركية حسب اللغة المختارة، مع اتجاه الصفحة الصحيح.', 'Invoices, receipts, reports, Excel and Word files, printouts and WhatsApp messages follow the selected language (Arabic, English or Turkish) with the correct page direction.', 'Faturalar, fişler, raporlar, Excel ve Word dosyaları, baskılar ve WhatsApp mesajları seçilen dilde (Arapça, İngilizce veya Türkçe) ve doğru sayfa yönüyle çıkar.'), '5.3.2'],
     ['fa-book', T('أدلة الامتياز و SOP بثلاث لغات', 'Franchise manuals & SOPs in 3 languages', '3 dilde franchise kılavuzları ve SOP\'ler'), T('قوالب الأدلة السبعة وإجراءات التشغيل القياسية متاحة بالكامل بكل لغة.', 'All seven manual templates and standard operating procedures are fully available in each language.', 'Yedi kılavuz şablonu ve standart operasyon prosedürleri her dilde eksiksiz mevcuttur.'), '5.3.2'],
     ['fa-handshake', T('إقفال رصيد المنصات وقيود العكس', 'Platform balance closing & reversals', 'Platform bakiye kapama ve ters kayıtlar'), T('حساب فرعي لكل منصة تحت 1210، مع قيود إقفال الرصيد وعكسها عند الحاجة.', 'A sub-account per platform under 1210, with balance-closing entries and reversals when needed.', '1210 altında her platform için alt hesap; bakiye kapama kayıtları ve gerektiğinde ters kayıtlar.'), '5.3.1'],
@@ -267,12 +310,15 @@
         T('تقييمات العملاء بثلاث لغات', 'Customer reviews in 3 languages', '3 dilde müşteri değerlendirmeleri'),
         T('الواجهة والمخرجات بثلاث لغات', 'Interface and outputs in 3 languages', 'Arayüz ve çıktılar 3 dilde'),
         T('نسخ احتياطي شامل (يدوي / تلقائي / عند الإغلاق)', 'Full backup (manual / automatic / on exit)', 'Tam yedekleme (manuel / otomatik / çıkışta)'),
-        T('الفاتورة تحفظ السعر والتكلفة وقت البيع', 'Invoices keep price and cost at time of sale', 'Fatura satış anındaki fiyat ve maliyeti saklar')
+        T('الفاتورة تحفظ السعر والتكلفة وقت البيع', 'Invoices keep price and cost at time of sale', 'Fatura satış anındaki fiyat ve maliyeti saklar'),
+        T('السعرات الحرارية ومسببات الحساسية في المينيو', 'Calories and allergens on the menu', 'Menüde kalori ve alerjenler'),
+        T('تعديل الأسعار بنسبة واستيراد البيانات من Excel', 'Price % adjustment and Excel data import', 'Yüzdeyle fiyat ayarı ve Excel\'den veri aktarımı')
       ]},
     { key: 'pro', price: 299, popular: true, name: T('الإنطلاقة', 'Starter', 'Başlangıç'), tag: T('كل ما تحتاجه لإدارة وتشغيل نشاطك بكفاءة', 'Everything you need to run your business efficiently', 'İşletmenizi verimli yönetmek için ihtiyacınız olan her şey'),
       br: T('فرع واحد · حتى 1,000 منتج', 'One branch · up to 1,000 products', 'Tek şube · 1.000 ürüne kadar'), inh: 'inherit_basic', li: [
         T('الكاشير ونقطة البيع مع قارئ QR', 'Cashier & POS with QR scanner', 'QR okuyuculu kasa ve POS'),
         T('الطلب من المينيو وتطبيق العميل إلى الكاشير', 'Orders from the menu and customer app to the cashier', 'Menü ve müşteri uygulamasından kasaya sipariş'),
+        T('شاشة العميل المواجهة للكاشير', 'Customer-facing display at the POS', 'Kasada müşteriye dönük ekran'),
         T('الطاولات والحجوزات ودوام الفرع', 'Tables, reservations and branch hours', 'Masalar, rezervasyonlar ve şube saatleri'),
         T('قنوات التوصيل وعمولاتها وربحيتها', 'Delivery channels, commissions and profitability', 'Teslimat kanalları, komisyonlar ve kârlılık'),
         T('المخزون والجرد والهدر', 'Inventory, stock counts and waste', 'Stok, sayım ve fire'),
@@ -292,6 +338,8 @@
         T('الوصفات والإنتاج وملصقات QR', 'Recipes, production and QR labels', 'Reçeteler, üretim ve QR etiketler'),
         T('التكلفة الفعلية مقابل النظرية', 'Actual vs theoretical cost', 'Gerçek ve teorik maliyet'),
         T('شاشة المطبخ وشاشة حالة الطلبات', 'Kitchen display and order status screen', 'Mutfak ekranı ve sipariş durum ekranı'),
+        T('شاشات المطبخ حسب الأقسام مع تجميع الأصناف', 'Kitchen screens by station with item aggregation', 'Ürün toplamalı istasyon bazlı mutfak ekranları'),
+        T('شاشة الطلب الذاتي (كشك) مع الدفع الإلكتروني', 'Self-order kiosk with online payment', 'Online ödemeli self servis kiosk'),
         T('التوصيل وتطبيق السائق والعهدة', 'Delivery, driver app and custody', 'Teslimat, kurye uygulaması ve zimmet'),
         T('فروع متعددة وتحويلات المخزون', 'Multiple branches and stock transfers', 'Çoklu şube ve stok transferleri'),
         T('تطبيق خاص باسم نشاطك وسجل النشاط', 'White-label app and activity log', 'Markalı uygulama ve etkinlik kaydı'),
@@ -320,6 +368,14 @@
     R('سجل شروط عقد كل منصة بتاريخ سريان — كل طلب يحتفظ بنسبة العمولة وقت تنفيذه', 'Contract terms history per platform with effective dates — each order keeps its commission rate at the time it was placed', 'Platform bazında yürürlük tarihli sözleşme şartları geçmişi — her sipariş verildiği andaki komisyon oranını saklar', 0, 1, 1),
     R('التوصيل وتطبيق السائق وعهدة السائقين', 'Delivery, driver app and driver custody', 'Teslimat, kurye uygulaması ve kurye zimmeti', 0, 0, 1),
     R('شاشة المطبخ وشاشة حالة الطلبات للعملاء', 'Kitchen display and customer order status screen', 'Mutfak ekranı ve müşteri sipariş durum ekranı', 0, 0, 1),
+    R('شاشات مطبخ متعددة حسب الأقسام (مشويات، معجنات، بار، أراجيل) مع تجميع الأصناف المتشابهة', 'Multiple kitchen screens by station (grill, bakery, bar, shisha) with similar-item aggregation', 'Benzer ürün toplamalı, istasyona göre çoklu mutfak ekranı (ızgara, hamur işi, bar, nargile)', 0, 0, 1),
+    R('شاشة الطلب الذاتي (كشك) مع الدفع الإلكتروني', 'Self-order kiosk with online payment', 'Online ödemeli self servis kiosk', 0, 0, 1),
+    R('شاشة العميل المواجهة للكاشير', 'Customer-facing display at the POS', 'Kasada müşteriye dönük ekran', 0, 1, 1),
+    R('حاسبة السعرات الحرارية ومسببات الحساسية في المينيو', 'Calorie calculator and allergens on the menu', 'Menüde kalori hesaplayıcı ve alerjenler', 1, 1, 1),
+    R('رفع الأسعار بنسبة مئوية واستيراد الأطباق والمواد من Excel', 'Percentage price increases and importing dishes and ingredients from Excel', 'Yüzdesel fiyat artışı ve Excel\'den yemek ve malzeme aktarımı', 1, 1, 1),
+    R('أسماء الأصناف والأقسام بثلاث لغات في المينيو والكشك والتطبيق', 'Item and category names in 3 languages on the menu, kiosk and app', 'Menü, kiosk ve uygulamada 3 dilde ürün ve kategori adları', 1, 1, 1),
+    R('حذف عدة منتجات دفعة واحدة ومنع تكرار الأسماء وتهيئة البيانات بعد نسخة احتياطية إلزامية', 'Bulk product deletion, duplicate-name prevention and data reset after a mandatory backup', 'Toplu ürün silme, yinelenen ad engelleme ve zorunlu yedekten sonra veri sıfırlama', 1, 1, 1),
+    R('الإرجاع الذكي للمخزون عند الإلغاء والاسترجاع (المنتج المستقل مقابل الطبق المحضّر)', 'Smart return to stock on cancel and refund (standalone product vs prepared dish)', 'İptal ve iadede akıllı stok iadesi (bağımsız ürün ve hazırlanan yemek)', 0, 1, 1),
     R('عروض الأسعار ودفتر الآجل', 'Quotations and credit ledger', 'Fiyat teklifleri ve veresiye defteri', 0, 0, 1),
     H('سلسلة الإمداد: المخزون والمشتريات (MM)', 'Supply chain: inventory & purchasing (MM)', 'Tedarik zinciri: stok ve satın alma (MM)'),
     R('المخزون والجرد والهدر', 'Inventory, stock counts and waste', 'Stok, sayım ve fire', 0, 1, 1),
@@ -366,9 +422,9 @@
 
   var FAQ = [
     [T('ما الفرق بين الباقات الثلاث؟', 'What is the difference between the three plans?', 'Üç paket arasındaki fark nedir?'),
-     T('الأساسية للتكاليف وهندسة المينيو والمينيو الإلكتروني والتقييمات. الإنطلاقة تضيف التشغيل الكامل لفرع واحد: الكاشير، التوصيل، المخزون، العملاء والولاء، الموظفون والرواتب، التقارير المالية والمساعد الذكي. المتقدمة تفتح المحاسبة العامة IFRS، تسويات المنصات، المشتريات والإنتاج، شاشة المطبخ والسائقين، الفروع المتعددة والامتياز التجاري.',
-       'Basic covers costing, menu engineering, the digital menu and reviews. Starter adds full single-branch operations: POS, delivery, inventory, customers and loyalty, staff and payroll, financial reports and the AI assistant. Advanced unlocks IFRS general accounting, platform settlements, purchasing and production, the kitchen display and drivers, multiple branches and franchising.',
-       'Temel paket maliyet, menü mühendisliği, dijital menü ve değerlendirmeleri kapsar. Başlangıç tek şube için tam operasyonu ekler: POS, teslimat, stok, müşteriler ve sadakat, personel ve bordro, finansal raporlar ve yapay zekâ asistanı. Gelişmiş paket UFRS genel muhasebe, platform mutabakatları, satın alma ve üretim, mutfak ekranı ve kuryeler, çoklu şube ve franchise özelliklerini açar.')],
+     T('الأساسية للتكاليف وهندسة المينيو والمينيو الإلكتروني والتقييمات، مع السعرات ومسببات الحساسية وتعديل الأسعار بنسبة والاستيراد من Excel. الإنطلاقة تضيف التشغيل الكامل لفرع واحد: الكاشير، التوصيل، المخزون، العملاء والولاء، الموظفون والرواتب، التقارير المالية والمساعد الذكي وشاشة العميل. المتقدمة تفتح المحاسبة العامة IFRS، تسويات المنصات، المشتريات والإنتاج، شاشات المطبخ حسب الأقسام والطلب الذاتي (كشك) بالدفع الإلكتروني، السائقين، الفروع المتعددة والامتياز التجاري.',
+       'Basic covers costing, menu engineering, the digital menu and reviews, plus calories and allergens, price % adjustment and Excel import. Starter adds full single-branch operations: POS, delivery, inventory, customers and loyalty, staff and payroll, financial reports, the AI assistant and the customer display. Advanced unlocks IFRS general accounting, platform settlements, purchasing and production, kitchen screens by station, the self-order kiosk with online payment, drivers, multiple branches and franchising.',
+       'Temel paket maliyet, menü mühendisliği, dijital menü ve değerlendirmeleri; ayrıca kalori ve alerjenleri, yüzdeyle fiyat ayarını ve Excel içe aktarmayı kapsar. Başlangıç tek şube için tam operasyonu ekler: POS, teslimat, stok, müşteriler ve sadakat, personel ve bordro, finansal raporlar, yapay zekâ asistanı ve müşteri ekranı. Gelişmiş paket UFRS genel muhasebe, platform mutabakatları, satın alma ve üretim, istasyon bazlı mutfak ekranları, online ödemeli self servis kiosk, kuryeler, çoklu şube ve franchise özelliklerini açar.')],
     [T('هل البرنامج متاح بلغات أخرى غير العربية؟', 'Is the system available in languages other than Arabic?', 'Sistem Arapça dışında başka dillerde mevcut mu?'),
      T('نعم، الواجهة كاملة بالعربية والإنجليزية والتركية، وكل المخرجات (الفواتير، الإيصالات، التقارير، ملفات Excel و Word، الطباعة، الأدلة) تصدر بنفس اللغة التي يختارها المستخدم وباتجاه الصفحة الصحيح.',
        'Yes. The full interface is available in Arabic, English and Turkish, and every output (invoices, receipts, reports, Excel and Word files, printouts, manuals) is produced in the language each user selects, with the correct page direction.',
@@ -405,10 +461,26 @@
      T('لا. يعمل من المتصفح على أي جهاز ويمكن تثبيته كتطبيق PWA، ويدعم الطابعات الحرارية وكاميرا الجهاز لقراءة QR.',
        'No. It runs in the browser on any device and can be installed as a PWA. Thermal printers and the device camera (for QR scanning) are supported.',
        'Hayır. Her cihazda tarayıcıdan çalışır ve PWA olarak kurulabilir. Termal yazıcılar ve QR okuma için cihaz kamerası desteklenir.')],
+    [T('هل يمكن نقل بياناتي من برنامج آخر؟', 'Can I move my data from another system?', 'Verilerimi başka bir sistemden taşıyabilir miyim?'),
+     T('نعم، في كل الباقات: نزّل قالب Excel الجاهز من «الإدارة والإعدادات ← استيراد البيانات من Excel»، الصق فيه المواد والأطباق والمنتجات من برنامجك السابق، وراجع المعاينة ثم استورد.',
+       'Yes, on every plan: download the ready Excel template from “Management & settings → Import data from Excel”, paste your ingredients, dishes and products from your previous system, review the preview and import.',
+       'Evet, tüm paketlerde: «Yönetim ve ayarlar → Excel\'den veri içe aktar» bölümünden hazır şablonu indirin, önceki sisteminizden malzeme, yemek ve ürünleri yapıştırın, önizlemeyi kontrol edip aktarın.')],
+    [T('كيف يعمل الطلب الذاتي (الكشك) والدفع فيه؟', 'How does the self-order kiosk and its payment work?', 'Self servis kiosk ve ödemesi nasıl çalışır?'),
+     T('في الباقة المتقدمة: افتح رابط الكشك على تابلت أو شاشة لمس، يختار العميل أصنافه ويدفع إلكترونياً عبر بوابة الدفع (QR من جواله) أو بالبطاقة على جهاز الدفع المربوط أو عند الكاشير، ويصل الطلب للمطبخ تلقائياً.',
+       'On the Advanced plan: open the kiosk link on a tablet or touch screen. Guests choose their items and pay online through the payment gateway (QR on their phone), by card on the connected terminal or at the counter, and the order goes to the kitchen automatically.',
+       'Gelişmiş pakette: kiosk bağlantısını tablet veya dokunmatik ekranda açın. Misafir ürünlerini seçer; ödeme altyapısı üzerinden online (telefonla QR), bağlı terminalde kartla veya kasada öder ve sipariş otomatik olarak mutfağa gider.')],
+    [T('هل يعرض المينيو السعرات ومسببات الحساسية؟', 'Does the menu show calories and allergens?', 'Menü kalori ve alerjenleri gösterir mi?'),
+     T('نعم، في كل الباقات تُحسب السعرات والبروتين والكربوهيدرات والدهون تلقائياً من مكونات كل طبق، وتحدد مسببات الحساسية الـ 14، وتظهر في المينيو الإلكتروني والكشك وشاشة العميل.',
+       'Yes. On every plan calories, protein, carbs and fat are calculated automatically from each dish\'s ingredients, you set the 14 allergens, and they appear on the digital menu, the kiosk and the customer display.',
+       'Evet. Tüm paketlerde kalori, protein, karbonhidrat ve yağ her yemeğin malzemelerinden otomatik hesaplanır, 14 alerjeni belirlersiniz ve bunlar dijital menüde, kioskta ve müşteri ekranında görünür.')],
     [T('كيف أبدأ بعد الدفع؟', 'How do I get started after payment?', 'Ödemeden sonra nasıl başlarım?'),
      T('بعد تأكيد الدفع يتم تفعيل حسابك فوراً، وتدخل من صفحة دخول المشتركين وتبدأ بإضافة المواد والأطباق أو استيرادها.',
        'Once payment is confirmed your account is activated instantly. Sign in from the subscriber login page and start adding or importing your ingredients and dishes.',
-       'Ödeme onaylandığında hesabınız anında etkinleşir. Abone giriş sayfasından oturum açın ve malzeme ve yemeklerinizi eklemeye veya içe aktarmaya başlayın.')]
+       'Ödeme onaylandığında hesabınız anında etkinleşir. Abone giriş sayfasından oturum açın ve malzeme ve yemeklerinizi eklemeye veya içe aktarmaya başlayın.')],
+    [T('كيف تُحسب السعرات الحرارية؟', 'How are calories calculated?', 'Kaloriler nasıl hesaplanır?'),
+     T('بالطريقة الدولية المعتمدة: معاملات Atwater (بروتين 4، كربوهيدرات 4، دهون 9 سعرات لكل غرام) مع قيم USDA الغذائية لكل 100 غرام من كل مكوّن. وتتوفر حاسبة سعرات للمستخدم في أي وقت تشمل الاحتياج اليومي بمعادلة Mifflin-St Jeor ومؤشر كتلة الجسم.', 'Using the internationally accepted method: Atwater factors (protein 4, carbohydrate 4, fat 9 kcal per gram) with USDA nutrient values per 100 g of each ingredient. A calorie calculator is also available at any time, including daily needs with the Mifflin-St Jeor equation and BMI.', 'Uluslararası kabul gören yöntemle: her malzemenin 100 gramı için USDA besin değerleriyle Atwater katsayıları (protein 4, karbonhidrat 4, yağ 9 kcal/g). Ayrıca Mifflin-St Jeor denklemiyle günlük ihtiyaç ve VKİ içeren bir kalori hesaplayıcı her zaman kullanılabilir.')],
+    [T('هل يترجم البرنامج أسماء أصنافي تلقائياً؟', 'Does the system translate my item names automatically?', 'Sistem ürün adlarımı otomatik çevirir mi?'),
+     T('لا. تكتب اسم الصنف والقسم بلغة واحدة على الأقل، ويمكنك إضافة الإنجليزية والتركية، ويُعرض لكل عميل الاسم بلغته إن وُجد وإلا الاسم الأصلي كما كتبته.', 'No. You enter each item and category name in at least one language and can add English and Turkish; each customer sees the name in their language if provided, otherwise the original name exactly as you wrote it.', 'Hayır. Her ürün ve kategori adını en az bir dilde girersiniz, İngilizce ve Türkçe ekleyebilirsiniz; her müşteri varsa kendi dilindeki adı, yoksa yazdığınız orijinal adı görür.')],
   ];
 
   /* ---------- المحرّك ---------- */
@@ -447,6 +519,7 @@
     $('qrList').innerHTML = li(QR_LIST);
     $('caList').innerHTML = li(CA_LIST);
     $('kdsList').innerHTML = li(KDS_LIST);
+    if ($('ksList')) $('ksList').innerHTML = li(KS_LIST);
     $('newGrid').innerHTML = NEWS.map(function (n) { return '<div class="new-card">' + '<i class="fas ' + n[0] + '"></i><h4>' + esc(g(n[1])) + '</h4><p>' + esc(g(n[2])) + '</p></div>'; }).join('');
 
     $('plansGrid').innerHTML = PLANS.map(function (p) {
